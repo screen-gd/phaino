@@ -70,6 +70,25 @@ All variables live in `studio/.env.local` (copy `studio/.env.example`).
 | `pnpm typecheck` | Type-check all packages |
 | `pnpm test` | Run all tests |
 
+## Presets
+
+Presets live in `presets/`, one folder per preset (`preset.json` + exported `workflow.json`/`workflow_api.json` + `thumb.webp`). Schema, binds and the model files each family needs are documented in [presets/README.md](presets/README.md).
+
+### Dev: regenerating workflows
+
+`workflow.json`/`workflow_api.json` are produced by loading each preset's source template into a ComfyUI instance and exporting via `graphToPrompt()`. A CPU-only install is enough; no models needed:
+
+```bash
+git clone --depth 1 --branch v0.42.1 https://github.com/comfyanonymous/ComfyUI.git %USERPROFILE%\.cutaway\comfyui
+cd %USERPROFILE%\.cutaway\comfyui
+python -m venv .venv
+.\.venv\Scripts\pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+.\.venv\Scripts\pip install -r requirements.txt
+.\.venv\Scripts\python main.py --cpu --listen 127.0.0.1 --port 8188
+```
+
+Then from the repo root: `pnpm --filter cutaway-studio export:workflows`.
+
 ## Marketing site
 
 Astro, TypeScript and Tailwind. `pnpm dev:website` runs it; it deploys from `website/`. The visual direction is in [website/docs/landing-design.md](website/docs/landing-design.md), and media slots are documented in [website/public/media/README.md](website/public/media/README.md).
@@ -77,7 +96,7 @@ Astro, TypeScript and Tailwind. `pnpm dev:website` runs it; it deploys from `web
 ## Roadmap
 
 - [x] M1 Shell, env, Comfy client, health check
-- [ ] M2 Disk-based preset system
+- [x] M2 Disk-based preset system
 - [ ] M3 Camera and Image tools
 - [ ] M4 Open the workflow: viewer, fork, download
 - [ ] M5 First real run: Orbit on LTX 2.5

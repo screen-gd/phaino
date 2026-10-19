@@ -20,14 +20,35 @@ const snapshot = JSON.parse(
   ),
 ) as Snapshot;
 
+type ComboOption = {
+  key?: string;
+  inputs?: { required?: Record<string, ObjectInfoSpec>; optional?: Record<string, ObjectInfoSpec> };
+};
+
 function inputSpec(node: ApiNode, field: string): ObjectInfoSpec | null {
   const info = snapshot.nodes[node.class_type];
   if (!info?.input) return null;
-  return info.input.required?.[field] ?? info.input.optional?.[field] ?? null;
+  const direct = info.input.required?.[field] ?? info.input.optional?.[field];
+  if (direct) return direct;
+  // COMFY_DYNAMICCOMBO fields serialize sub-inputs as "<combo>.<name>"; resolve
+  // the sub-input spec inside the option matching the node's current value.
+  const dot = field.indexOf(".");
+  if (dot < 0) return null;
+  const parentName = field.slice(0, dot);
+  const sub = field.slice(dot + 1);
+  const parent =
+    info.input.required?.[parentName] ?? info.input.optional?.[parentName];
+  const options = (parent?.[1] as { options?: ComboOption[] } | undefined)
+    ?.options;
+  const opt = options?.find((o) => o.key === node.inputs?.[parentName]);
+  return opt?.inputs?.required?.[sub] ?? opt?.inputs?.optional?.[sub] ?? null;
 }
 
-function isCombo(spec: ObjectInfoSpec): boolean {
-  return Array.isArray(spec[0]);
+function comboOptions(spec: ObjectInfoSpec): unknown[] | null {
+  if (Array.isArray(spec[0])) return spec[0] as unknown[];
+  const cfg = spec[1] as { options?: unknown[] } | undefined;
+  if (spec[0] === "COMBO" && Array.isArray(cfg?.options)) return cfg.options;
+  return null;
 }
 
 function checkBind(graph: WorkflowApiGraph, bind: PresetBind, ctx: string) {
@@ -49,9 +70,10 @@ function checkBindValue(graph: WorkflowApiGraph, bind: PresetBind, value: unknow
   const node = graph[bind.node];
   const spec = inputSpec(node, bind.field);
   if (!spec) return;
-  if (isCombo(spec)) {
+  const options = comboOptions(spec);
+  if (options) {
     expect(
-      (spec[0] as unknown[]).includes(value),
+      options.includes(value),
       `${ctx}: value ${JSON.stringify(value)} not in ${node.class_type}.${bind.field} options`,
     ).toBe(true);
   }
@@ -67,7 +89,7 @@ describe("presets on disk", () => {
   const presets = listPresets();
 
   it("loads all nine presets, folder name equals id", () => {
-    expect(presets).toHaveLength(9);
+    expect(presets).toHaveLength(15);
     const dir = getEnv().presetsDir;
     for (const p of presets) {
       expect(fs.existsSync(path.join(dir, p.id, "preset.json"))).toBe(true);

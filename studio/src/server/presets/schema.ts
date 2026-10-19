@@ -64,7 +64,7 @@ export const presetSchema = z
     id: slug,
     name: z.string(),
     description: z.string(),
-    category: z.enum(["camera", "image"]),
+    category: z.enum(["camera", "image", "video"]),
     order: z.number().int(),
     chip: z.string().optional(),
     engine: z.literal("workflow"),

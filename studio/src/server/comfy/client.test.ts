@@ -9,6 +9,8 @@ const baseEnv = {
   forksDir: "/forks",
   dataDir: "/data",
   user: "local",
+  siteUrl: "http://localhost:3000",
+  trackerFile: "/tracker/tasks.json",
 } satisfies StudioEnv;
 
 describe("comfyTarget", () => {

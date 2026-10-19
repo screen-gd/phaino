@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @theme {
   --color-bg: #000;
   --color-s1: #0b0b0b;
@@ -12,12 +14,34 @@
   --color-ac: #ff5b22;
   --color-acs: #ff5b221f;
   --color-on: #160700;
-  --color-ok: #22c55e;
+  --color-ok: #6ccba0;
+  /* Secondary hues: accent hue + 137.5 and + 222.5 degrees (golden ratio). */
+  --color-mint: #6ccba0;
+  --color-peri: #898ce1;
 
   --radius-panel: 18px;
 
-  --font-sans: "Archivo Variable", Archivo, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-sans: "Mona Sans Variable", system-ui, sans-serif;
+  --font-display: "Mona Sans Variable", system-ui, sans-serif;
+  --font-heading: var(--font-display);
+  --font-wordmark: "Outfit Variable", system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+
+  /* Type scale: golden ratio, 14px base x 1.272^n (sqrt(phi) half-steps). */
+  --text-caption: 0.6875rem; /* 11px */
+  --text-caption--line-height: 1.45;
+  --text-body: 0.875rem; /* 14px */
+  --text-body--line-height: 1.5;
+  --text-lead: 1.125rem; /* 18px */
+  --text-lead--line-height: 1.45;
+  --text-h3: 1.4375rem; /* 23px */
+  --text-h3--line-height: 1.2;
+  --text-h2: 1.8125rem; /* 29px */
+  --text-h2--line-height: 1.15;
+  --text-h1: 2.3125rem; /* 37px */
+  --text-h1--line-height: 1.1;
+  --text-display: 3.6875rem; /* 59px */
+  --text-display--line-height: 1;
 }
 
 @layer base {
@@ -29,12 +53,141 @@
     background: var(--color-bg);
     color: var(--color-t1);
     font-family: var(--font-sans);
-    font-size: 14px;
-    line-height: 1.4;
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
   }
 
   :focus-visible {
     outline: 1px solid var(--color-t3);
     outline-offset: -1px;
   }
+}
+
+/* Mega-menu morph (Base UI NavigationMenu): the positioner slides between
+   triggers, the popup resizes to the next content, and content direction-
+   slides with a fade. 220ms, off under reduced motion. */
+.nav-positioner {
+  transition-property: top, left, right, bottom;
+  transition-duration: 220ms;
+  transition-timing-function: ease-out;
+}
+.nav-positioner::before {
+  content: "";
+  position: absolute;
+}
+.nav-positioner[data-side="top"]::before {
+  left: 0;
+  right: 0;
+  bottom: -10px;
+  height: 10px;
+}
+.nav-positioner[data-side="bottom"]::before {
+  left: 0;
+  right: 0;
+  top: -10px;
+  height: 10px;
+}
+.nav-positioner[data-side="left"]::before {
+  top: 0;
+  bottom: 0;
+  right: -10px;
+  width: 10px;
+}
+.nav-positioner[data-side="right"]::before {
+  top: 0;
+  bottom: 0;
+  left: -10px;
+  width: 10px;
+}
+.nav-positioner[data-instant] {
+  transition: none;
+}
+.nav-popup {
+  width: var(--popup-width);
+  height: var(--popup-height);
+  transform-origin: var(--transform-origin);
+  transition-property: opacity, transform, width, height;
+  transition-duration: 220ms;
+  transition-timing-function: ease-out;
+}
+.nav-popup[data-starting-style],
+.nav-popup[data-ending-style] {
+  opacity: 0;
+  transform: scale(0.97);
+}
+.nav-content {
+  height: 100%;
+  transition:
+    opacity 110ms ease,
+    transform 220ms ease-out;
+}
+.nav-content[data-starting-style],
+.nav-content[data-ending-style] {
+  opacity: 0;
+}
+.nav-content[data-starting-style][data-activation-direction="left"] {
+  transform: translateX(-10%);
+}
+.nav-content[data-starting-style][data-activation-direction="right"] {
+  transform: translateX(10%);
+}
+.nav-content[data-ending-style][data-activation-direction="left"] {
+  transform: translateX(10%);
+}
+.nav-content[data-ending-style][data-activation-direction="right"] {
+  transform: translateX(-10%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-positioner,
+  .nav-popup,
+  .nav-content {
+    transition: none;
+  }
+}
+
+/* shadcn/coss component tokens mapped onto the palette above (dark only). */
+@theme inline {
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-t1);
+  --color-popover: var(--color-s1);
+  --color-popover-foreground: var(--color-t1);
+  --color-primary: var(--color-ac);
+  --color-primary-foreground: var(--color-on);
+  --color-secondary: var(--color-s3);
+  --color-secondary-foreground: var(--color-t1);
+  --color-muted: var(--color-s2);
+  --color-muted-foreground: var(--color-t3);
+  --color-accent: var(--color-s3);
+  --color-accent-foreground: var(--color-t1);
+  --color-border: var(--color-line);
+  --color-input: var(--color-line);
+  --color-ring: var(--color-t3);
+  --color-destructive: var(--color-red-500);
+  --color-destructive-foreground: var(--color-red-400);
+  --color-info: var(--color-peri);
+  --color-info-foreground: var(--color-peri);
+  --color-success: var(--color-ok);
+  --color-success-foreground: var(--color-green-400);
+  --color-warning: var(--color-amber-500);
+  --color-warning-foreground: var(--color-amber-400);
+}
+
+:root {
+  --destructive-foreground: var(--color-red-700);
+  --info: var(--color-blue-500);
+  --info-foreground: var(--color-blue-700);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-700);
+  --warning: var(--color-amber-500);
+  --warning-foreground: var(--color-amber-700);
+}
+
+.dark {
+  --destructive-foreground: var(--color-red-400);
+  --info: var(--color-blue-500);
+  --info-foreground: var(--color-blue-400);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-400);
+  --warning: var(--color-amber-500);
+  --warning-foreground: var(--color-amber-400);
 }

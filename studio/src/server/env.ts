@@ -29,8 +29,13 @@ const envSchema = z.object({
   COMFY_BASE_URL: optionalHttpUrl,
   PRESETS_DIR: optionalString,
   FORKS_DIR: optionalString,
+  PHAINO_DATA_DIR: optionalString,
+  PHAINO_USER: optionalString,
+  PHAINO_SITE_URL: optionalString,
+  // Old CUTAWAY_* names still work as fallbacks.
   CUTAWAY_DATA_DIR: optionalString,
   CUTAWAY_USER: optionalString,
+  TRACKER_FILE: optionalString,
 });
 
 function buildEnv() {
@@ -40,8 +45,10 @@ function buildEnv() {
     comfyBaseUrl: e.COMFY_BASE_URL,
     presetsDir: path.resolve(/* turbopackIgnore: true */ process.cwd(), e.PRESETS_DIR ?? "../presets"),
     forksDir: path.resolve(/* turbopackIgnore: true */ process.cwd(), e.FORKS_DIR ?? "../forks"),
-    dataDir: path.resolve(/* turbopackIgnore: true */ process.cwd(), e.CUTAWAY_DATA_DIR ?? ".data"),
-    user: e.CUTAWAY_USER ?? "local",
+    dataDir: path.resolve(/* turbopackIgnore: true */ process.cwd(), e.PHAINO_DATA_DIR ?? e.CUTAWAY_DATA_DIR ?? ".data"),
+    user: e.PHAINO_USER ?? e.CUTAWAY_USER ?? "local",
+    siteUrl: e.PHAINO_SITE_URL ?? "http://localhost:3000",
+    trackerFile: path.resolve(/* turbopackIgnore: true */ process.cwd(), e.TRACKER_FILE ?? "../tracker/tasks.json"),
   };
 }
 

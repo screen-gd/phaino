@@ -19,7 +19,7 @@ presets/<id>/
 | `id` | Slug; must equal the folder name (`^[a-z0-9]+(-[a-z0-9]+)*$`) |
 | `name` | Display name |
 | `description` | One-line description |
-| `category` | `camera` or `image`; decides which tool the preset appears in |
+| `category` | `camera`, `image` or `video`; decides which tool the preset appears in |
 | `order` | Sort order inside the category |
 | `chip` | Optional short spec shown on the card (e.g. `90°`) |
 | `engine` | `workflow` (M7 adds `router`) |
@@ -49,21 +49,21 @@ FLUX binds (from `image_flux2_klein_text_to_image`): `76.value` (prompt), `75:73
 ## Adding a preset
 
 1. Copy an existing folder, rename it, edit `preset.json` (new `id`, copy, binds).
-2. With a CPU-only ComfyUI running (`COMFYUI_URL`, default `http://127.0.0.1:8188`), run `pnpm --filter cutaway-studio export:workflows` to regenerate `workflow.json`/`workflow_api.json` for every preset.
+2. With a CPU-only ComfyUI running (`COMFYUI_URL`, default `http://127.0.0.1:8188`), run `pnpm --filter phaino-studio export:workflows` to regenerate `workflow.json`/`workflow_api.json` for every preset.
 3. Run `pnpm test` to validate the folder against the object_info snapshot.
 
 ## Model files
 
-Per preset family, relative to `ComfyUI/models/`:
+Open presets need the model files listed below (relative to `ComfyUI/models/`). Partner presets (`kling3-video`, `seedance25-i2v`, `nano-banana-2`) run on hosted API nodes and draw Comfy credits instead; they need no local model files.
 
-**Camera moves (LTX 2.5, `video_ltx2_5_i2v`)** — from the gated [Lightricks/LTX-2.5](https://huggingface.co/Lightricks/LTX-2.5) repo (request access first):
+**Camera moves and LTX 2.5 i2v (`video_ltx2_5_i2v`)** — from the gated [Lightricks/LTX-2.5](https://huggingface.co/Lightricks/LTX-2.5) repo (request access first):
 
 - `diffusion_models/ltx-2.5-22b-distilled-transformer-comfy-int8-convrot.safetensors`
 - `text_encoders/gemma4-12b-with-proj-ltx-2.5-comfy-int8-convrot.safetensors`
 - `vae/ltx-2.5-video-vae-bf16.safetensors`
 - `vae/ltx-2.5-audio-vae-bf16.safetensors`
 - `latent_upscale_models/ltx-2.5-latent-spatial-upscaler-x2-bf16-1.0.safetensors`
-- Optional, only if you enable the template's prompt enhancer (Cutaway presets keep it off): `text_encoders/gemma4_e2b_it_int8_convrot.safetensors` from [Comfy-Org/gemma-4](https://huggingface.co/Comfy-Org/gemma-4)
+- Optional, only if you enable the template's prompt enhancer (Phaino presets keep it off): `text_encoders/gemma4_e2b_it_int8_convrot.safetensors` from [Comfy-Org/gemma-4](https://huggingface.co/Comfy-Org/gemma-4)
 
 **Image (FLUX.2 Klein, `image_flux2_klein_text_to_image`)** — from [Comfy-Org/flux2-klein](https://huggingface.co/Comfy-Org/flux2-klein) / [Comfy-Org/flux2-dev](https://huggingface.co/Comfy-Org/flux2-dev):
 
@@ -72,7 +72,24 @@ Per preset family, relative to `ComfyUI/models/`:
 - `diffusion_models/flux-2-klein-4b.safetensors` (flux2-klein-fast)
 - `vae/flux2-vae.safetensors`
 
+**Video (Wan 2.2, `video_wan2_2_14B_i2v`)** — from [Comfy-Org/Wan_2.2_ComfyUI_Repackaged](https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged) / [Comfy-Org/Wan_2.1_ComfyUI_repackaged](https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged):
+
+- `diffusion_models/wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors`
+- `diffusion_models/wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors`
+- `text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors`
+- `vae/wan_2.1_vae.safetensors`
+- Optional, only when the template's 4-steps LoRA switch is on (presets keep it off): `loras/wan2.2_i2v_lightx2v_4steps_lora_v1_high_noise.safetensors` and `loras/wan2.2_i2v_lightx2v_4steps_lora_v1_low_noise.safetensors`
+
+**Image (Qwen Image, `image_qwen_Image_2512`)** — from [Comfy-Org/Qwen-Image_ComfyUI](https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI):
+
+- `diffusion_models/qwen_image_2512_fp8_e4m3fn.safetensors`
+- `text_encoders/qwen_2.5_vl_7b_fp8_scaled.safetensors`
+- `vae/qwen_image_vae.safetensors`
+- Optional, only when the template's 4-steps LoRA switch is on (presets keep it off): `loras/Qwen-Image-2512-Lightning-4steps-V1.0-fp32.safetensors`
+
 ## Thumbnail credits
+
+The M7 presets use their workflow template's own thumbnail from the `comfyui_workflow_templates_media_*` packages (Comfy-Org): `ltx25-i2v` (`video_ltx2_5_i2v-1.webp`), `wan22-i2v` (`video_wan2_2_14B_i2v-1.webp`), `kling3-video` (`api_kling_v3_video-1.webp`), `seedance25-i2v` (`api_seedance2_5_i2v_1080p-1.webp`), `qwen-image` (`image_qwen_Image_2512-1.webp`), `nano-banana-2` (`api_google_nano_banana2_text_to_image-1.webp`).
 
 Placeholders from Unsplash under the [Unsplash License](https://unsplash.com/license); replace with real preset outputs when they exist.
 

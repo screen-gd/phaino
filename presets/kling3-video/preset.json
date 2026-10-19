@@ -1,0 +1,107 @@
+{
+  "id": "kling3-video",
+  "name": "Kling 3.0",
+  "description": "First frame to video on Kling 3.0, two shots.",
+  "category": "video",
+  "order": 3,
+  "chip": "5s",
+  "engine": "workflow",
+  "model": {
+    "id": "kling-3.0",
+    "label": "Kling 3.0",
+    "license": "partner"
+  },
+  "source": {
+    "template": "api_kling_v3_video"
+  },
+  "inputs": [
+    {
+      "key": "image",
+      "type": "image",
+      "label": "First frame",
+      "required": true,
+      "bind": {
+        "node": "1",
+        "field": "image"
+      }
+    }
+  ],
+  "params": [
+    {
+      "type": "text",
+      "key": "prompt",
+      "label": "Prompt",
+      "default": "",
+      "placeholder": "Describe the first shot",
+      "bind": {
+        "node": "3",
+        "field": "multi_shot.storyboard_1_prompt"
+      }
+    },
+    {
+      "type": "text",
+      "key": "prompt2",
+      "label": "Second shot",
+      "default": "",
+      "placeholder": "Empty continues the scene",
+      "bind": {
+        "node": "3",
+        "field": "multi_shot.storyboard_2_prompt"
+      }
+    },
+    {
+      "type": "int",
+      "key": "duration",
+      "label": "First shot (s)",
+      "default": 2,
+      "min": 1,
+      "max": 15,
+      "bind": {
+        "node": "3",
+        "field": "multi_shot.storyboard_1_duration"
+      }
+    },
+    {
+      "type": "int",
+      "key": "duration2",
+      "label": "Second shot (s)",
+      "default": 3,
+      "min": 1,
+      "max": 15,
+      "bind": {
+        "node": "3",
+        "field": "multi_shot.storyboard_2_duration"
+      }
+    },
+    {
+      "type": "seed",
+      "key": "seed",
+      "label": "Seed",
+      "bind": {
+        "node": "3",
+        "field": "seed"
+      }
+    },
+    {
+      "type": "choice",
+      "key": "resolution",
+      "label": "Resolution",
+      "default": "1080p",
+      "options": [
+        { "value": "720p", "label": "720p" },
+        { "value": "1080p", "label": "1080p" },
+        { "value": "4k", "label": "4K" }
+      ],
+      "bind": {
+        "node": "3",
+        "field": "model.resolution"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "node": "2",
+      "kind": "video"
+    }
+  ]
+}

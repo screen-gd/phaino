@@ -1,0 +1,101 @@
+{
+  "id": "wan22-i2v",
+  "name": "Wan 2.2",
+  "description": "Image to video on Wan 2.2 14B.",
+  "category": "video",
+  "order": 2,
+  "chip": "5s",
+  "engine": "workflow",
+  "model": {
+    "id": "wan-2.2",
+    "label": "Wan 2.2",
+    "license": "open"
+  },
+  "source": {
+    "template": "video_wan2_2_14B_i2v"
+  },
+  "inputs": [
+    {
+      "key": "image",
+      "type": "image",
+      "label": "First frame",
+      "required": true,
+      "bind": {
+        "node": "97",
+        "field": "image"
+      }
+    }
+  ],
+  "params": [
+    {
+      "type": "text",
+      "key": "prompt",
+      "label": "Prompt",
+      "default": "",
+      "placeholder": "Describe the shot",
+      "bind": {
+        "node": "129:93",
+        "field": "text"
+      }
+    },
+    {
+      "type": "seed",
+      "key": "seed",
+      "label": "Seed",
+      "bind": {
+        "node": "129:86",
+        "field": "noise_seed"
+      }
+    },
+    {
+      "type": "int",
+      "key": "duration",
+      "label": "Duration (s)",
+      "default": 5,
+      "min": 1,
+      "max": 10,
+      "bind": {
+        "node": "129:161",
+        "field": "value"
+      }
+    },
+    {
+      "type": "choice",
+      "key": "size",
+      "label": "Size",
+      "default": "640x640",
+      "options": [
+        {
+          "value": "640x640",
+          "label": "1:1 640",
+          "set": [
+            { "node": "129:98", "field": "width", "value": 640 },
+            { "node": "129:98", "field": "height", "value": 640 }
+          ]
+        },
+        {
+          "value": "832x480",
+          "label": "16:9 832x480",
+          "set": [
+            { "node": "129:98", "field": "width", "value": 832 },
+            { "node": "129:98", "field": "height", "value": 480 }
+          ]
+        },
+        {
+          "value": "480x832",
+          "label": "9:16 480x832",
+          "set": [
+            { "node": "129:98", "field": "width", "value": 480 },
+            { "node": "129:98", "field": "height", "value": 832 }
+          ]
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "node": "108",
+      "kind": "video"
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "id": "qwen-image",
+  "name": "Qwen Image",
+  "description": "Text to image on Qwen Image 2512.",
+  "category": "image",
+  "order": 3,
+  "engine": "workflow",
+  "model": {
+    "id": "qwen-image-2512",
+    "label": "Qwen Image",
+    "license": "open"
+  },
+  "source": {
+    "template": "image_qwen_Image_2512"
+  },
+  "inputs": [],
+  "params": [
+    {
+      "type": "text",
+      "key": "prompt",
+      "label": "Prompt",
+      "default": "",
+      "placeholder": "Describe the image",
+      "bind": {
+        "node": "238:227",
+        "field": "text"
+      }
+    },
+    {
+      "type": "seed",
+      "key": "seed",
+      "label": "Seed",
+      "bind": {
+        "node": "238:230",
+        "field": "seed"
+      }
+    },
+    {
+      "type": "choice",
+      "key": "aspect",
+      "label": "Aspect",
+      "default": "1328x1328",
+      "options": [
+        {
+          "value": "1328x1328",
+          "label": "1:1",
+          "set": [
+            { "node": "238:232", "field": "width", "value": 1328 },
+            { "node": "238:232", "field": "height", "value": 1328 }
+          ]
+        },
+        {
+          "value": "1664x928",
+          "label": "16:9",
+          "set": [
+            { "node": "238:232", "field": "width", "value": 1664 },
+            { "node": "238:232", "field": "height", "value": 928 }
+          ]
+        },
+        {
+          "value": "928x1664",
+          "label": "9:16",
+          "set": [
+            { "node": "238:232", "field": "width", "value": 928 },
+            { "node": "238:232", "field": "height", "value": 1664 }
+          ]
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "node": "60",
+      "kind": "image"
+    }
+  ]
+}

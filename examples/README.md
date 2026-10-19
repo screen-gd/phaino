@@ -1,0 +1,1 @@
+This folder holds real sample outputs generated with Cutaway presets. Each file is named ``<preset-id>_<n>.<ext>`` so you can see which preset produced it.

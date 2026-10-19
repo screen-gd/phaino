@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { ComfyHealth } from "@/lib/health";
+import { SocialConnections } from "@/components/SocialConnections";
 
 const TARGET_LABELS = { cloud: "Comfy Cloud", custom: "Custom endpoint" } as const;
 
@@ -80,6 +81,8 @@ export function SettingsView() {
           </p>
         )}
       </div>
+
+      <SocialConnections />
     </div>
   );
 }

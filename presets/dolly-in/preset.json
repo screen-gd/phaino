@@ -1,0 +1,142 @@
+{
+  "id": "dolly-in",
+  "name": "Dolly in",
+  "description": "A steady dolly-in toward the subject.",
+  "category": "camera",
+  "order": 2,
+  "chip": "1.8×",
+  "engine": "workflow",
+  "model": {
+    "id": "ltx-2.5",
+    "label": "LTX 2.5",
+    "license": "open"
+  },
+  "source": {
+    "template": "video_ltx2_5_i2v"
+  },
+  "inputs": [
+    {
+      "key": "image",
+      "type": "image",
+      "label": "First frame",
+      "required": true,
+      "bind": {
+        "node": "395",
+        "field": "image"
+      }
+    }
+  ],
+  "params": [
+    {
+      "type": "text",
+      "key": "prompt",
+      "label": "Prompt",
+      "default": "",
+      "placeholder": "Describe the shot",
+      "template": "{prompt} The camera dollies in steadily toward the subject on a smooth track, the framing tightening from a medium shot to a close-up, with gentle parallax in the background.",
+      "bind": {
+        "node": "398:376",
+        "field": "value"
+      }
+    },
+    {
+      "type": "seed",
+      "key": "seed",
+      "label": "Seed",
+      "bind": {
+        "node": "398:339",
+        "field": "noise_seed"
+      }
+    },
+    {
+      "type": "choice",
+      "key": "duration",
+      "label": "Duration",
+      "default": 4,
+      "options": [
+        {
+          "value": 2,
+          "label": "2s"
+        },
+        {
+          "value": 3,
+          "label": "3s"
+        },
+        {
+          "value": 4,
+          "label": "4s"
+        },
+        {
+          "value": 5,
+          "label": "5s"
+        },
+        {
+          "value": 6,
+          "label": "6s"
+        },
+        {
+          "value": 8,
+          "label": "8s"
+        }
+      ],
+      "bind": {
+        "node": "398:362",
+        "field": "value"
+      }
+    },
+    {
+      "type": "choice",
+      "key": "fps",
+      "label": "FPS",
+      "default": 24,
+      "options": [
+        {
+          "value": 24,
+          "label": "24"
+        },
+        {
+          "value": 25,
+          "label": "25"
+        },
+        {
+          "value": 30,
+          "label": "30"
+        }
+      ],
+      "bind": {
+        "node": "398:361",
+        "field": "value"
+      }
+    },
+    {
+      "type": "choice",
+      "key": "aspect",
+      "label": "Aspect",
+      "default": "16:9 (Widescreen)",
+      "options": [
+        {
+          "value": "16:9 (Widescreen)",
+          "label": "16:9"
+        },
+        {
+          "value": "9:16 (Portrait Widescreen)",
+          "label": "9:16"
+        },
+        {
+          "value": "1:1 (Square)",
+          "label": "1:1"
+        }
+      ],
+      "bind": {
+        "node": "403",
+        "field": "aspect_ratio"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "node": "75",
+      "kind": "video"
+    }
+  ]
+}

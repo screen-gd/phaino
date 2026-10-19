@@ -1,43 +1,35 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { BACKEND_LABELS, BACKENDS } from "@/lib/backend";
-import type { BackendHealth } from "@/lib/health";
+import type { ComfyHealth } from "@/lib/health";
 
-function StatusDot({ status }: { status: BackendHealth["status"] | undefined }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={`h-2 w-2 flex-none rounded-full ${
-        status === "ok" ? "bg-ac" : "bg-t3"
-      }`}
-    />
-  );
-}
+const TARGET_LABELS = { cloud: "Comfy Cloud", custom: "Custom endpoint" } as const;
 
-/** Backend list with live status from /api/health. */
+/** Comfy target status from /api/health. */
 export function SettingsView() {
-  const [health, setHealth] = useState<BackendHealth[] | null>(null);
+  const [health, setHealth] = useState<ComfyHealth | null>(null);
   const [checking, setChecking] = useState(false);
 
-  const load = useCallback(async (): Promise<BackendHealth[]> => {
+  const load = useCallback(async (): Promise<ComfyHealth | null> => {
     try {
       const r = await fetch("/api/health");
-      const data: { backends?: BackendHealth[] } | null = r.ok ? await r.json() : null;
-      return data?.backends ?? [];
+      return r.ok ? await r.json() : null;
     } catch {
-      return [];
+      return null;
     }
   }, []);
 
   useEffect(() => {
-    void load().then(setHealth);
+    void load().then((h) => {
+      if (h) setHealth(h);
+    });
   }, [load]);
 
   const recheck = useCallback(async () => {
     setChecking(true);
     try {
-      setHealth(await load());
+      const h = await load();
+      if (h) setHealth(h);
     } finally {
       setChecking(false);
     }
@@ -46,7 +38,7 @@ export function SettingsView() {
   return (
     <div className="mx-auto w-full max-w-xl p-6">
       <div className="mb-3 flex items-baseline justify-between">
-        <h1 className="text-base font-semibold">Backends</h1>
+        <h1 className="text-base font-semibold">Backend</h1>
         <button
           type="button"
           onClick={() => void recheck()}
@@ -56,37 +48,37 @@ export function SettingsView() {
         </button>
       </div>
 
-      <div className="flex flex-col gap-2.5">
-        {BACKENDS.map((b) => {
-          const h = health?.find((x) => x.backend === b);
-          return (
-            <div
-              key={b}
-              className="grid gap-2 rounded-[14px] border border-line bg-s2 p-3.5"
-            >
-              <div className="flex items-center justify-between gap-2 font-semibold">
-                <span className="flex items-center gap-2">
-                  <StatusDot status={h?.status} />
-                  {BACKEND_LABELS[b]}
-                </span>
-                <span className="font-mono text-xs font-normal text-t2">
-                  {h?.status ?? "checking"}
-                </span>
-              </div>
-              <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-                <dt className="font-mono text-xs uppercase tracking-[0.06em] text-t3">Host</dt>
-                <dd className="text-t2">{h?.host ?? "-"}</dd>
-                <dt className="font-mono text-xs uppercase tracking-[0.06em] text-t3">Latency</dt>
-                <dd className="text-t2">
-                  {h?.latencyMs != null ? `${h.latencyMs} ms` : "-"}
-                </dd>
-              </dl>
-              {h?.status === "not_configured" && h.message && (
-                <p className="font-mono text-xs text-ac">{h.message}</p>
-              )}
-            </div>
-          );
-        })}
+      <div className="grid gap-2 rounded-[14px] border border-line bg-s2 p-3.5">
+        <div className="flex items-center justify-between gap-2 font-semibold">
+          <span className="flex items-center gap-2">
+            <span
+              aria-hidden="true"
+              className={`h-2 w-2 flex-none rounded-full ${
+                health?.status === "ok" ? "bg-ok" : "bg-t3"
+              }`}
+            />
+            {health ? TARGET_LABELS[health.target] : "Comfy Cloud"}
+          </span>
+          <span className="font-mono text-xs font-normal text-t2">
+            {health?.status ?? "checking"}
+          </span>
+        </div>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+          <dt className="font-mono text-xs uppercase tracking-[0.06em] text-t3">Host</dt>
+          <dd className="text-t2">{health?.host ?? "-"}</dd>
+          <dt className="font-mono text-xs uppercase tracking-[0.06em] text-t3">Latency</dt>
+          <dd className="text-t2">
+            {health?.latencyMs != null ? `${health.latencyMs} ms` : "-"}
+          </dd>
+        </dl>
+        {health?.message && (
+          <p className="font-mono text-xs text-ac">{health.message}</p>
+        )}
+        {health?.status === "not_configured" && (
+          <p className="font-mono text-xs text-t3">
+            COMFY_API_KEY: Comfy Cloud key. COMFY_BASE_URL: optional custom endpoint.
+          </p>
+        )}
       </div>
     </div>
   );

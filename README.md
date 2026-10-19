@@ -1,6 +1,6 @@
 # Cutaway
 
-Cutaway is an open-source studio for images and video built on the [Comfy Developer Platform](https://comfy.org). Every preset is a real ComfyUI workflow you can open, edit and fork. It runs on your own GPU through a local ComfyUI server or on Comfy Cloud; open models (LTX 2.5, FLUX.2) are the defaults, and partner models are available through Comfy Router.
+Cutaway is an open-source studio for images and video built on the [Comfy Developer Platform](https://comfy.org). Every preset is a real ComfyUI workflow you can open, edit and fork. It runs on Comfy Cloud, or on any Comfy API v2 endpoint you point it at (including your own ComfyUI); open models (LTX 2.5, FLUX.2) are the defaults, and partner models are available through Comfy Router.
 
 ## Repository layout
 
@@ -28,9 +28,13 @@ pnpm dev:studio
 
 Open http://localhost:3000. Check backend connectivity at http://localhost:3000/api/health.
 
-## Local GPU setup
+## Comfy Cloud setup
 
-Run [ComfyUI](https://github.com/comfyanonymous/ComfyUI), then put the API v2 surface in front of it:
+Create an API key at [platform.comfy.org/profile/api-keys](https://platform.comfy.org/profile/api-keys) and set it as `COMFY_API_KEY` in `studio/.env.local`. Comfy Cloud API access requires a paid Comfy Cloud subscription, and Comfy Router calls draw Comfy credits.
+
+### Advanced: your own ComfyUI
+
+To run on your own machine instead, put the Comfy API v2 in front of a local [ComfyUI](https://github.com/comfyanonymous/ComfyUI):
 
 ```bash
 pip install comfy-api-proxy
@@ -41,20 +45,14 @@ ComfyUI keeps serving on `127.0.0.1:8188`; the proxy serves the Comfy API v2 on 
 
 Model files required by each preset: added with the first preset.
 
-## Comfy Cloud setup
-
-Create an API key at [platform.comfy.org/profile/api-keys](https://platform.comfy.org/profile/api-keys) and set it as `COMFY_API_KEY` in `studio/.env.local`. Comfy Cloud API access requires a paid Comfy Cloud subscription, and Comfy Router calls draw Comfy credits.
-
 ## Environment variables
 
 All variables live in `studio/.env.local` (copy `studio/.env.example`).
 
 | Variable | Purpose |
 | --- | --- |
-| `COMFY_BASE_URL` | Local backend URL (the comfy-api-proxy address) |
-| `COMFY_LOCAL_TOKEN` | Optional bearer token for the local proxy |
 | `COMFY_API_KEY` | Comfy Cloud / Comfy Router API key |
-| `COMFY_CLOUD_URL` | Cloud backend URL (default `https://cloud.comfy.org`) |
+| `COMFY_BASE_URL` | Optional custom Comfy API v2 endpoint (blank = Comfy Cloud) |
 | `PRESETS_DIR` | Preset folder (default `../presets` from `studio/`) |
 | `FORKS_DIR` | User forks folder (default `../forks` from `studio/`) |
 | `CUTAWAY_DATA_DIR` | Local data folder (default `./.data` under `studio/`) |

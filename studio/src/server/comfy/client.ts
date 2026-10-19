@@ -1,84 +1,53 @@
 import "server-only";
-import { Comfy } from "@comfyorg/sdk";
-import type { Backend } from "@/lib/backend";
+import { Comfy, COMFY_CLOUD_BASE_URL } from "@comfyorg/sdk";
 import { getEnv, type StudioEnv } from "@/server/env";
 import pkg from "../../../package.json";
 
-export class BackendNotConfigured extends Error {
-  readonly backend: Backend;
-  readonly envVar: string;
-
-  constructor(backend: Backend, envVar: string) {
-    super(`Backend "${backend}" is not configured. Set ${envVar} in studio/.env.local.`);
-    this.name = "BackendNotConfigured";
-    this.backend = backend;
-    this.envVar = envVar;
+export class ComfyNotConfigured extends Error {
+  constructor() {
+    super("Set COMFY_API_KEY in studio/.env.local");
+    this.name = "ComfyNotConfigured";
   }
-}
-
-/** Connection target for a backend, or `configured: false` with the missing piece. */
-export function backendTarget(backend: Backend, env: StudioEnv) {
-  if (backend === "local") {
-    return env.comfyBaseUrl
-      ? { configured: true, baseUrl: env.comfyBaseUrl, apiKey: env.comfyLocalToken }
-      : { configured: false, baseUrl: null, apiKey: undefined };
-  }
-  return env.comfyApiKey
-    ? { configured: true, baseUrl: env.comfyCloudUrl, apiKey: env.comfyApiKey }
-    : { configured: false, baseUrl: null, apiKey: undefined };
 }
 
 /**
- * Build a Comfy client for one backend. The SDK only reads COMFY_BASE_URL
- * and falls back to COMFY_API_KEY at construction time, so both are pinned
- * synchronously here (and the cloud key deleted for a credential-less local
- * backend) and restored exactly before returning.
+ * Where the Comfy client points: Comfy Cloud when COMFY_BASE_URL is unset,
+ * otherwise the custom endpoint. A custom proxy may need no key, so only the
+ * cloud target requires COMFY_API_KEY.
  */
-export function createComfyClient(
-  backend: Backend,
-  env: StudioEnv,
-  options?: { fetch?: typeof fetch },
-): Comfy {
-  const target = backendTarget(backend, env);
-  if (!target.configured || !target.baseUrl) {
-    throw new BackendNotConfigured(
-      backend,
-      backend === "local" ? "COMFY_BASE_URL" : "COMFY_API_KEY",
-    );
+export function comfyTarget(env: StudioEnv) {
+  if (env.comfyBaseUrl) {
+    return {
+      kind: "custom" as const,
+      baseUrl: env.comfyBaseUrl,
+      host: new URL(env.comfyBaseUrl).host,
+      configured: true,
+    };
   }
-
-  const prevBaseUrl = process.env.COMFY_BASE_URL;
-  const prevApiKey = process.env.COMFY_API_KEY;
-  try {
-    process.env.COMFY_BASE_URL = target.baseUrl;
-    if (target.apiKey === undefined) {
-      delete process.env.COMFY_API_KEY;
-    } else {
-      process.env.COMFY_API_KEY = target.apiKey;
-    }
-    return new Comfy({
-      apiKey: target.apiKey,
-      clientInfo: `cutaway/${pkg.version}`,
-      fetch: options?.fetch,
-    });
-  } finally {
-    if (prevBaseUrl === undefined) {
-      delete process.env.COMFY_BASE_URL;
-    } else {
-      process.env.COMFY_BASE_URL = prevBaseUrl;
-    }
-    if (prevApiKey === undefined) {
-      delete process.env.COMFY_API_KEY;
-    } else {
-      process.env.COMFY_API_KEY = prevApiKey;
-    }
-  }
+  return {
+    kind: "cloud" as const,
+    baseUrl: COMFY_CLOUD_BASE_URL,
+    host: new URL(COMFY_CLOUD_BASE_URL).host,
+    configured: env.comfyApiKey !== undefined,
+  };
 }
 
-const globalClients = globalThis as { __cutawayComfy?: Partial<Record<Backend, Comfy>> };
+const globalClient = globalThis as { __cutawayComfy?: Comfy };
 
-/** Memoized Comfy client per backend; kept on globalThis to survive dev HMR. */
-export function getComfy(backend: Backend): Comfy {
-  const cache = (globalClients.__cutawayComfy ??= {});
-  return (cache[backend] ??= createComfyClient(backend, getEnv()));
+/**
+ * The shared Comfy client, memoized on globalThis to survive dev HMR.
+ * The SDK reads COMFY_BASE_URL itself at construction, so no env handling
+ * is needed here beyond passing the key.
+ */
+export function getComfy(): Comfy {
+  if (!globalClient.__cutawayComfy) {
+    const env = getEnv();
+    const target = comfyTarget(env);
+    if (!target.configured) throw new ComfyNotConfigured();
+    globalClient.__cutawayComfy = new Comfy({
+      apiKey: env.comfyApiKey,
+      clientInfo: `cutaway/${pkg.version}`,
+    });
+  }
+  return globalClient.__cutawayComfy;
 }

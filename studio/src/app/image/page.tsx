@@ -7,7 +7,7 @@ const STEPS: ToolStep[] = [
   },
   {
     title: "Pick a model and style",
-    body: "FLUX.2 is Open and runs free on your GPU. FLUX 3, Nano Banana Pro and GPT Image 2 are Partner models.",
+    body: "FLUX.2 is Open and runs on Comfy Cloud. FLUX 3, Nano Banana Pro and GPT Image 2 are Partner models.",
   },
   {
     title: "Generate, then animate",

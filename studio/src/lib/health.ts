@@ -1,5 +1,3 @@
-import type { Backend } from "./backend";
-
 export type HealthStatus =
   | "ok"
   | "unauthorized"
@@ -8,10 +6,10 @@ export type HealthStatus =
   | "not_configured"
   | "error";
 
-export type BackendHealth = {
-  backend: Backend;
+export type ComfyHealth = {
   status: HealthStatus;
-  host: string | null;
+  target: "cloud" | "custom";
+  host: string;
   latencyMs: number | null;
   message?: string;
 };

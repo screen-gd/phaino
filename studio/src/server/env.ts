@@ -25,10 +25,8 @@ const optionalHttpUrl = z.preprocess(
 );
 
 const envSchema = z.object({
-  COMFY_BASE_URL: optionalHttpUrl,
-  COMFY_LOCAL_TOKEN: optionalString,
   COMFY_API_KEY: optionalString,
-  COMFY_CLOUD_URL: optionalHttpUrl,
+  COMFY_BASE_URL: optionalHttpUrl,
   PRESETS_DIR: optionalString,
   FORKS_DIR: optionalString,
   CUTAWAY_DATA_DIR: optionalString,
@@ -38,10 +36,8 @@ const envSchema = z.object({
 function buildEnv() {
   const e = envSchema.parse(process.env);
   return {
-    comfyBaseUrl: e.COMFY_BASE_URL,
-    comfyLocalToken: e.COMFY_LOCAL_TOKEN,
     comfyApiKey: e.COMFY_API_KEY,
-    comfyCloudUrl: e.COMFY_CLOUD_URL ?? "https://cloud.comfy.org",
+    comfyBaseUrl: e.COMFY_BASE_URL,
     presetsDir: path.resolve(/* turbopackIgnore: true */ process.cwd(), e.PRESETS_DIR ?? "../presets"),
     forksDir: path.resolve(/* turbopackIgnore: true */ process.cwd(), e.FORKS_DIR ?? "../forks"),
     dataDir: path.resolve(/* turbopackIgnore: true */ process.cwd(), e.CUTAWAY_DATA_DIR ?? ".data"),

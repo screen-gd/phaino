@@ -1,8 +1,7 @@
 import "server-only";
 import { ComfyLow } from "@comfyorg/sdk/low";
-import type { Backend } from "@/lib/backend";
-import type { BackendHealth, HealthStatus } from "@/lib/health";
-import { backendTarget } from "./client";
+import type { ComfyHealth, HealthStatus } from "@/lib/health";
+import { comfyTarget } from "./client";
 import { getEnv, type StudioEnv } from "@/server/env";
 import pkg from "../../../package.json";
 
@@ -71,21 +70,19 @@ function describeThrown(error: unknown): string {
   return String(error);
 }
 
-/** HEAD-probe one backend through the low transport and classify the result. */
-export async function probeBackend(backend: Backend, env: StudioEnv = getEnv()): Promise<BackendHealth> {
-  const target = backendTarget(backend, env);
-  if (!target.configured || !target.baseUrl) {
-    const envVar = backend === "local" ? "COMFY_BASE_URL" : "COMFY_API_KEY";
+/** HEAD-probe the configured Comfy target through the low transport. */
+export async function probeComfy(env: StudioEnv = getEnv()): Promise<ComfyHealth> {
+  const target = comfyTarget(env);
+  if (!target.configured) {
     return {
-      backend,
-      host: null,
+      target: target.kind,
+      host: target.host,
       latencyMs: null,
-      ...classifyProbe({ kind: "not_configured", envVar }),
+      ...classifyProbe({ kind: "not_configured", envVar: "COMFY_API_KEY" }),
     };
   }
 
-  const host = new URL(target.baseUrl).host;
-  const low = new ComfyLow(target.baseUrl, target.apiKey, {
+  const low = new ComfyLow(target.baseUrl, env.comfyApiKey, {
     clientInfo: `cutaway/${pkg.version}`,
   });
 
@@ -95,16 +92,16 @@ export async function probeBackend(backend: Backend, env: StudioEnv = getEnv()):
     const latencyMs = Math.round(performance.now() - started);
     // A HEAD reply carries no body, so no error envelope to read a code from.
     return {
-      backend,
-      host,
+      target: target.kind,
+      host: target.host,
       latencyMs,
       ...classifyProbe({ kind: "response", status: response.status }),
     };
   } catch (error) {
     const latencyMs = Math.round(performance.now() - started);
     return {
-      backend,
-      host,
+      target: target.kind,
+      host: target.host,
       latencyMs,
       ...classifyProbe({ kind: "thrown", error }),
     };

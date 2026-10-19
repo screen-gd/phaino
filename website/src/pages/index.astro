@@ -15,7 +15,7 @@ import Workflow from '../components/Workflow.astro';
 import { catalogue, tools, workflowReady } from '../data/presets';
 import '../styles/global.css';
 
-const github = 'https://github.com/screen-gd/cutaway';
+const github = 'https://github.com/screen-gd/phaino';
 const capabilities = [
   { name: 'Images', file: 'image', model: 'FLUX', text: 'Text to image, style presets and characters that stay consistent.', class: 'cap-image' },
   { name: 'Video', file: 'video', model: 'LTX 2.5', text: 'Turn a prompt or a still image into a moving shot.', class: 'cap-video' },
@@ -65,13 +65,21 @@ const setups = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="Cutaway is an open-source AI studio for images and video. Every cinematic preset is a ComfyUI workflow you can open, remix and run yourself." />
-    <meta property="og:title" content="Cutaway · Every frame. Wide open." />
-    <meta property="og:description" content="The open-source AI studio where every preset opens into a workflow you can remix and run yourself." />
+    <meta property="og:title" content="Phaino" />
+    <meta property="og:description" content="An open-source AI video and image studio. Open, remix and run the workflow behind every preset." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/og.jpg" />
+    <meta property="og:site_name" content="Phaino" />
+    <meta property="og:url" content="https://phaino.us.ci/" />
+    <meta property="og:image" content="https://phaino.us.ci/social/02-refraction-v3.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:alt" content="Phaino. AI video and image studio. White wordmark beside diffused orange light through fine vertical glass ridges on black." />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Phaino" />
+    <meta name="twitter:description" content="An open-source AI video and image studio. Open, remix and run the workflow behind every preset." />
+    <meta name="twitter:image" content="https://phaino.us.ci/social/02-refraction-v3.jpg" />
+    <meta name="twitter:image:alt" content="Phaino. AI video and image studio. White wordmark beside diffused orange light through fine vertical glass ridges on black." />
     <meta name="twitter:site" content="@Screeendev" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Cutaway · Every frame. Wide open.</title>
@@ -171,9 +179,9 @@ const setups = {
         </ul>
         <div class="run-body" data-reveal>
           <div class="run-intro"><h3>Set it up in a minute</h3><div class="run-switch" role="tablist" aria-label="Where it runs"><button role="tab" id="run-local" aria-selected="true" aria-controls="setup-terminal" data-run="local">On your GPU</button><button role="tab" id="run-cloud" aria-selected="false" aria-controls="setup-terminal" tabindex="-1" data-run="cloud">On Comfy Cloud</button></div><p class="compute-note">Cloud compute is billed by Comfy, not Cutaway. Model licenses apply to outputs.</p></div>
-          <div class="terminal" id="setup-terminal" role="tabpanel" aria-labelledby="run-local"><div class="terminal-bar"><span class="terminal-lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="mono">~/cutaway</span><button class="copy-button" data-copy-setup><Icon name="copy" size={15}/><span>Copy</span></button></div><pre><code><span class="terminal-comment" data-setup-comment>{setups.local.comment}</span>
-<span class="terminal-prompt">$</span> git clone https://github.com/screen-gd/cutaway.git
-<span class="terminal-prompt">$</span> cd cutaway
+          <div class="terminal" id="setup-terminal" role="tabpanel" aria-labelledby="run-local"><div class="terminal-bar"><span class="terminal-lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="mono">~/phaino</span><button class="copy-button" data-copy-setup><Icon name="copy" size={15}/><span>Copy</span></button></div><pre><code><span class="terminal-comment" data-setup-comment>{setups.local.comment}</span>
+<span class="terminal-prompt">$</span> git clone https://github.com/screen-gd/phaino.git
+<span class="terminal-prompt">$</span> cd phaino
 <span class="terminal-prompt">$</span> cp .env.example .env.local
 <span class="terminal-prompt">$</span> echo "<span data-setup-env>{setups.local.env}</span>" &gt;&gt; .env.local
 <span class="terminal-prompt">$</span> npm install &amp;&amp; npm run dev</code></pre></div>

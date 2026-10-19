@@ -1,0 +1,331 @@
+{
+  "updated": "2026-10-19",
+  "milestones": [
+    {
+      "id": "m1",
+      "title": "M1 Shell, env, Comfy client, health check",
+      "tasks": [
+        {
+          "id": "m1-shell",
+          "title": "Shell and env",
+          "status": "done"
+        },
+        {
+          "id": "m1-client",
+          "title": "Comfy client factory",
+          "status": "done"
+        },
+        {
+          "id": "m1-health",
+          "title": "/api/health",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "m2",
+      "title": "M2 Disk-based preset system",
+      "tasks": [
+        {
+          "id": "m2-schema",
+          "title": "Zod preset schema and loader",
+          "status": "done"
+        },
+        {
+          "id": "m2-binding",
+          "title": "Param binding",
+          "status": "done"
+        },
+        {
+          "id": "m2-export",
+          "title": "Workflows exported with graphToPrompt",
+          "status": "done"
+        },
+        {
+          "id": "m2-snapshot",
+          "title": "object_info snapshot and validator tests",
+          "status": "done"
+        },
+        {
+          "id": "m2-presets",
+          "title": "9 presets",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "ui",
+      "title": "Studio UI and brand",
+      "tasks": [
+        {
+          "id": "ui-explore",
+          "title": "Explore home in Higgsfield layout",
+          "status": "done"
+        },
+        {
+          "id": "ui-header",
+          "title": "Shrinking header",
+          "status": "done"
+        },
+        {
+          "id": "ui-coss",
+          "title": "coss ui buttons and badges",
+          "status": "done"
+        },
+        {
+          "id": "ui-brand",
+          "title": "Phaino brand kit and logo",
+          "status": "done"
+        },
+        {
+          "id": "ui-categories",
+          "title": "Higgsfield-style categories",
+          "status": "done"
+        },
+        {
+          "id": "ui-library",
+          "title": "Library page",
+          "status": "done"
+        },
+        {
+          "id": "ui-social",
+          "title": "Social posting with user-added connections",
+          "status": "done"
+        },
+        {
+          "id": "ui-nav-menus",
+          "title": "Nav hover capsule and mega dropdowns",
+          "status": "done"
+        },
+        {
+          "id": "ui-icons",
+          "title": "iOS icon and OG image",
+          "status": "done"
+        },
+        {
+          "id": "ui-rename",
+          "title": "Rename repo, package and env vars from cutaway",
+          "status": "done",
+          "notes": "Repo renamed to screen-gd/phaino; Cloudflare worker renamed to phaino"
+        },
+        {
+          "id": "ui-mobile-nav",
+          "title": "Mobile nav menu",
+          "status": "done"
+        },
+        {
+          "id": "ui-readme",
+          "title": "README rewrite for Phaino",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "m3",
+      "title": "M3 Camera, Image and Video tools",
+      "tasks": [
+        {
+          "id": "m3-pages",
+          "title": "Tool pages bound to presets",
+          "status": "done"
+        },
+        {
+          "id": "m3-jobs",
+          "title": "Jobs table and runner",
+          "status": "done",
+          "notes": "Tested with a fake client; first real run is M5"
+        },
+        {
+          "id": "m3-progress",
+          "title": "Live progress",
+          "status": "done"
+        },
+        {
+          "id": "m3-nokey",
+          "title": "Clear \"not connected\" error without a key",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "m4",
+      "title": "M4 Open the workflow",
+      "tasks": [
+        {
+          "id": "m4-viewer",
+          "title": "Workflow viewer",
+          "status": "todo"
+        },
+        {
+          "id": "m4-fork",
+          "title": "Fork",
+          "status": "todo"
+        },
+        {
+          "id": "m4-download",
+          "title": "Download",
+          "status": "todo"
+        }
+      ]
+    },
+    {
+      "id": "m5",
+      "title": "M5 First real run",
+      "tasks": [
+        {
+          "id": "m5-orbit",
+          "title": "Orbit on LTX 2.5 end to end",
+          "status": "blocked",
+          "notes": "Needs COMFY_API_KEY"
+        },
+        {
+          "id": "m5-firstframe",
+          "title": "Confirm Comfy Cloud accepts uploaded first frames",
+          "status": "todo"
+        },
+        {
+          "id": "m5-social",
+          "title": "Test a real social connection",
+          "status": "todo"
+        }
+      ]
+    },
+    {
+      "id": "m6",
+      "title": "M6 FLUX image and Animate to Video",
+      "tasks": [
+        {
+          "id": "m6-flux",
+          "title": "FLUX image run",
+          "status": "todo"
+        },
+        {
+          "id": "m6-animate",
+          "title": "Animate image to video",
+          "status": "todo"
+        }
+      ]
+    },
+    {
+      "id": "m7",
+      "title": "M7 More models through Comfy",
+      "tasks": [
+        {
+          "id": "m7-ltx25",
+          "title": "LTX 2.5 image-to-video preset",
+          "status": "done"
+        },
+        {
+          "id": "m7-wan22",
+          "title": "Wan 2.2 preset",
+          "status": "done"
+        },
+        {
+          "id": "m7-qwen",
+          "title": "Qwen Image preset",
+          "status": "done"
+        },
+        {
+          "id": "m7-kling3",
+          "title": "Kling 3.0 preset",
+          "status": "done"
+        },
+        {
+          "id": "m7-seedance25",
+          "title": "Seedance 2.5 preset",
+          "status": "done"
+        },
+        {
+          "id": "m7-nanobanana2",
+          "title": "Nano Banana 2 preset",
+          "status": "done"
+        },
+        {
+          "id": "m7-controls",
+          "title": "Per-model controls in tool pages",
+          "status": "todo"
+        },
+        {
+          "id": "m7-credits",
+          "title": "Credit cost shown before Generate",
+          "status": "todo"
+        },
+        {
+          "id": "m7-testrun",
+          "title": "Real test run per model",
+          "status": "todo",
+          "notes": "After M5"
+        }
+      ]
+    },
+    {
+      "id": "m8",
+      "title": "M8 Export",
+      "tasks": [
+        {
+          "id": "m8-conform",
+          "title": "Conform",
+          "status": "todo"
+        },
+        {
+          "id": "m8-fcpxml",
+          "title": "FCPXML",
+          "status": "todo"
+        },
+        {
+          "id": "m8-edl",
+          "title": "EDL",
+          "status": "todo"
+        }
+      ]
+    },
+    {
+      "id": "explore",
+      "title": "Explore upgrades",
+      "tasks": [
+        {
+          "id": "explore-previews",
+          "title": "Looping preview videos per preset",
+          "status": "todo",
+          "notes": "After M5"
+        },
+        {
+          "id": "explore-cards",
+          "title": "Input and output preset cards",
+          "status": "todo"
+        },
+        {
+          "id": "explore-model-sections",
+          "title": "Per-model sections with View all",
+          "status": "todo"
+        },
+        {
+          "id": "explore-grid",
+          "title": "Mixed-height community grid",
+          "status": "todo"
+        },
+        {
+          "id": "explore-node-preview",
+          "title": "Workflow node preview on hover",
+          "status": "todo"
+        },
+        {
+          "id": "explore-header-meta",
+          "title": "GitHub stars and credit balance in header",
+          "status": "todo"
+        }
+      ]
+    },
+    {
+      "id": "ops",
+      "title": "Housekeeping",
+      "tasks": [
+        {
+          "id": "ops-commit",
+          "title": "Commit the uncommitted UI, brand and social work",
+          "status": "todo"
+        }
+      ]
+    }
+  ]
+}

@@ -1,20 +1,22 @@
-import { ToolLayout, type ToolStep } from "@/components/ToolLayout";
+import { Suspense } from "react";
+import { ToolStudio } from "@/components/ToolStudio";
+import { toStudioPreset } from "@/components/toolStudioData";
+import { listPresets } from "@/server/presets/load";
 
-const STEPS: ToolStep[] = [
-  {
-    title: "Pick a move",
-    body: "Choose one of 7 camera moves. Each sets its own angle and duration.",
-  },
-  {
-    title: "Add a first frame and prompt",
-    body: "Drop a still, describe the shot, pick an Open or Partner model.",
-  },
-  {
-    title: "Generate",
-    body: "Open models run on Comfy Cloud. Partner models use Comfy credits. Every shot opens as a workflow.",
-  },
-];
+export const dynamic = "force-dynamic";
 
 export default function CameraPage() {
-  return <ToolLayout title="Camera moves" icon="camera" steps={STEPS} />;
+  const presets = listPresets()
+    .filter((p) => p.category === "camera")
+    .map(toStudioPreset);
+  return (
+    <Suspense>
+      <ToolStudio
+        title="Camera moves"
+        icon="camera"
+        category="camera"
+        presets={presets}
+      />
+    </Suspense>
+  );
 }

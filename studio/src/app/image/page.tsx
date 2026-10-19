@@ -1,20 +1,17 @@
-import { ToolLayout, type ToolStep } from "@/components/ToolLayout";
+import { Suspense } from "react";
+import { ToolStudio } from "@/components/ToolStudio";
+import { toStudioPreset } from "@/components/toolStudioData";
+import { listPresets } from "@/server/presets/load";
 
-const STEPS: ToolStep[] = [
-  {
-    title: "Describe the image",
-    body: "Write a prompt and add a reference so the same character shows up in every shot.",
-  },
-  {
-    title: "Pick a model and style",
-    body: "FLUX.2 is Open and runs on Comfy Cloud. FLUX 3, Nano Banana Pro and GPT Image 2 are Partner models.",
-  },
-  {
-    title: "Generate, then animate",
-    body: "Upscale a keeper or send it to Video as a first frame. Every image opens as a workflow.",
-  },
-];
+export const dynamic = "force-dynamic";
 
 export default function ImagePage() {
-  return <ToolLayout title="Image" icon="image" steps={STEPS} />;
+  const presets = listPresets()
+    .filter((p) => p.category === "image")
+    .map(toStudioPreset);
+  return (
+    <Suspense>
+      <ToolStudio title="Image" icon="image" category="image" presets={presets} />
+    </Suspense>
+  );
 }

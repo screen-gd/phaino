@@ -3,7 +3,7 @@
 // the site is fully static, so no server runtime is needed.
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "cutaway",
+  "name": "phaino",
   "compatibility_date": "2026-10-19",
   "assets": {
     "directory": "./dist",

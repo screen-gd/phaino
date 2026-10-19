@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phaino social preview options</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: transparent; }
+    body { color: var(--foreground, #fff); font-family: var(--font-sans, system-ui, sans-serif); }
+    main { display: grid; gap: 24px; }
+    figure { margin: 0; }
+    img { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 630; border-radius: 8px; }
+    figcaption { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0 0; font-size: 14px; }
+    strong { font-weight: 550; }
+    span { color: var(--muted-foreground, #999); font-size: 12px; }
+    .default { color: var(--accent, #ff5b22); }
+  </style>
+</head>
+<body>
+  <main aria-label="Two revised image-generated Phaino social preview designs">
+    <figure>
+      <img src="../../public/social/01-veil-v3.jpg" width="1200" height="630" alt="Veil: centered Phaino identity over soft overlapping orange light fields and fine film grain.">
+      <figcaption><strong>01 · Veil</strong><span>1200 × 630</span></figcaption>
+    </figure>
+    <figure>
+      <img src="../../public/social/02-refraction-v3.jpg" width="1200" height="630" alt="Refraction: left-aligned Phaino identity beside diffused orange light through fine vertical glass ridges.">
+      <figcaption><strong>02 · Refraction</strong><span class="default">Default · 1200 × 630</span></figcaption>
+    </figure>
+  </main>
+</body>
+</html>

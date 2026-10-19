@@ -1,6 +1,6 @@
 # Explore page media
 
-`hero.webp` is original AI-generated artwork made for the Cutaway site. The other images are Unsplash photos under the [Unsplash License](https://unsplash.com/license), used as placeholders until real Cutaway outputs replace them. They are not Cutaway-generated output or product screenshots.
+`hero.webp` is original AI-generated artwork made for the Phaino site. The other images are Unsplash photos under the [Unsplash License](https://unsplash.com/license), used as placeholders until real Phaino outputs replace them. They are not Phaino-generated output or product screenshots.
 
 ## Photography sources
 
@@ -15,3 +15,4 @@
 ## Optional video loops
 
 Tool tiles can show a short looping preview. Drop files at `explore/tools/<tool>.mp4` (4-8s H.264, yuv420p, no audio, faststart, under 3 MB). The tile checks at render time and plays the loop on hover or focus; with no file present it renders the WebP still.
+

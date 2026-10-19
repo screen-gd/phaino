@@ -32,7 +32,7 @@ export function comfyTarget(env: StudioEnv) {
   };
 }
 
-const globalClient = globalThis as { __cutawayComfy?: Comfy };
+const globalClient = globalThis as { __phainoComfy?: Comfy };
 
 /**
  * The shared Comfy client, memoized on globalThis to survive dev HMR.
@@ -40,14 +40,14 @@ const globalClient = globalThis as { __cutawayComfy?: Comfy };
  * is needed here beyond passing the key.
  */
 export function getComfy(): Comfy {
-  if (!globalClient.__cutawayComfy) {
+  if (!globalClient.__phainoComfy) {
     const env = getEnv();
     const target = comfyTarget(env);
     if (!target.configured) throw new ComfyNotConfigured();
-    globalClient.__cutawayComfy = new Comfy({
+    globalClient.__phainoComfy = new Comfy({
       apiKey: env.comfyApiKey,
-      clientInfo: `cutaway/${pkg.version}`,
+      clientInfo: `phaino/${pkg.version}`,
     });
   }
-  return globalClient.__cutawayComfy;
+  return globalClient.__phainoComfy;
 }

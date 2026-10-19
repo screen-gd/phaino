@@ -83,7 +83,7 @@ export async function probeComfy(env: StudioEnv = getEnv()): Promise<ComfyHealth
   }
 
   const low = new ComfyLow(target.baseUrl, env.comfyApiKey, {
-    clientInfo: `cutaway/${pkg.version}`,
+    clientInfo: `phaino/${pkg.version}`,
   });
 
   const started = performance.now();
@@ -107,3 +107,4 @@ export async function probeComfy(env: StudioEnv = getEnv()): Promise<ComfyHealth
     };
   }
 }
+

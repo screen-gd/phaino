@@ -97,29 +97,14 @@ p { line-height: 1.55; font-size: 17px; }
 .chip-arrow { margin-left: 25px; color: var(--accent); }
 .hero-scroll-hint { display: inline-flex; align-items: center; gap: 10px; font-size: 13px; color: #d6d6d6; }
 .hero-scroll-hint > span { color: var(--accent); }
-.hero-underlay { position: absolute; inset: 0; background: var(--bg); padding: 120px 3vw 0; }
-.hero-underlay > .workflow { position: absolute; width: 65%; right: 3%; top: 35%; transform: rotate(-3deg); }
-.underlay-copy { position: absolute; left: var(--gutter); top: 28%; z-index: 1; }
-.underlay-copy h2 { font-size: clamp(64px,6vw,96px); margin: 0 0 32px; }
+.hero-underlay { position: absolute; inset: 0; display: grid; grid-template-columns: minmax(0, .62fr) minmax(0, 1.38fr); align-items: center; gap: clamp(32px, 4vw, 72px); padding: 0 var(--gutter); background: var(--bg); overflow: hidden; }
+.hero-underlay::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(#ffffff1c .8px, transparent .9px) 0 0 / 22px 22px; -webkit-mask-image: radial-gradient(ellipse 62% 70% at 64% 50%, #000 25%, transparent 78%); mask-image: radial-gradient(ellipse 62% 70% at 64% 50%, #000 25%, transparent 78%); }
+.hero-underlay::after { content: ''; position: absolute; right: 2%; top: 50%; width: 38vw; height: 38vw; transform: translateY(-50%); pointer-events: none; background: radial-gradient(closest-side, #ff5b221c, transparent); }
+.underlay-copy { position: relative; z-index: 1; grid-column: 1; grid-row: 1; }
+.hero-underlay > .workflow { grid-column: 2; grid-row: 1; }
+.underlay-copy h2 { font-size: clamp(52px,5.2vw,88px); margin: 0 0 32px; }
 .film-grain { position: absolute; inset: 0; opacity: .035; pointer-events: none; background-image: url('/media/grain.png'); }
 
-/* Workflow graph, shared by the hero underlay and the live board. */
-.workflow { aspect-ratio: 1080/420; width: 100%; position: relative; background-image: radial-gradient(#ffffff1c .8px,transparent .8px); background-size: 18px 18px; }
-.workflow-wires { position: absolute; inset: 0; width: 100%; height: 100%; color: var(--wire); overflow: visible; }
-.signal-wires { opacity: .8; }
-.workflow-node { position: absolute; background: #141414; width: 18%; padding: 10px 12px 12px; border: 1px solid #333; border-radius: 10px; display: flex; flex-direction: column; gap: 9px; transform-origin: center; transition: border-color 260ms, background-color 260ms; }
-.node-type { display: flex; align-items: center; justify-content: space-between; font-family: var(--font-mono); color: #bdbdbd; font-size: clamp(9px,.66vw,11px); letter-spacing: .08em; }
-.node-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
-.workflow-node strong { font-size: clamp(12px,1vw,17px); font-weight: 500; letter-spacing: -.025em; }
-.node-value { background: #0a0a0a; border: 1px solid #262626; border-radius: 5px; font-family: var(--font-mono); padding: 6px 7px; color: #c4c4c4; font-size: clamp(9px,.66vw,11px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.node-ports { display: flex; gap: 12px; font-family: var(--font-mono); font-size: clamp(9px,.6vw,10px); color: #b0b0b0; }
-.node-ports span { display: flex; align-items: center; gap: 5px; }
-.node-ports i { width: 5px; height: 5px; background: #8a8a8a; border-radius: 50%; }
-.input-node { left: 4%; top: 10%; }
-.prompt-node { left: 4%; top: 57%; }
-.motion-node { left: 38%; top: 37%; }
-.generate-node { left: 60%; top: 17%; }
-.output-node { left: 79%; top: 61%; }
 
 /* Every section after the hero is one screen: heading and content are always seen
    together. Media heights are derived from the viewport height, not the width. */
@@ -432,7 +417,6 @@ dialog.is-showcase { width: calc(100vw - 24px); height: calc(100svh - 24px); max
   .preset-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .run-facts { gap: 24px; }
   .run-body { gap: 36px; }
-  .workflow-node { gap: 7px; padding: 8px; }
   .workflow-controls { grid-template-columns: 1fr 1fr; }
   .workflow-controls button { grid-column: 2; }
 }
@@ -470,15 +454,6 @@ dialog.is-showcase { width: calc(100vw - 24px); height: calc(100svh - 24px); max
   h2 { font-size: 38px; }
   .section-head { margin-bottom: 28px; }
   .section-head p { font-size: 16px; }
-  .workflow { aspect-ratio: 1.7; }
-  .workflow-node { width: 23%; gap: 6px; padding: 7px; }
-  .workflow-node strong { font-size: 12px; }
-  .node-type,.node-value,.node-ports { font-size: 10px; }
-  .node-value { padding: 5px; }
-  .input-node,.prompt-node { left: 3%; }
-  .motion-node { left: 36%; top: 40%; }
-  .generate-node { left: 63%; top: 10%; }
-  .output-node { left: 73%; top: 64%; }
   .capabilities-grid { grid-template-columns: 1fr 1fr; grid-template-rows: none; grid-auto-rows: 280px; height: auto; gap: 12px; }
   .cap-image,.cap-video,.cap-moves,.cap-effects,.cap-avatar,.cap-edit { grid-column: auto; }
   .cap-image, .cap-video { grid-column: 1 / -1; }
@@ -568,16 +543,6 @@ dialog.is-showcase { width: calc(100vw - 24px); height: calc(100svh - 24px); max
   .workflow-chip > svg { width: 15px; }
   .chip-arrow { margin-left: 3px; }
   h2 { font-size: 34px; }
-  .workflow-wires { display: none; }
-  .workflow-node { width: 43%; gap: 7px; padding: 9px; }
-  .workflow-node strong { font-size: 14px; }
-  .input-node { left: 4%; top: 4%; }
-  .prompt-node { left: 53%; top: 4%; }
-  .motion-node { left: 4%; top: 37%; }
-  .generate-node { left: 53%; top: 37%; }
-  .output-node { left: 28%; top: 70%; }
-  .workflow-node:after { content: ''; position: absolute; width: 2px; height: 14px; background: #444; top: 100%; left: 50%; }
-  .output-node:after { display: none; }
   .capabilities-grid { grid-template-columns: 1fr; grid-auto-rows: 250px; gap: 10px; }
   .capability-copy strong { font-size: 28px; }
   .move-card { width: 80vw; }

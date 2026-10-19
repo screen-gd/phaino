@@ -1,112 +1,91 @@
 # Cutaway
 
-## Repository layout
+Cutaway is an open-source studio for images and video built on the [Comfy Developer Platform](https://comfy.org). Every preset is a real ComfyUI workflow you can open, edit and fork. It runs on your own GPU through a local ComfyUI server or on Comfy Cloud; open models (LTX 2.5, FLUX.2) are the defaults, and partner models are available through Comfy Router.
 
-This is a pnpm workspace. The studio app lives at the repo root; the marketing site is its own package in `website/`.
+## Repository layout
 
 ```
 cutaway/
-├── (root)       Studio app, deployed from the repo root
-└── website/     Marketing site (Astro), deployed from website/
+├── studio/     Studio app (Next.js), the main product
+├── website/    Marketing site (Astro)
+├── presets/    Preset workflows, added with M2
+├── examples/   Real sample outputs, named <preset-id>_<n>.<ext>
 ```
 
-Install everything once from the root with `pnpm install`.
+## Requirements
+
+- Node.js 22+
+- pnpm (repo pins 12.x via `packageManager`)
+- ffmpeg on your PATH
+
+## Quick start
+
+```bash
+pnpm install
+cp studio/.env.example studio/.env.local   # fill in a backend (below)
+pnpm dev:studio
+```
+
+Open http://localhost:3000. Check backend connectivity at http://localhost:3000/api/health.
+
+## Local GPU setup
+
+Run [ComfyUI](https://github.com/comfyanonymous/ComfyUI), then put the API v2 surface in front of it:
+
+```bash
+pip install comfy-api-proxy
+comfy-api-proxy
+```
+
+ComfyUI keeps serving on `127.0.0.1:8188`; the proxy serves the Comfy API v2 on `127.0.0.1:8189`. Set `COMFY_BASE_URL=http://127.0.0.1:8189` in `studio/.env.local`.
+
+Model files required by each preset: added with the first preset.
+
+## Comfy Cloud setup
+
+Create an API key at [platform.comfy.org/profile/api-keys](https://platform.comfy.org/profile/api-keys) and set it as `COMFY_API_KEY` in `studio/.env.local`. Comfy Cloud API access requires a paid Comfy Cloud subscription, and Comfy Router calls draw Comfy credits.
+
+## Environment variables
+
+All variables live in `studio/.env.local` (copy `studio/.env.example`).
+
+| Variable | Purpose |
+| --- | --- |
+| `COMFY_BASE_URL` | Local backend URL (the comfy-api-proxy address) |
+| `COMFY_LOCAL_TOKEN` | Optional bearer token for the local proxy |
+| `COMFY_API_KEY` | Comfy Cloud / Comfy Router API key |
+| `COMFY_CLOUD_URL` | Cloud backend URL (default `https://cloud.comfy.org`) |
+| `PRESETS_DIR` | Preset folder (default `../presets` from `studio/`) |
+| `FORKS_DIR` | User forks folder (default `../forks` from `studio/`) |
+| `CUTAWAY_DATA_DIR` | Local data folder (default `./.data` under `studio/`) |
+| `CUTAWAY_USER` | Local user name (default `local`) |
+
+## Scripts
+
+| Command | What it does |
+| --- | --- |
+| `pnpm dev:studio` | Studio dev server on port 3000 |
+| `pnpm dev:website` | Website dev server |
+| `pnpm preview:website` | Serve the built website |
+| `pnpm build` | Build all packages |
+| `pnpm lint` | Lint all packages |
+| `pnpm typecheck` | Type-check all packages |
+| `pnpm test` | Run all tests |
 
 ## Marketing site
 
-Astro, TypeScript, Tailwind, GSAP and Lenis. From the root:
-
-```bash
-pnpm website:dev       # dev server
-pnpm website:build     # type check + static build to website/dist
-pnpm website:preview   # serve the build
-```
-
-To host it, point the platform at `website/` as the root directory (build `pnpm build`, output `dist`). The visual direction is in [website/docs/landing-design.md](website/docs/landing-design.md), and media slots are documented in [website/public/media/README.md](website/public/media/README.md).
-
-## Studio concept
-
-**Drop in a clip, pick a cinematic move, get a matched shot that's ready for your timeline.**
-
-Cutaway is an editor-first VFX shot generator built on [ComfyUI](https://comfy.org) and **LTX 2.5**. Upload a clip, choose a preset (dolly-in, orbit, whip-pan, drone pull-out...), and Cutaway generates a new shot that matches your footage, conformed to your project's frame rate and resolution, with handles, plus an FCPXML/EDL you can import straight into DaVinci Resolve, Premiere, or Final Cut.
-
-Built for editors, not prompt engineers.
-
-> Entry for Comfy's **Open Source Higgsfield** challenge (Oct 2026).
-
----
-
-## Why
-
-Generative video tools hand you a clip and leave the rest to you: guessing the frame rate, re-timing, trimming, and dragging files into your NLE. Cutaway closes that gap. Every output comes back ready to drop on a timeline.
-
-## Presets
-
-| Preset | What it does |
-| --- | --- |
-| Dolly-in | Slow push toward the subject |
-| Crash zoom | Fast punch-in for impact |
-| Orbit | Camera arcs around the subject |
-| Whip-pan transition | Motion-blurred pan into the next shot |
-| Drone pull-out | Rising reveal away from the subject |
-| Bullet time | Freeze-frame with a camera move around it |
-| Set extension | Widen the frame beyond what was shot |
-| Match cut | Uses two clips' frames as first/last keyframes to bridge them |
-
-## How it works
-
-```
-clip ──► ffmpeg (frame grab + metadata)
-     ──► optional keyframe edit (FLUX)
-     ──► LTX 2.5 FLF2V / I2V with preset prompt  (ComfyUI workflow)
-     ──► conform fps / resolution, add handles (ffmpeg)
-     ──► MP4 / ProRes + FCPXML / EDL
-```
-
-- **ComfyUI workflows** live in `workflows/` and run through the Comfy Developer Platform API or a local ComfyUI server.
-- **Web app** (`app/`) is Next.js: upload, preset picker, preview, export.
-- **Conform + export** (`lib/`) handles ffmpeg and timeline files.
-
-## Project layout
-
-```
-cutaway/
-├── app/          Next.js front end (upload, presets, preview, export)
-├── workflows/    ComfyUI workflow JSON, one per preset
-├── lib/          ffmpeg conform + FCPXML/EDL export
-├── presets/      preset definitions (prompts, motion params, duration)
-├── docs/         demo notes and screenshots
-└── website/      marketing site (Astro)
-```
-
-## Setup
-
-> Work in progress. Steps will firm up as the build lands.
-
-**Requirements**
-- Node.js 22+ and pnpm
-- ffmpeg on your PATH
-- A ComfyUI server with LTX 2.5 installed, **or** a Comfy Developer Platform API key
-
-```bash
-git clone https://github.com/screen-gd/cutaway.git
-cd cutaway
-cp .env.example .env.local   # add COMFY_API_URL and COMFY_API_KEY
-pnpm install
-pnpm dev
-```
-
-Open http://localhost:3000, upload a clip, pick a preset, and export.
+Astro, TypeScript and Tailwind. `pnpm dev:website` runs it; it deploys from `website/`. The visual direction is in [website/docs/landing-design.md](website/docs/landing-design.md), and media slots are documented in [website/public/media/README.md](website/public/media/README.md).
 
 ## Roadmap
 
-- [ ] Base LTX 2.5 I2V workflow (dolly-in)
-- [ ] Remaining presets
-- [ ] Upload + preset picker UI
-- [ ] ffmpeg conform with handles
-- [ ] FCPXML / EDL export (Resolve-tested)
-- [ ] Share-ready before/after clip export
-- [ ] Demo video
+- [x] M1 Shell, env, Comfy client, health check
+- [ ] M2 Disk-based preset system
+- [ ] M3 Camera and Image tools
+- [ ] M4 Open the workflow: viewer, fork, download
+- [ ] M5 First real run: Orbit on LTX 2.5
+- [ ] M6 FLUX image and Animate to Video
+- [ ] M7 Partner models via Comfy Router
+- [ ] M8 Export: conform, FCPXML, EDL
 
 ## License
 

@@ -1,0 +1,9 @@
+---
+interface Props { markOnly?: boolean; }
+const { markOnly = false } = Astro.props;
+---
+<svg class="phaino-mark" viewBox="0 0 100 100" fill="currentColor" aria-hidden="true" focusable="false">
+  <path d="M0 19 Q0 9.5 9 9 Q55 3 100 1 V20 Q45 30 0 55 Z" />
+  <path d="M100 30 V100 H4 Q0 100 0 96 V70 Q50 42 100 30 Z" />
+</svg>
+{!markOnly && <span>phaino</span>}

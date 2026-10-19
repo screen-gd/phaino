@@ -1,1 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="15" fill="#ff5b22"/><path d="M18 14h24v9H27v18h15v9H18z" fill="#160700"/><path d="m39 14 9 0-9 36h-9z" fill="#160700"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Phaino">
+  <title>Phaino</title>
+  <path fill="#FF5B22" d="M0 19 Q0 9.5 9 9 Q55 3 100 1 V20 Q45 30 0 55 Z"/>
+  <path fill="#FF5B22" d="M100 30 V100 H4 Q0 100 0 96 V70 Q50 42 100 30 Z"/>
+</svg>

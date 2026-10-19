@@ -1,22 +1,22 @@
-# Cutaway landing page
+# Phaino landing page
 
 Design uses Fleet's installed design-taste-frontend (approved as the replacement for gpt-taste), motion-design, motion-catalogue, and TypeScript preferences.
 
 ## Direction
 
-On this page, Cutaway's open workflow becomes a literal cut through the finished frame. The same separated frame appears in the logo, reveal, preset cards and closing wordmark. The Taste draw selected `one-motif`; the brief overrides its default section layouts, mono ban and square corners. No product screenshots or testimonials are invented.
+On this page, Phaino's image plane opens to reveal the workflow behind a finished frame. The supplied two-part curved mark appears in the header, preview dialog and challenge credit, with the Outfit wordmark in the header and closing section. The Taste draw selected `one-motif`; the brief overrides its default section layouts, mono ban and square corners. No product screenshots or testimonials are invented.
 
-Archivo's compact grotesk is paired with IBM Plex Mono for actual technical metadata. Tally orange (#ff5b22), the light a camera shows while it records, marks actions, live signal on node wires and the record dot, against true black with untinted greys. It replaced an earlier lime that sat too close to Higgsfield's own accent. Media keeps a desaturated grade so the accent stays the only saturated colour in the UI. Motion is Premium: power3.out, 140 / 400 / 800ms; no bounce. Scroll movement expresses the opening workflow, and other elements move quietly behind it.
+Mona Sans is paired with Geist Mono for technical metadata. The Phaino wordmark uses Outfit 800. The three variable fonts are bundled in website/src/assets/fonts with their licenses. Tally orange (#ff5b22), the light a camera shows while it records, marks actions, live signal on node wires and the record dot, against true black with untinted greys. It replaced an earlier lime that sat too close to Higgsfield's own accent. Media keeps a desaturated grade so the accent stays the only saturated colour in the UI. Motion is Premium: power3.out, 140 / 400 / 800ms; no bounce. Scroll movement expresses the opening workflow, and other elements move quietly behind it.
 
 ## Argument and copy deck
 
 1. Every frame. Wide open. / An open-source AI studio for images and video, built on ComfyUI. Every preset is a workflow. Make it yours. / Star on GitHub. Try a preset.
-2. Every preset is a workflow you can open. / Start with the shot. Get all the nodes. Inspect, tweak, fork, repeat. / Interactive workflow anatomy, explicitly an example.
-3. From first idea to final frame. / Image: FLUX, style presets, consistent characters. Video: LTX 2.5, text or image to video. Moves: cinematic camera paths. Effects: extension, match cut, morph, explode, melt. Avatars: photo + voice, talking shot. Edit: inpaint, outpaint, relight, upscale.
+2. Most AI studios give you a button. Phaino gives you the shot and how it was made. / Closed studio versus Phaino, with a one-time graph reveal and a labelled orbit-angle preview. See bring-to-light.md.
+3. From first idea to final frame. / Image: FLUX.2, style presets, consistent characters. Video: LTX 2.5, text or image to video. Moves: cinematic camera paths. Effects: extension, match cut, morph, explode, melt. Avatars: photo + voice, talking shot. Edit: inpaint, outpaint, relight, upscale.
 4. Direct the camera. / Seven named camera presets with workflow access, preview slots, and adjustable motion in the example graph.
 5. Keep the shot. Change the rest. / Keyboard-operable before / after scrubber demonstrating a placeholder grade.
 6. Make a move. Pass it on. / Open, make it yours, publish. Placeholder community entries have attributed example handles and fork counts.
-7. Your machine. Your rules. / Local GPU or Comfy Cloud. No Cutaway credits, no watermark. MIT software; cloud compute is metered separately and model licenses apply.
+7. Free, open source. Runs on Comfy Cloud today. / Bring your Comfy API key. Local GPU support is next. MIT code, no watermarks, and portable workflows. Cloud compute is billed by Comfy; model licenses apply.
 8. It belongs on your timeline. / FPS, resolution, handles, FCPXML / EDL, shown with a scrub-linked NLE strip.
 9. Built for Comfy's Open Source Higgsfield challenge. / Small credit only.
 10. Open the studio. / GitHub and X. Studio remains under development, so this opens the repository rather than pretending a generation service exists.
@@ -67,7 +67,7 @@ Kept the hero geometry and choreography; only its colour tokens changed. Everyth
 - Camera moves pin vertically centred. One shared cursor follower replaces the per-card chips. It hit-tests on pointer move and on scroll, so cards sliding under a still pointer update it and no label is left on a card the pointer has left.
 - Edit tools switch the comparison between relight, upscale, outpaint and inpaint treatments of the same photograph (CSS, labelled illustrative).
 - Community: a fork branch draws off the main line with scroll, above the masonry marquee.
-- Run it yourself opens on 0 credits, 0 watermarks, MIT at display size. A Local / Cloud switch rewrites the env line in the terminal and in the copied commands.
+- Run it yourself opens on 0 credits, 0 watermarks, MIT at display size. Comfy Cloud is the only enabled setup tab. Local GPU support is marked as coming soon. The terminal uses Node 22+, pnpm, and studio/.env.local; Copy reads the displayed command lines without prompts.
 - Pro export: the generated clip, now with a thumbnail, is dragged onto V2 as the playhead scrubs.
 - Footer: a second CTA for X, and the wordmark rises with scroll.
 
@@ -84,7 +84,7 @@ Feedback: the page was hard to understand and sections were cut off. The copy wa
 ## Completion pass, October 2026
 
 - **Preset catalogue** (`#presets`): all 22 presets from the brief, filterable by tool. Availability is read from disk at build time (`src/data/presets.ts`): a preset shows a Workflow download only when `public/workflows/<slug>.json` exists, otherwise "In progress". Nothing ships yet, so every preset honestly reads "In progress".
-- **Cost calculator** (`#cost`): electricity per clip and per month from clips, render time, GPU watts and $/kWh, with an optional "your current plan" comparison. All defaults are editable estimates and labelled as such.
+- **Cloud pricing** (`#cost`): Phaino is free. Generation runs on a Comfy Cloud plan, from $20/month, with a link to comfy.org/pricing. Partner models consume Comfy credits and are labelled in the studio. The former electricity calculator and its script are removed.
 - **GitHub stars** in the header button, fetched live and shown only from 25 stars.
 - **Share image**: `public/og.jpg` (1200×630) with Open Graph and Twitter card tags. Set an absolute site URL for `og:image` once the domain is known.
 - **Footage-ready**: the workflow board plays `public/media/moves/<slug>.mp4` and offers the matching workflow download when those files exist; until then it shows posters.

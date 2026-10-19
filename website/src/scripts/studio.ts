@@ -1,6 +1,7 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
+import { initSetup } from './setup';
 
 gsap.registerPlugin(ScrollTrigger);
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -41,7 +42,7 @@ function initMotion() {
     if (label) label.textContent = motionAllowed() ? 'Motion on' : 'Motion off';
   }
   animatedVideos.forEach((video) => { if (motionAllowed()) void video.play().catch(() => {}); else video.pause(); });
-  if (!motionAllowed()) { traceMove(document.querySelector<HTMLButtonElement>('[data-trace][aria-checked="true"]')); ScrollTrigger.refresh(); return; }
+  if (!motionAllowed()) { ScrollTrigger.refresh(); return; }
 
   lenis = new Lenis({ duration: .6, easing: (progress) => 1 - (1 - progress) ** 3, smoothWheel: true, anchors: { offset: -headerHeight() - 24 }, syncTouch: false });
   lenis.on('scroll', ScrollTrigger.update);
@@ -89,16 +90,12 @@ function initMotion() {
       if (!corners.length) return;
       gsap.from(corners, { scale: 1.7, duration: .8, ease: 'power3.out', scrollTrigger: { trigger: media, start: 'top 90%', once: true } });
     });
-    document.querySelectorAll('.live-board').forEach((board) => {
-      gsap.from(board.querySelectorAll('.workflow-node'), { y: 14, opacity: 0, stagger: .07, duration: .5, ease: 'power3.out', scrollTrigger: { trigger: board, start: 'top 75%', once: true } });
-    });
-    ScrollTrigger.create({ trigger: '.live-board', start: 'top 60%', once: true, onEnter: () => traceMove(document.querySelector<HTMLButtonElement>('[data-trace][aria-checked="true"]')) });
     // The fork branch draws itself as the steps scroll through the viewport.
     gsap.fromTo('.fork-branch', { strokeDashoffset: 1 }, { strokeDashoffset: 0, ease: 'none', scrollTrigger: { trigger: '.fork-steps', start: 'top 85%', end: 'top 40%', scrub: true } });
     gsap.to('.timeline-playhead', { x: () => (document.querySelector('.timeline-ruler')?.clientWidth ?? 800) * .62, ease: 'none', scrollTrigger: { trigger: '.timeline', start: 'top 85%', end: 'bottom 30%', scrub: true } });
     // The generated clip is dragged in from above and lands on V2 as the playhead reaches it.
     gsap.fromTo('.generated-clip', { y: -70, x: 48, opacity: .35 }, { y: 0, x: 0, opacity: 1, ease: 'power3.out', scrollTrigger: { trigger: '.timeline', start: 'top 85%', end: 'top 40%', scrub: true } });
-    gsap.from('.footer-word, .footer-arrow', { yPercent: 70, stagger: .08, ease: 'none', scrollTrigger: { trigger: '.footer-wordmark', start: 'top bottom', end: 'bottom bottom', scrub: true } });
+    gsap.from('.footer-word', { yPercent: 70, ease: 'none', scrollTrigger: { trigger: '.footer-wordmark', start: 'top bottom', end: 'bottom bottom', scrub: true } });
     document.querySelectorAll<HTMLElement>('[data-typed]').forEach((element) => {
       const title = element.dataset.typed ?? '';
       ScrollTrigger.create({ trigger: element, start: 'top 96%', once: true, onEnter: () => {
@@ -162,7 +159,6 @@ const videoObserver = new IntersectionObserver((entries) => {
     } else { target.pause(); animatedVideos.delete(target); }
   });
 }, { rootMargin: '100px' });
-document.querySelectorAll<HTMLVideoElement>('[data-live-video]').forEach((video) => videoObserver.observe(video));
 document.querySelectorAll<HTMLVideoElement>('video[data-src]').forEach((video) => {
   videoObserver.observe(video);
   video.playbackRate = .6;
@@ -205,16 +201,6 @@ window.addEventListener('pointermove', (event) => {
 }, { passive: true });
 document.documentElement.addEventListener('pointerleave', () => { pointer.inside = false; syncCursor(); });
 window.addEventListener('scroll', syncCursor, { passive: true });
-document.querySelectorAll<HTMLElement>('.live-board').forEach((board) => {
-  const wires = board.querySelector('.workflow-wires');
-  board.addEventListener('pointermove', (event) => {
-    if (!motionAllowed() || !finePointer.matches || !wires) return;
-    const box = board.getBoundingClientRect();
-    gsap.to(wires, { x: (event.clientX - box.left - box.width / 2) * .008, y: (event.clientY - box.top - box.height / 2) * .008, duration: .5, ease: 'power3.out', overwrite: true });
-  });
-  board.addEventListener('pointerleave', () => { if (wires) gsap.to(wires, { x: 0, y: 0, duration: .4 }); });
-});
-
 document.querySelectorAll<HTMLInputElement>('.comparison input').forEach((input) => {
   input.addEventListener('input', () => { input.closest<HTMLElement>('.comparison')?.style.setProperty('--split', `${input.value}%`); });
 });
@@ -232,84 +218,6 @@ document.querySelectorAll<HTMLButtonElement>('[data-tool]').forEach((button) => 
     if (before) before.textContent = (button.dataset.before ?? '').toUpperCase();
     if (after) after.textContent = (button.dataset.after ?? '').toUpperCase();
     announce(`${button.textContent?.trim()} selected.`);
-  });
-});
-
-/** Picks a preset on the live board and runs the signal through its graph. */
-let traceTimeline: gsap.core.Timeline | undefined;
-function traceMove(button: HTMLButtonElement | null) {
-  const board = document.querySelector<HTMLElement>('.workflow-live');
-  if (!button || !board) return;
-  const { trace = 'Orbit', traceFile = 'orbit', tracePrompt = '', traceMotion = '', traceSpec = '', traceClip, traceWorkflow } = button.dataset;
-  document.querySelectorAll<HTMLButtonElement>('[data-trace]').forEach((option) => {
-    const selected = option === button;
-    option.setAttribute('aria-checked', String(selected));
-    option.tabIndex = selected ? 0 : -1;
-  });
-  const setText = (selector: string, text: string) => { const el = document.querySelector(selector); if (el) el.textContent = text; };
-  setText('[data-live="prompt"]', tracePrompt);
-  setText('[data-live="motion"]', traceMotion);
-  setText('[data-live="output"]', `${traceFile.replace(/-/g, '_')}_001.mp4`);
-  setText('[data-live-file]', traceFile);
-  setText('[data-live-name]', trace);
-  setText('[data-live-spec]', traceSpec);
-  const open = document.querySelector<HTMLElement>('[data-live-open]');
-  if (open) open.dataset.openWorkflow = trace;
-  const light = (...keys: string[]) => keys.forEach((key) => board.querySelector(`[data-node="${key}"]`)?.classList.add('is-lit'));
-  const wires = Array.from(board.querySelectorAll<SVGPathElement>('.signal-wires path'));
-  const poster = document.querySelector<HTMLImageElement>('[data-live-poster]');
-  const clip = document.querySelector<HTMLVideoElement>('[data-live-video]');
-  const download = document.querySelector<HTMLAnchorElement>('[data-live-download]');
-  if (download) {
-    download.hidden = !traceWorkflow;
-    download.href = `/workflows/${traceFile}.json`;
-    const name = download.querySelector('[data-live-download-name]');
-    if (name) name.textContent = traceFile;
-  }
-  // The pane plays the move's real render when one exists, otherwise shows its poster.
-  const swapPoster = () => {
-    if (poster) poster.src = `/media/moves/${traceFile}.webp`;
-    if (!clip) return;
-    clip.hidden = !traceClip;
-    if (!traceClip) { clip.pause(); return; }
-    clip.poster = `/media/moves/${traceFile}.webp`;
-    clip.src = `/media/moves/${traceFile}.mp4`;
-    if (motionAllowed()) void clip.play().catch(() => {});
-  };
-  traceTimeline?.kill();
-  board.querySelectorAll('.workflow-node').forEach((node) => node.classList.remove('is-lit'));
-  if (!motionAllowed()) {
-    gsap.set(wires, { strokeDashoffset: 0 });
-    gsap.set([poster, clip].filter(Boolean), { opacity: 1 });
-    light('input', 'prompt', 'motion', 'generate', 'output');
-    swapPoster();
-    return;
-  }
-  // The clicked preset swaps first; then the signal runs through the graph in order:
-  // inputs, camera control, LTX, output.
-  gsap.set(wires, { strokeDashoffset: 1 });
-  traceTimeline = gsap.timeline()
-    .to([poster, clip].filter(Boolean), { opacity: 0, duration: .15 }, 0)
-    .call(swapPoster, [], .15)
-    .to([poster, clip].filter(Boolean), { opacity: 1, duration: .4, ease: 'power2.out' }, .2)
-    .call(() => light('input', 'prompt'), [], .3)
-    .to(wires[1] ?? {}, { strokeDashoffset: 0, duration: .45, ease: 'power1.inOut' }, .4)
-    .to(wires[0] ?? {}, { strokeDashoffset: 0, duration: .85, ease: 'power1.inOut' }, .4)
-    .call(() => light('motion'), [], .85)
-    .to(wires[2] ?? {}, { strokeDashoffset: 0, duration: .3, ease: 'power1.inOut' }, .9)
-    .call(() => light('generate'), [], 1.25)
-    .to(wires[3] ?? {}, { strokeDashoffset: 0, duration: .35, ease: 'power1.inOut' }, 1.3)
-    .call(() => light('output'), [], 1.65);
-}
-const traceOptions = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-trace]'));
-traceOptions.forEach((button, index) => {
-  button.addEventListener('click', () => { traceMove(button); announce(`${button.dataset.trace} traced through its workflow.`); });
-  button.addEventListener('keydown', (event) => {
-    const step = ['ArrowRight', 'ArrowDown'].includes(event.key) ? 1 : ['ArrowLeft', 'ArrowUp'].includes(event.key) ? -1 : 0;
-    if (!step) return;
-    event.preventDefault();
-    const next = traceOptions[(index + step + traceOptions.length) % traceOptions.length];
-    if (next) { next.focus(); traceMove(next); }
   });
 });
 
@@ -354,50 +262,7 @@ document.querySelector<HTMLButtonElement>('[data-community-sort]')?.addEventList
 });
 
 document.querySelectorAll<HTMLAnchorElement>('.mobile-menu a').forEach((link) => link.addEventListener('click', () => { document.querySelector('.mobile-menu')?.removeAttribute('open'); }));
-// The Local / Cloud switch rewrites the env line in the terminal and in the copied commands.
-const setups = {
-  local: { comment: '# Local ComfyUI with LTX 2.5 installed', env: 'COMFY_API_URL=http://127.0.0.1:8188' },
-  cloud: { comment: '# Comfy Developer Platform', env: 'COMFY_API_KEY=your-key' },
-} as const;
-let runTarget: keyof typeof setups = 'local';
-const setupCommands = () => ['git clone https://github.com/screen-gd/cutaway.git', 'cd cutaway', 'cp .env.example .env.local', `echo "${setups[runTarget].env}" >> .env.local`, 'npm install && npm run dev'].join('\n');
-const runTabs = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-run]'));
-function setRunTarget(tab: HTMLButtonElement) {
-  const target = tab.dataset.run;
-  if (target !== 'local' && target !== 'cloud') return;
-  runTarget = target;
-  runTabs.forEach((option) => {
-    const selected = option === tab;
-    option.setAttribute('aria-selected', String(selected));
-    option.tabIndex = selected ? 0 : -1;
-  });
-  document.querySelector('#setup-terminal')?.setAttribute('aria-labelledby', tab.id);
-  const comment = document.querySelector('[data-setup-comment]');
-  const env = document.querySelector('[data-setup-env]');
-  if (comment) comment.textContent = setups[target].comment;
-  if (env) env.textContent = setups[target].env;
-  if (motionAllowed()) gsap.fromTo('.terminal pre', { opacity: .3, y: 6 }, { opacity: 1, y: 0, duration: .35, ease: 'power3.out' });
-}
-runTabs.forEach((tab, index) => {
-  tab.addEventListener('click', () => setRunTarget(tab));
-  tab.addEventListener('keydown', (event) => {
-    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-    event.preventDefault();
-    const next = runTabs[(index + 1) % runTabs.length];
-    if (next) { next.focus(); setRunTarget(next); }
-  });
-});
-document.querySelector<HTMLButtonElement>('[data-copy-setup]')?.addEventListener('click', async (event) => {
-  if (!(event.currentTarget instanceof HTMLButtonElement)) return;
-  const button = event.currentTarget;
-  const label = button.querySelector('span');
-  try {
-    await navigator.clipboard.writeText(setupCommands());
-    if (label) label.textContent = 'Copied';
-    announce('Setup commands copied.');
-    setTimeout(() => { if (label) label.textContent = 'Copy'; }, 2200);
-  } catch { announce('Clipboard unavailable. Select and copy the commands in the terminal.'); if (label) label.textContent = 'Select to copy'; }
-});
+initSetup();
 
 // Load the graph renderer only after a visitor opens the workflow tab.
 const dialog = document.querySelector<HTMLDialogElement>('#studio-dialog');
@@ -409,7 +274,7 @@ let graphPromise: Promise<void> | undefined;
 let focusOrigin: HTMLElement | null = null;
 
 function exampleData() {
-  return { format: 'cutaway-workflow-anatomy', executable: false, preset: currentPreset, direction: promptInput?.value ?? '', duration: Number(durationInput?.value ?? 5), graph: graphEditor?.serialize() ?? null };
+  return { format: 'phaino-workflow-anatomy', executable: false, preset: currentPreset, direction: promptInput?.value ?? '', duration: Number(durationInput?.value ?? 5), graph: graphEditor?.serialize() ?? null };
 }
 function updateGraph() {
   graphEditor?.update({ name: currentPreset, direction: promptInput?.value ?? '', duration: Number(durationInput?.value ?? 5) });
@@ -533,37 +398,14 @@ presetFilters.forEach((button) => {
   });
 });
 
-/** Cost calculator: electricity for a month of renders, against the visitor's own plan. */
-const costInputs = new Map(Array.from(document.querySelectorAll<HTMLInputElement>('[data-cost]'), (input) => [input.dataset.cost ?? '', input]));
-const money = (value: number) => value >= 1 ? `$${value.toFixed(2)}` : value >= .01 ? `$${value.toFixed(2)}` : `$${value.toPrecision(2)}`;
-function updateCost() {
-  const read = (key: string) => Math.max(0, Number(costInputs.get(key)?.value) || 0);
-  const clips = read('clips');
-  const kwhPerClip = (read('seconds') / 3600) * (read('watts') / 1000);
-  const perClip = kwhPerClip * read('rate');
-  const month = perClip * clips;
-  const plan = read('plan');
-  const set = (selector: string, text: string) => { const el = document.querySelector(selector); if (el) el.textContent = text; };
-  set('[data-cost-out="clips"]', String(clips));
-  set('[data-cost-month]', month < .01 ? 'Under 1¢' : money(month));
-  set('[data-cost-clip]', `about ${money(perClip)} per clip, ${clips} clips a month`);
-  const compare = document.querySelector<HTMLElement>('[data-cost-compare]');
-  if (compare) {
-    compare.hidden = plan <= 0;
-    if (plan > 0) compare.textContent = month > 0 ? `Your current plan costs ${Math.round(plan / month).toLocaleString()}× more.` : 'Your current plan costs more.';
-  }
-}
-costInputs.forEach((input) => input.addEventListener('input', updateCost));
-updateCost();
-
 // Live GitHub stars, shown only once there are enough to count as proof.
 (async () => {
   const badge = document.querySelector<HTMLElement>('[data-stars]');
   if (!badge) return;
   try {
-    const cached = sessionStorage.getItem('cutaway-stars');
-    const stars = cached ? Number(cached) : (await (await fetch('https://api.github.com/repos/screen-gd/cutaway')).json() as { stargazers_count?: number }).stargazers_count ?? 0;
-    sessionStorage.setItem('cutaway-stars', String(stars));
+    const cached = sessionStorage.getItem('phaino-stars');
+    const stars = cached ? Number(cached) : (await (await fetch('https://api.github.com/repos/screen-gd/phaino')).json() as { stargazers_count?: number }).stargazers_count ?? 0;
+    sessionStorage.setItem('phaino-stars', String(stars));
     if (stars >= 25) { badge.textContent = stars >= 1000 ? `${(stars / 1000).toFixed(1)}k` : String(stars); badge.hidden = false; }
   } catch { /* Offline or rate-limited: the plain GitHub link still works. */ }
 })();

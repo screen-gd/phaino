@@ -7,17 +7,17 @@
    components were avoided to keep Astro lean. Static film grain replaces per-frame
    canvas noise, and hero controls use solid scrims instead of backdrop blur.
    See docs/landing-design.md and docs/ui-design-review.md. */
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
 import Icon from '../components/Icon.astro';
+import Logo from '../components/Logo.astro';
 import Media from '../components/Media.astro';
 import Workflow from '../components/Workflow.astro';
+import BringToLight from '../components/BringToLight.astro';
 import { catalogue, tools, workflowReady } from '../data/presets';
 import '../styles/global.css';
 
 const github = 'https://github.com/screen-gd/phaino';
 const capabilities = [
-  { name: 'Images', file: 'image', model: 'FLUX', text: 'Text to image, style presets and characters that stay consistent.', class: 'cap-image' },
+  { name: 'Images', file: 'image', model: 'FLUX.2', text: 'Text to image, style presets and characters that stay consistent.', class: 'cap-image' },
   { name: 'Video', file: 'video', model: 'LTX 2.5', text: 'Turn a prompt or a still image into a moving shot.', class: 'cap-video' },
   { name: 'Camera moves', file: 'moves', model: '7 PRESETS', text: 'Dolly in, orbit, crash zoom and more. One click each.', class: 'cap-moves' },
   { name: 'Effects', file: 'effects', model: 'VFX PRESETS', text: 'Set extension, match cut, morph, explode and melt.', class: 'cap-effects' },
@@ -33,7 +33,6 @@ const moves = [
   { name: 'Bullet time', file: 'bullet-time', subtitle: 'Stay in the moment.', type: 'arc', degrees: '120°', duration: '5s', number: '06', prompt: 'Freeze the frame. Circle it.' },
   { name: 'FPV dive', file: 'fpv-dive', subtitle: 'Take the long way down.', type: 'pull', degrees: '60m', duration: '5s', number: '07', prompt: 'Dive the ridge. Stay low.' },
 ];
-const pickerMoves = moves.slice(0, 4);
 const community = [
   { name: 'The slow reveal', author: '@framebyframe', forks: 128, image: 'community/reveal', shape: 'tall', crop: '50% 50%' },
   { name: 'Into the blue', author: '@negative.space', forks: 96, image: 'community/blue', shape: '', crop: '30% 60%' },
@@ -51,12 +50,21 @@ const editTools = [
   { id: 'outpaint', name: 'Outpaint', before: 'Shot', after: 'Extended' },
   { id: 'inpaint', name: 'Inpaint', before: 'Masked', after: 'Filled' },
 ];
-const clipReady = (file: string) => existsSync(join(process.cwd(), 'public', 'media', 'moves', `${file}.mp4`));
+const conform = [
+  { label: 'Frame rate', options: ['24', '25', '30'], active: '24' },
+  { label: 'Resolution', options: ['1080p', '4K'], active: '4K' },
+  { label: 'Handles', options: ['0', '12', '24'], active: '12' },
+  { label: 'Format', options: ['ProRes 422', 'MP4 (H.264)'], active: 'ProRes 422' },
+];
 const readyCount = catalogue.filter((preset) => workflowReady(preset.file)).length;
-const setups = {
-  local: { comment: '# Local ComfyUI with LTX 2.5 installed', env: 'COMFY_API_URL=http://127.0.0.1:8188' },
-  cloud: { comment: '# Comfy Developer Platform', env: 'COMFY_API_KEY=your-key' },
-};
+const setupCommands = [
+  'git clone https://github.com/screen-gd/phaino.git',
+  'cd phaino',
+  'pnpm install',
+  'cp studio/.env.example studio/.env.local',
+  'echo "COMFY_API_KEY=your_key" >> studio/.env.local',
+  'pnpm dev:studio',
+];
 ---
 <!doctype html>
 <html lang="en">
@@ -64,7 +72,7 @@ const setups = {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
-    <meta name="description" content="Cutaway is an open-source AI studio for images and video. Every cinematic preset is a ComfyUI workflow you can open, remix and run yourself." />
+    <meta name="description" content="Phaino is an open-source AI studio for images and video. Every cinematic preset is a ComfyUI workflow you can open, remix and run yourself." />
     <meta property="og:title" content="Phaino" />
     <meta property="og:description" content="An open-source AI video and image studio. Open, remix and run the workflow behind every preset." />
     <meta property="og:type" content="website" />
@@ -82,12 +90,13 @@ const setups = {
     <meta name="twitter:image:alt" content="Phaino. AI video and image studio. White wordmark beside diffused orange light through fine vertical glass ridges on black." />
     <meta name="twitter:site" content="@Screeendev" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>Cutaway · Every frame. Wide open.</title>
+    <link rel="manifest" href="/site.webmanifest" />
+    <title>Phaino</title>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
-      <a class="wordmark" href="#" aria-label="Cutaway home"><span class="cut-mark" aria-hidden="true"><i></i><i></i></span>cutaway<span class="wordmark-dot">®</span></a>
+      <a class="wordmark" href="#" aria-label="Phaino home"><Logo /></a>
       <nav class="desktop-nav" aria-label="Main navigation"><a href="#workflows">How it works</a><a href="#studio">Features</a><a href="#presets">Presets</a><a href="#community">Community</a><a href="#run">Run it free</a></nav>
       <div class="header-actions"><button class="motion-toggle" aria-pressed="false" aria-label="Motion on. Pause animated motion"><span class="status-dot"></span><span data-motion-label>Motion on</span></button><a class="header-github" href={github} target="_blank" rel="noreferrer"><Icon name="github" size={17}/><span>GitHub</span><span class="star-count" data-stars hidden></span><span aria-hidden="true">↗</span></a>
         <details class="mobile-menu"><summary>Menu <Icon name="plus" size={16}/></summary><nav aria-label="Mobile navigation"><a href="#workflows">How it works</a><a href="#studio">Features</a><a href="#presets">Presets</a><a href="#community">Community</a><a href="#run">Run it free</a></nav></details>
@@ -108,29 +117,10 @@ const setups = {
         </div>
       </section>
 
-      <section id="workflows" class="screen workflow-section section-shell" aria-labelledby="workflow-heading">
-        <div class="section-head" data-reveal><h2 id="workflow-heading">Every preset is a workflow you can open<span class="accent">.</span></h2><p>Other AI studios hide how a shot is made. In Cutaway, each preset is a ComfyUI node graph. Open it, change any setting, save your own version.</p></div>
-        <div class="live-board" data-reveal>
-          <div class="live-toolbar">
-            <div class="move-picker" role="radiogroup" aria-label="Choose a preset">{pickerMoves.map((move, index) => <button role="radio" aria-checked={index === 0 ? 'true' : 'false'} tabindex={index === 0 ? 0 : -1} data-trace={move.name} data-trace-file={move.file} data-trace-prompt={move.prompt} data-trace-spec={`${move.duration} · 24 fps · LTX 2.5`} data-trace-clip={clipReady(move.file) ? '1' : undefined} data-trace-workflow={workflowReady(move.file) ? '1' : undefined} data-trace-motion={`${move.file.replace('-', ' ')} · ${move.degrees} · ${move.duration.replace('s', ' seconds')}`}>{move.name}</button>)}</div>
-            <span class="mono live-file"><span data-live-file>orbit</span>.workflow</span>
-          </div>
-          <div class="live-panes">
-            <figure class="preset-pane">
-              <figcaption>The preset you click</figcaption>
-              <div class="preset-card"><img src="/media/moves/orbit.webp" alt="" width="560" height="560" data-live-poster />{clipReady('orbit') && <video src="/media/moves/orbit.mp4" muted loop playsinline preload="none" poster="/media/moves/orbit.webp" data-live-video aria-label="Orbit rendered with the workflow beside it"></video>}<span class="preset-card-copy"><strong data-live-name>Orbit</strong><span class="mono" data-live-spec>5s · 24 fps · LTX 2.5</span></span></div>
-            </figure>
-            <figure class="graph-pane">
-              <figcaption>The workflow behind it</figcaption>
-              <Workflow live />
-            </figure>
-          </div>
-          <div class="board-bottom"><p>{workflowReady('orbit') ? 'This is the graph that rendered the clip. Download it and run it in ComfyUI.' : 'Example graph. Production workflows ship with the studio.'}</p><span class="board-actions">{workflowReady('orbit') && <a class="text-link" href="/workflows/orbit.json" download data-live-download><Icon name="download" size={18}/>Download <span data-live-download-name>orbit</span>.json</a>}<button class="text-link" data-open-workflow="Orbit" data-live-open>Open it in the node editor <Icon name="arrow" size={18}/></button></span></div>
-        </div>
-      </section>
+      <BringToLight github={github} />
 
       <section id="studio" class="screen capabilities-section section-shell" aria-labelledby="studio-heading">
-        <div class="section-head" data-reveal><h2 id="studio-heading">One studio for images and video<span class="accent">.</span></h2><p>Six tools, all on open models: FLUX for images, LTX 2.5 for video.</p></div>
+        <div class="section-head" data-reveal><h2 id="studio-heading">One studio for images and video<span class="accent">.</span></h2><p>FLUX.2 for images and LTX 2.5 for video.</p></div>
         <div class="capabilities-grid">{capabilities.map((cap) => <article class:list={['capability', cap.class]} data-reveal>
           <button class="capability-preview" data-cursor="Expand" data-showcase={cap.name} data-poster={`capabilities/${cap.file}`} data-description={cap.text} aria-label={`${cap.name}: ${cap.text}`}><Media name={`capabilities/${cap.file}`} alt=""/><span class="capability-shade"></span><span class="capability-top mono">{cap.model}<span class="expand-icon"><Icon name="plus" size={17}/></span></span><span class="capability-copy"><strong>{cap.name}</strong><span>{cap.text}</span></span></button>
         </article>)}</div>
@@ -171,51 +161,51 @@ const setups = {
       </section>
 
       <section id="run" class="screen run-section section-shell" aria-labelledby="run-heading">
-        <div class="section-head" data-reveal><h2 id="run-heading">Free, open source, and runs on your machine<span class="accent">.</span></h2><p>Use your own GPU, or Comfy Cloud if you don’t have one.</p></div>
+        <div class="section-head" data-reveal><h2 id="run-heading">Free, open source. Built on the ComfyUI SDK and API<span class="accent">.</span></h2><p>Runs on Comfy Cloud with your Comfy API key. Local GPU support is next on the roadmap.</p></div>
         <ul class="run-facts" aria-label="What you get">
-          <li data-reveal><strong>0 credits<span class="accent">.</span></strong><span>No subscription. Generate as much as your GPU allows.</span></li>
-          <li data-reveal><strong>0 watermarks<span class="accent">.</span></strong><span>Your outputs are clean, and they’re yours.</span></li>
           <li data-reveal><strong>MIT<span class="accent">.</span></strong><span>Fork the code, ship it, build on it.</span></li>
+          <li data-reveal><strong>0 watermarks<span class="accent">.</span></strong><span>Your outputs are clean, and they're yours.</span></li>
+          <li data-reveal><strong class="run-workflow-fact">Every preset<br />is a workflow<span class="accent">.</span></strong><span>Drag it into your own ComfyUI any time.</span></li>
         </ul>
         <div class="run-body" data-reveal>
-          <div class="run-intro"><h3>Set it up in a minute</h3><div class="run-switch" role="tablist" aria-label="Where it runs"><button role="tab" id="run-local" aria-selected="true" aria-controls="setup-terminal" data-run="local">On your GPU</button><button role="tab" id="run-cloud" aria-selected="false" aria-controls="setup-terminal" tabindex="-1" data-run="cloud">On Comfy Cloud</button></div><p class="compute-note">Cloud compute is billed by Comfy, not Cutaway. Model licenses apply to outputs.</p></div>
-          <div class="terminal" id="setup-terminal" role="tabpanel" aria-labelledby="run-local"><div class="terminal-bar"><span class="terminal-lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="mono">~/phaino</span><button class="copy-button" data-copy-setup><Icon name="copy" size={15}/><span>Copy</span></button></div><pre><code><span class="terminal-comment" data-setup-comment>{setups.local.comment}</span>
-<span class="terminal-prompt">$</span> git clone https://github.com/screen-gd/phaino.git
-<span class="terminal-prompt">$</span> cd phaino
-<span class="terminal-prompt">$</span> cp .env.example .env.local
-<span class="terminal-prompt">$</span> echo "<span data-setup-env>{setups.local.env}</span>" &gt;&gt; .env.local
-<span class="terminal-prompt">$</span> npm install &amp;&amp; npm run dev</code></pre></div>
-        </div>
-      </section>
-
-      <section id="cost" class="screen cost-section section-shell" aria-labelledby="cost-heading">
-        <div class="section-head" data-reveal><h2 id="cost-heading">What a shot costs on your own GPU<span class="accent">.</span></h2><p>Electricity, and nothing else. Change any number to match your setup.</p></div>
-        <div class="cost-board" data-reveal>
-          <div class="cost-inputs">
-            <label class="cost-range">Clips per month <output data-cost-out="clips">200</output><input type="range" min="10" max="1000" step="10" value="200" data-cost="clips" /></label>
-            <label>Render time per clip, seconds<input type="number" min="5" max="3600" step="5" value="180" data-cost="seconds" inputmode="numeric" /><span class="cost-hint">Estimate. Depends on your GPU, model and resolution.</span></label>
-            <label>GPU power draw, watts<input type="number" min="10" max="1000" step="5" value="80" data-cost="watts" inputmode="numeric" /><span class="cost-hint">A mid-range laptop GPU draws about 80 W.</span></label>
-            <label>Electricity, $ per kWh<input type="number" min="0" max="2" step="0.01" value="0.18" data-cost="rate" inputmode="decimal" /><span class="cost-hint">Example rate. Use your own bill.</span></label>
-            <label>Your current plan, $ per month<input type="number" min="0" max="10000" step="1" placeholder="Optional" data-cost="plan" inputmode="decimal" /></label>
+          <div class="run-intro">
+            <h3>Set up the studio</h3>
+            <p class="run-sdk-note">Every run goes through the ComfyUI SDK and API on Comfy Cloud.</p>
+            <div class="run-switch" role="tablist" aria-label="Where it runs">
+              <span class="run-local-option" title="Local GPU support is coming."><button type="button" role="tab" id="run-local" aria-selected="false" aria-controls="setup-terminal" aria-disabled="true" aria-describedby="run-local-note" tabindex="-1" disabled title="Local GPU support is coming.">On your GPU (soon)</button><span id="run-local-note" class="sr-only">Local GPU support is coming.</span></span>
+              <button type="button" role="tab" id="run-cloud" aria-selected="true" aria-controls="setup-terminal">On Comfy Cloud</button>
+            </div>
+            <p class="compute-note">Cloud compute is billed by Comfy, not Phaino. Model licenses apply to outputs.</p>
           </div>
-          <div class="cost-result" aria-live="polite"><span class="cost-label">Your month of shots</span><strong data-cost-month>$0.14</strong><span class="cost-per" data-cost-clip>about $0.0007 per clip</span><span class="cost-compare" data-cost-compare hidden></span></div>
+          <div class="terminal" id="setup-terminal" role="tabpanel" aria-labelledby="run-cloud"><div class="terminal-bar"><span class="terminal-lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="mono">~/phaino</span><button type="button" class="copy-button" data-copy-setup><Icon name="copy" size={15}/><span>Copy</span></button></div><pre><code><span class="terminal-comment"># Node 22+ and pnpm required</span>{'\n'}{setupCommands.map((command) => <Fragment><span class="terminal-prompt" aria-hidden="true">$</span> <span data-setup-command>{command}</span>{'\n'}</Fragment>)}</code></pre></div>
         </div>
       </section>
 
-      <section id="export" class="screen export-section section-shell" aria-labelledby="export-heading"><div class="section-head" data-reveal><h2 id="export-heading">Drops straight into your edit<span class="accent">.</span></h2><p>Cutaway matches your frame rate and resolution, adds handles, and exports FCPXML or EDL for Resolve, Premiere and Final Cut.</p></div><div class="timeline" data-reveal role="img" aria-label="Illustrative editing timeline: a Cutaway shot on video track two, with handles, above your original footage"><div class="timeline-toolbar"><span><span class="status-dot"></span> CUTAWAY → YOUR EDIT</span><span class="mono">24 FPS <span class="muted">/</span> 3840 × 2160 <span class="muted">/</span> 12F HANDLES</span></div><div class="timeline-body"><div class="timeline-ruler mono"><span>01:00:00:00</span><span>01:00:02:00</span><span>01:00:04:00</span><span>01:00:06:00</span><span>01:00:08:00</span></div><div class="timeline-track"><span class="track-label mono">V2</span><div class="generated-clip"><span class="clip-handle left-handle"></span><img src="/media/moves/orbit.webp" alt="" width="120" height="68" loading="lazy" /><span class="mono">CUTAWAY_ORBIT_001 <span>+12F</span></span><span class="clip-handle right-handle"></span></div></div><div class="timeline-track"><span class="track-label mono">V1</span><div class="source-clip"><span class="mono">A001_C004_SHORE</span></div><div class="source-clip short-clip"><span class="mono">A001_C007</span></div></div><div class="timeline-track audio-track"><span class="track-label mono">A1</span><div class="waveform" aria-hidden="true"></div></div><div class="timeline-playhead" aria-hidden="true"><span></span></div></div></div><div class="export-formats"><span>DaVinci Resolve</span><span>Premiere Pro</span><span>Final Cut Pro</span><span class="muted">FCPXML · EDL · ProRes · H.264</span></div></section>
+      <section id="cost" class="cost-section section-shell" aria-labelledby="cost-heading">
+        <div class="cost-card" data-reveal>
+          <h2 id="cost-heading">What it costs</h2>
+          <div class="cost-copy"><p>Phaino is free. Generation runs on your Comfy Cloud plan (from $20/month, <a href="https://comfy.org/pricing" target="_blank" rel="noreferrer">see comfy.org/pricing</a>).</p><p>Partner models like Seedance or Kling use Comfy credits and are always labelled in the studio.</p></div>
+        </div>
+      </section>
 
-      <div class="challenge-credit section-shell"><span class="cut-mark small" aria-hidden="true"><i></i><i></i></span><p>Built for Comfy’s <span>Open Source Higgsfield</span> challenge.</p><a href={github} target="_blank" rel="noreferrer" aria-label="Follow Cutaway's challenge build on GitHub"><Icon name="arrow" size={18}/></a></div>
+      <section id="export" class="screen export-section section-shell" aria-labelledby="export-heading"><div class="section-head" data-reveal><h2 id="export-heading">Edit it here. Finish it anywhere<span class="accent">.</span></h2><p>Trim and sequence your renders in the Phaino editor, right in the browser. Conform frame rate, resolution and handles, then import the package into Resolve, Premiere or Final Cut.</p></div><div class="editor-mock" data-reveal><div class="timeline" role="img" aria-label="Illustrative Phaino editor timeline: a Phaino shot on video track two, with handles, above your original footage"><div class="timeline-toolbar"><span><span class="status-dot"></span> PHAINO_SEQUENCE</span><span class="mono">24 FPS <span class="muted">/</span> 3840 × 2160 <span class="muted">/</span> 12F HANDLES</span></div><div class="timeline-body"><div class="timeline-ruler mono"><span>01:00:00:00</span><span>01:00:02:00</span><span>01:00:04:00</span><span>01:00:06:00</span><span>01:00:08:00</span></div><div class="timeline-track"><span class="track-label mono">V2</span><div class="generated-clip"><span class="clip-handle left-handle"></span><img src="/media/moves/orbit.webp" alt="" width="120" height="68" loading="lazy" /><span class="mono">PHAINO_ORBIT_001 <span>+12F</span></span><span class="clip-handle right-handle"></span></div></div><div class="timeline-track"><span class="track-label mono">V1</span><div class="source-clip"><span class="mono">A001_C004_SHORE</span></div><div class="source-clip short-clip"><span class="mono">A001_C007</span></div></div><div class="timeline-track audio-track"><span class="track-label mono">A1</span><div class="waveform" aria-hidden="true"></div></div><div class="timeline-playhead" aria-hidden="true"><span></span></div></div></div><div class="conform-panel" role="img" aria-label="Illustrative export settings: 24 fps, 4K, 12 frame handles, ProRes 422"><div class="conform-head"><strong>Conform</strong><span class="mono muted">HANDLES INCLUDED</span></div>{conform.map((group) => <div class="conform-group"><span>{group.label}</span><div class="conform-options">{group.options.map((option) => <span class:list={{ active: option === group.active }}>{option}</span>)}</div></div>)}<span class="conform-export">Export package</span></div></div><div class="export-formats"><span class="export-lead">Imports into</span><span>DaVinci Resolve</span><span>Premiere Pro</span><span>Final Cut Pro</span><span class="muted">FCPXML · EDL · ProRes · H.264</span></div></section>
 
-      <section class="footer-cta section-shell" aria-labelledby="footer-heading"><div data-reveal><h2 id="footer-heading">Open the studio<span class="accent">.</span></h2><p>Free and open source. Star the repo to follow the build.</p></div><div class="footer-actions"><a class="button button-accent magnetic" href={github} target="_blank" rel="noreferrer"><Icon name="github" size={18}/>Get Cutaway on GitHub <Icon name="arrow"/></a><a class="button button-glass magnetic" href="https://x.com/Screeendev" target="_blank" rel="noreferrer">Follow @Screeendev <Icon name="arrow"/></a></div><div class="footer-wordmark" aria-hidden="true"><span class="footer-word">cutaway</span><span class="footer-arrow">↗</span></div></section>
+      <div class="challenge-credit section-shell"><a class="challenge-pill" href="https://comfy.org/open-source-higgsfield" target="_blank" rel="noreferrer"><Logo markOnly /><p>Built for Comfy’s <span>Open Source Higgsfield</span> challenge.</p></a></div>
+
+      <section class="footer-cta section-shell" aria-labelledby="footer-heading"><div data-reveal><h2 id="footer-heading">Open the studio<span class="accent">.</span></h2><p>Free and open source. Star the repo to follow the build.</p></div><div class="footer-actions"><a class="button button-accent" href={github} target="_blank" rel="noreferrer"><Icon name="github" size={18}/>Get Phaino on GitHub <Icon name="arrow"/></a><a class="button button-glass" href="https://x.com/Screeendev" target="_blank" rel="noreferrer">Follow @Screeendev <Icon name="arrow"/></a></div><div class="footer-wordmark" aria-hidden="true"><span class="footer-word">phaino</span></div></section>
     </main>
-    <footer class="site-footer section-shell"><span>© {new Date().getFullYear()} Cutaway</span><span class="footer-license">Built on ComfyUI.</span><div><a href={github} target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a><a href="https://x.com/Screeendev" target="_blank" rel="noreferrer">X / @Screeendev <span aria-hidden="true">↗</span></a><a href={`${github}/blob/main/LICENSE`} target="_blank" rel="noreferrer">MIT</a></div></footer>
+    <canvas class="footer-dither" aria-hidden="true" data-footer-dither></canvas>
+    <footer class="site-footer section-shell"><span>© {new Date().getFullYear()} Phaino</span><span class="footer-license">Built on ComfyUI.</span><div><a href={`${github}/blob/main/LICENSE`} target="_blank" rel="noreferrer">MIT</a></div></footer>
 
     <div class="cursor-chip" aria-hidden="true"><Icon name="play" size={14}/><span data-cursor-label>Play</span></div>
 
-    <dialog id="studio-dialog" aria-labelledby="dialog-title" data-lenis-prevent><div class="dialog-shell"><div class="dialog-header"><span class="wordmark"><span class="cut-mark small" aria-hidden="true"><i></i><i></i></span>cutaway</span><button class="dialog-close" aria-label="Close preview"><Icon name="close"/></button></div><div class="dialog-title-row"><div><span class="mono muted">PRESET / WORKFLOW ANATOMY</span><h2 id="dialog-title">Orbit</h2></div><div class="dialog-tabs" role="tablist" aria-label="Preset view"><button role="tab" id="preview-tab" aria-controls="preview-panel" aria-selected="true" data-tab="preview">Preview</button><button role="tab" id="workflow-tab" aria-controls="workflow-panel" aria-selected="false" tabindex="-1" data-tab="workflow">Open the workflow <Icon name="nodes" size={16}/></button></div></div><div id="preview-panel" role="tabpanel" aria-labelledby="preview-tab"><div class="dialog-preview"><img id="dialog-poster" src="/media/hero.webp" alt="Illustrative preset poster" width="1600" height="1000"/><video id="dialog-video" muted loop playsinline controls hidden><track kind="captions" src="/media/captions.vtt" srclang="en" label="English"/></video><span class="poster-notice mono">ILLUSTRATIVE POSTER / FOOTAGE COMING SOON</span></div><p id="dialog-description">Find a different side.</p></div><div id="workflow-panel" role="tabpanel" aria-labelledby="workflow-tab" hidden><div class="graph-editor"><canvas id="workflow-canvas" aria-label="Editable illustrative Comfy-style node graph. Use the controls below for keyboard access." role="img"></canvas><p class="graph-loading">Opening the graph…</p></div><div class="workflow-controls"><label>Your direction<input id="workflow-prompt" type="text" value="Slow orbit. Hold the subject." maxlength="240" /></label><label>Duration <output id="duration-output" for="workflow-duration">5 seconds</output><input id="workflow-duration" type="range" min="2" max="10" value="5" /></label><button class="button button-accent" data-download-workflow><Icon name="fork" size={17}/>Save your remix <Icon name="arrow" size={17}/></button></div><details class="workflow-json"><summary>Inspect the example JSON</summary><pre id="workflow-json"></pre></details><p class="workflow-example-note">Editable workflow anatomy, not a runnable ComfyUI preset. Production graphs and model setup are still in development.</p></div></div></dialog>
+    <dialog id="studio-dialog" aria-labelledby="dialog-title" data-lenis-prevent><div class="dialog-shell"><div class="dialog-header"><span class="wordmark"><Logo /></span><button class="dialog-close" aria-label="Close preview"><Icon name="close"/></button></div><div class="dialog-title-row"><div><span class="mono muted">PRESET / WORKFLOW ANATOMY</span><h2 id="dialog-title">Orbit</h2></div><div class="dialog-tabs" role="tablist" aria-label="Preset view"><button role="tab" id="preview-tab" aria-controls="preview-panel" aria-selected="true" data-tab="preview">Preview</button><button role="tab" id="workflow-tab" aria-controls="workflow-panel" aria-selected="false" tabindex="-1" data-tab="workflow">Open the workflow <Icon name="nodes" size={16}/></button></div></div><div id="preview-panel" role="tabpanel" aria-labelledby="preview-tab"><div class="dialog-preview"><img id="dialog-poster" src="/media/hero.webp" alt="Illustrative preset poster" width="1600" height="1000"/><video id="dialog-video" muted loop playsinline controls hidden><track kind="captions" src="/media/captions.vtt" srclang="en" label="English"/></video><span class="poster-notice mono">ILLUSTRATIVE POSTER / FOOTAGE COMING SOON</span></div><p id="dialog-description">Find a different side.</p></div><div id="workflow-panel" role="tabpanel" aria-labelledby="workflow-tab" hidden><div class="graph-editor"><canvas id="workflow-canvas" aria-label="Editable illustrative Comfy-style node graph. Use the controls below for keyboard access." role="img"></canvas><p class="graph-loading">Opening the graph…</p></div><div class="workflow-controls"><label>Your direction<input id="workflow-prompt" type="text" value="Slow orbit. Hold the subject." maxlength="240" /></label><label>Duration <output id="duration-output" for="workflow-duration">5 seconds</output><input id="workflow-duration" type="range" min="2" max="10" value="5" /></label><button class="button button-accent" data-download-workflow><Icon name="fork" size={17}/>Save your remix <Icon name="arrow" size={17}/></button></div><details class="workflow-json"><summary>Inspect the example JSON</summary><pre id="workflow-json"></pre></details><p class="workflow-example-note">Editable workflow anatomy, not a runnable ComfyUI preset. Production graphs and model setup are still in development.</p></div></div></dialog>
     <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
     <script>
       import '../scripts/studio';
+      import { initDitherGradient } from '../scripts/dither';
+      const footerDither = document.querySelector<HTMLCanvasElement>('[data-footer-dither]');
+      if (footerDither) initDitherGradient(footerDither, { color: [255, 91, 34], cell: 4, opacity: 0.42 });
     </script>
   </body>
 </html>

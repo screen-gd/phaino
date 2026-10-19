@@ -1,0 +1,198 @@
+---
+interface Props { github: string; }
+const { github } = Astro.props;
+const nodes = [
+  { title: 'Load image', type: 'INPUT', value: 'first_frame.png' },
+  { title: 'Your direction', type: 'PROMPT', value: 'Slow orbit. Hold the subject.' },
+  { title: 'Camera motion', type: 'CONTROL', value: 'orbit · 90°' },
+  { title: 'LTX 2.5', type: 'GENERATE', value: '5s · 24 fps' },
+  { title: 'Your next shot', type: 'OUTPUT', value: 'orbit_001.mp4' },
+];
+---
+<section id="workflows" class="bring-light section-shell" aria-label="Bring it to light" data-bring-light data-state="closed">
+  <div class="light-layout">
+    <h2 class="light-heading"><span>Most AI studios give you a button.</span> <span>Phaino gives you the shot <span class="light-recipe">and how it was made.</span></span></h2>
+
+    <fieldset class="light-switch" role="radiogroup" aria-label="Studio workflow visibility">
+      <legend class="sr-only">Compare closed studios with Phaino</legend>
+      <label><input type="radio" name="light-studio" value="closed" checked /><span>Closed studio</span></label>
+      <label><input type="radio" name="light-studio" value="phaino" /><span>Phaino</span></label>
+    </fieldset>
+
+    <div class="light-stage">
+      <figure class="light-shot">
+        <img class="light-poster" src="/media/moves/orbit.webp" alt="Orbit shot preview" width="1200" height="675" loading="lazy" data-light-poster />
+        <figcaption class="light-timecode mono"><span aria-hidden="true"></span><span class="sr-only">Timecode </span>00:00:02:12</figcaption>
+      </figure>
+
+      <div class="light-closed" data-light-closed>
+        <div class="light-panel">
+          <div class="light-preset-tile">
+            <img src="/media/moves/orbit.webp" alt="" width="240" height="135" loading="lazy" />
+            <strong>Orbit</strong>
+          </div>
+          <button class="light-generate" type="button" aria-describedby="light-caption" data-light-generate>Generate <span aria-hidden="true">↗</span></button>
+          <span class="light-credits mono">− 8 credits</span>
+        </div>
+      </div>
+
+      <div class="light-graph" data-light-graph hidden>
+        <p class="sr-only">Workflow: Load image → Your direction → Camera motion → LTX 2.5 → Your next shot.</p>
+        <ol class="light-nodes" aria-label="Workflow nodes">
+          {nodes.map((node, index) => <li>
+            <article class="light-node" data-light-node>
+              <div class="light-node-heading"><strong>{node.title}</strong><span class="mono">{node.type}</span></div>
+              {node.type === 'CONTROL' ? <div class="light-angle-control">
+                <label class="mono" for="light-angle">Orbit angle <output id="light-angle-value" for="light-angle" data-light-angle-value>90°</output></label>
+                <input id="light-angle" type="range" min="30" max="180" step="1" value="90" aria-describedby="light-preview-note" data-light-angle />
+                <div class="light-angle-limits mono" aria-hidden="true"><span>30°</span><span>180°</span></div>
+              </div> : <span class="light-node-value mono">{node.value}</span>}
+              <span class="light-port" aria-hidden="true"></span>
+            </article>
+            {index < nodes.length - 1 && <svg class="light-edge" viewBox="0 0 2 18" preserveAspectRatio="none" aria-hidden="true"><path d="M1 0V18" pathLength="1" data-light-edge /></svg>}
+          </li>)}
+        </ol>
+      </div>
+    </div>
+
+    <div class="light-meta">
+      <p id="light-caption" class="mono" data-light-caption>You see the result. You don't see the recipe.</p>
+      <p class="mono light-readout" data-light-readout hidden>orbit · 90° · 5s · LTX 2.5</p>
+      <p id="light-preview-note" class="light-preview-note" data-light-note hidden>Preview. Real renders run in the studio.</p>
+    </div>
+    <div class="light-actions-space">
+      <nav class="light-actions" aria-label="Use the open workflow" data-light-actions hidden>
+        <a href="#presets">Open in ComfyUI</a>
+        <a href={`${github}/fork`} target="_blank" rel="noreferrer">Fork it</a>
+        <a href={`${github}/tree/main/presets`} target="_blank" rel="noreferrer">Download workflow.json</a>
+      </nav>
+    </div>
+    <p class="sr-only" role="status" aria-live="polite" data-light-status></p>
+
+    <dl class="light-facts">
+      <div><dt>22</dt><dd>presets, each one a real ComfyUI workflow</dd></div>
+      <div><dt>0</dt><dd>hidden steps. Every node is visible and editable.</dd></div>
+      <div><dt>MIT</dt><dd>license. Fork the studio, not just the preset.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<script>
+  import { initBringToLight } from '../scripts/bring-to-light';
+  const section = document.querySelector<HTMLElement>('[data-bring-light]');
+  if (section) initBringToLight(section);
+</script>
+
+<style>
+  .bring-light { padding-top: clamp(56px, 7vw, 104px); padding-bottom: clamp(56px, 7vw, 104px); scroll-margin-top: calc(var(--header-height) + 24px); font-family: 'Archivo Variable', sans-serif; }
+  .bring-light .mono { font-family: 'IBM Plex Mono', monospace; }
+  .bring-light [hidden] { display: none !important; }
+
+  /* Copy stacks on the left, the stage spans every row on the right. Spacer rows centre the copy. */
+  .light-layout { display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); grid-template-rows: 1fr auto auto auto auto auto 1fr; grid-template-areas: '. stage' 'head stage' 'switch stage' 'meta stage' 'actions stage' 'facts stage' '. stage'; column-gap: clamp(40px, 5vw, 96px); max-width: 1440px; margin: 0 auto; }
+  .light-heading { grid-area: head; max-width: 13em; margin-bottom: 32px; font-size: clamp(30px, 3.1vw, 50px); line-height: 1.06; font-weight: 500; letter-spacing: -.04em; text-wrap: balance; }
+  .light-heading > span { display: block; }
+  .light-heading > span + span { margin-top: .3em; }
+  .light-recipe { color: #7d7d7d; }
+
+  .light-switch { grid-area: switch; display: flex; width: fit-content; margin: 0; padding: 4px; min-width: 0; gap: 4px; border: 1px solid #262626; border-radius: 999px; background: #0b0b0b; }
+  .light-switch label { position: relative; cursor: pointer; border-radius: 999px; }
+  .light-switch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  .light-switch label > span { display: block; padding: 11px 22px; min-height: 44px; color: #9b9b9b; font-size: 14px; border-radius: inherit; transition: background-color 200ms, color 200ms; }
+  .light-switch label:hover > span { color: #fff; }
+  .light-switch input:checked + span { background: #fff; color: #000; }
+  .light-switch input[value='phaino']:checked + span { background: var(--accent); color: #000; }
+  .light-switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 5px; }
+
+  .light-stage { grid-area: stage; align-self: center; justify-self: end; position: relative; width: min(100%, calc((100svh - var(--header-height) - 96px) * 4 / 3)); min-height: 440px; aspect-ratio: 4 / 3; isolation: isolate; overflow: hidden; border: 1px solid #262626; border-radius: 22px; background: #070707; box-shadow: 0 40px 120px #000; transition: border-color 400ms; }
+  .bring-light[data-state='phaino'] .light-stage { border-color: #ff5b2240; }
+  .light-shot { position: absolute; inset: 0 auto 0 0; width: 100%; margin: 0; overflow: hidden; transition: width 550ms cubic-bezier(.22,1,.36,1); }
+  .light-poster { width: 100%; height: 100%; object-fit: cover; object-position: 60% center; filter: blur(14px) brightness(.38) saturate(.8); transform: scale(1.1); transition: filter 400ms; }
+  .light-shot::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg,#0006,transparent 30%,transparent 60%,#000a); pointer-events: none; }
+  .light-timecode { position: absolute; z-index: 1; top: 20px; left: 20px; display: flex; align-items: center; gap: 8px; font-size: 11px; color: #eee; }
+  .light-timecode > span:first-child { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+  .light-closed { position: absolute; inset: 0; display: grid; place-items: center; }
+  .light-panel { display: flex; flex-direction: column; gap: 12px; width: min(300px, 74%); padding: 12px; border: 1px solid #ffffff1f; border-radius: 22px; background: #0a0a0a99; box-shadow: inset 0 1px 0 #ffffff1a, 0 30px 80px #000c; backdrop-filter: blur(20px) saturate(140%); -webkit-backdrop-filter: blur(20px) saturate(140%); }
+  .light-preset-tile { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px; background: #131313; }
+  .light-preset-tile::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg,transparent 45%,#000b); }
+  .light-preset-tile img { width: 100%; height: 100%; object-fit: cover; }
+  .light-preset-tile strong { position: absolute; bottom: 12px; left: 14px; z-index: 1; font-size: 22px; font-weight: 500; letter-spacing: -.04em; }
+  .light-generate { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 13px 20px; min-height: 48px; background: var(--accent); color: #000; border-radius: 999px; font-size: 15px; font-weight: 600; transition: transform 160ms; }
+  .light-generate:active { transform: scale(.98); }
+  .light-credits { color: #8c8c8c; font-size: 11px; text-align: center; padding-bottom: 2px; }
+
+  .light-graph { position: absolute; inset: 0 0 0 auto; width: 54%; padding: clamp(14px, 1.8vw, 24px); background: #070707 radial-gradient(#ffffff12 1px, transparent 1.2px) 0 0 / 18px 18px; border-left: 1px solid #222; }
+  .light-nodes { width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px; }
+  .light-nodes > li { position: relative; width: 100%; max-width: 320px; }
+  .light-node { position: relative; padding: 9px 12px; border: 1px solid #303030; border-radius: 10px; background: #111; box-shadow: 0 8px 24px #0008; }
+  .light-node-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .light-node-heading strong { font-size: 14px; font-weight: 550; line-height: 1.35; }
+  .light-node-heading > span { color: #7d7d7d; font-size: 10px; letter-spacing: .05em; }
+  .light-node-value { display: block; margin-top: 4px; color: #b8b8b8; font-size: 11px; line-height: 1.45; }
+  .light-port { position: absolute; width: 6px; height: 6px; left: calc(50% - 3px); bottom: -3px; background: var(--accent); border-radius: 50%; z-index: 1; }
+  .light-edge { position: absolute; left: calc(50% - 1px); top: 100%; width: 2px; height: 12px; overflow: visible; }
+  .light-edge path { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 1; stroke-dashoffset: 0; }
+  .light-angle-control { margin-top: 6px; }
+  .light-angle-control label { display: flex; align-items: center; justify-content: space-between; color: #ccc; font-size: 11px; }
+  .light-angle-control output { color: var(--accent); }
+  .light-angle-control input { display: block; width: 100%; height: 20px; margin: 2px 0 0; padding: 0; accent-color: var(--accent); cursor: ew-resize; }
+  .light-angle-control input:focus-visible { outline-offset: 2px; }
+  .light-angle-limits { display: flex; justify-content: space-between; color: #777; font-size: 10px; }
+  .bring-light[data-state='phaino'] .light-shot { width: 46%; }
+  .bring-light[data-state='phaino'] .light-poster { filter: none; transform: translateX(var(--orbit-pan, 0%)) scale(1.18) rotate(var(--orbit-rotation, 0deg)); }
+  .bring-light.is-generated .light-poster { filter: brightness(.45); }
+
+  .light-meta { grid-area: meta; min-height: 48px; margin-top: 20px; display: flex; flex-direction: column; gap: 4px; }
+  .light-meta .mono { color: #9b9b9b; font-size: 12px; line-height: 1.6; }
+  .light-meta .light-readout { color: #eee; }
+  .light-meta .light-preview-note { color: #7d7d7d; font-size: 12px; line-height: 1.5; }
+  .light-actions-space { grid-area: actions; margin-top: 8px; min-height: 44px; }
+  .light-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .light-actions a { padding: 11px 16px; min-height: 44px; border: 1px solid #2e2e2e; border-radius: 999px; color: #eee; font-size: 13px; transition: border-color 160ms; }
+  .light-actions a:hover { border-color: #888; }
+
+  .light-facts { grid-area: facts; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 36px 0 0; padding-top: 22px; border-top: 1px solid #222; gap: 24px; }
+  .light-facts dt { color: #fff; font-size: clamp(28px, 2.6vw, 40px); font-weight: 500; line-height: 1; letter-spacing: -.05em; }
+  .light-facts dd { margin: 10px 0 0; color: #8c8c8c; font-size: 13px; line-height: 1.45; }
+
+  @media (max-width: 900px) {
+    .light-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: 'head' 'switch' 'stage' 'meta' 'actions' 'facts'; }
+    .light-heading { max-width: 20ch; margin-bottom: 24px; }
+    .light-switch { margin-bottom: 18px; }
+    .light-stage { justify-self: stretch; width: 100%; min-height: 0; aspect-ratio: auto; }
+    .light-shot, .bring-light[data-state='phaino'] .light-shot { position: relative; inset: auto; width: 100%; aspect-ratio: 16 / 9; transition: none; }
+    .light-closed { aspect-ratio: 16 / 9; inset: 0 0 auto; }
+    .light-graph { position: relative; inset: auto; width: 100%; padding: 28px 24px; border-left: 0; border-top: 1px solid #222; }
+    .light-nodes { height: auto; }
+    .light-nodes > li { max-width: 420px; }
+    .light-node { padding: 12px 16px; }
+    .light-node-heading strong { font-size: 15px; }
+    .light-node-value { font-size: 12px; }
+    .light-meta { margin-top: 16px; min-height: 0; }
+  }
+  @media (max-width: 600px) {
+    .light-heading { font-size: clamp(28px, 7.4vw, 36px); }
+    .light-switch label > span { padding: 11px 20px; font-size: 13px; }
+    .light-stage { border-radius: 14px; }
+    .light-panel { width: min(200px, 64%); padding: 8px; gap: 8px; border-radius: 16px; }
+    .light-preset-tile { aspect-ratio: 2.2; border-radius: 8px; }
+    .light-preset-tile strong { bottom: 8px; left: 10px; font-size: 16px; }
+    .light-generate { min-height: 36px; padding: 8px 16px; font-size: 13px; }
+    .light-credits { font-size: 10px; }
+    .light-timecode { top: 12px; left: 12px; font-size: 10px; }
+    .light-graph { padding: 24px 18px; }
+    .light-meta .mono, .light-meta .light-preview-note { font-size: 11px; }
+    .light-actions a { font-size: 12px; padding: 11px 13px; }
+    .light-facts { gap: 16px; margin-top: 28px; }
+    .light-facts > div { min-width: 0; }
+    .light-facts dt { font-size: 32px; }
+    .light-facts dd { font-size: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .light-shot { transition: none; }
+    .bring-light[data-state='phaino'] .light-poster { transform: scale(1.18); }
+  }
+  :global(html[data-motion-paused]) .light-shot { transition: none; }
+  :global(html[data-motion-paused]) .bring-light[data-state='phaino'] .light-poster { transform: scale(1.18); }
+</style>

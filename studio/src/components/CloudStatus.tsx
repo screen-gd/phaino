@@ -1,51 +1,50 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import type { ComfyHealth } from "@/lib/health";
+import { Badge } from "@/components/ui/badge";
+import { useComfyHealth } from "@/lib/useComfyHealth";
 
-const PILL =
-  "inline-flex h-8 items-center gap-2 rounded-full border border-line bg-s2 px-3 font-mono text-xs whitespace-nowrap";
+const DOT = "h-1.5 w-1.5 rounded-full";
 
 /** Compact pill showing Comfy connectivity, polled once on mount. */
 export function CloudStatus() {
-  const [health, setHealth] = useState<ComfyHealth | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch("/api/health")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: ComfyHealth | null) => {
-        if (!cancelled && data) setHealth(data);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const health = useComfyHealth();
 
   if (!health) {
     return (
-      <span className={`${PILL} text-t3`}>
-        <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-t3" />
-        Comfy Cloud
-      </span>
+      <Badge variant="outline" size="lg" className="gap-1.5 font-mono text-t3">
+        <span aria-hidden="true" className={`${DOT} bg-t3`} />
+        <span className="max-sm:hidden">Comfy Cloud</span>
+      </Badge>
     );
   }
 
   if (health.status !== "ok") {
     return (
-      <Link href="/settings" title={health.message ?? health.status} className={`${PILL} text-t3`}>
-        <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-t3" />
-        Not connected
-      </Link>
+      <Badge
+        variant="outline"
+        size="lg"
+        title={health.message ?? health.status}
+        className="gap-1.5 font-mono text-t3"
+        render={<Link href="/settings" />}
+      >
+        <span aria-hidden="true" className={`${DOT} bg-t3`} />
+        <span className="max-sm:hidden">Not connected</span>
+      </Badge>
     );
   }
 
   return (
-    <span className={`${PILL} text-t2`} title={health.message}>
-      <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-ok" />
-      {health.target === "custom" ? health.host : "Comfy Cloud"}
-    </span>
+    <Badge
+      variant="outline"
+      size="lg"
+      title={health.message}
+      className="gap-1.5 font-mono text-t2"
+    >
+      <span aria-hidden="true" className={`${DOT} bg-ok`} />
+      <span className="max-sm:hidden">
+        {health.target === "custom" ? health.host : "Comfy Cloud"}
+      </span>
+    </Badge>
   );
 }

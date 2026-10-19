@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 type SlideAction = { label: string; href: string; accent?: boolean };
 type Slide = {
@@ -32,13 +34,10 @@ const SLIDES: Slide[] = [
   {
     chip: "Community forks",
     title: "Fork what others made.",
-    image: "/explore/reveal.webp",
+    image: "/explore/closer.webp",
     actions: [{ label: "See the feed", href: "/community", accent: true }],
   },
 ];
-
-const PILL =
-  "inline-flex h-11 items-center justify-center gap-1.5 rounded-full border px-3.5 whitespace-nowrap";
 
 /**
  * Rotating hero: crossfading slides, one timeout per slide, paused on
@@ -56,7 +55,7 @@ export function ExploreBanner() {
 
   return (
     <div
-      className="relative h-[360px] overflow-hidden rounded-panel border border-line bg-s1"
+      className="relative h-[300px] overflow-hidden rounded-panel border border-line"
       aria-roledescription="carousel"
       aria-label="Featured"
       onMouseEnter={() => setPaused(true)}
@@ -75,30 +74,29 @@ export function ExploreBanner() {
           }`}
         >
           <img src={s.image} alt="" className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,#000d_0%,#0008_45%,#0000_75%)]" />
-          <div className="absolute bottom-8 left-8 z-10 max-w-[520px]">
-            <span className="inline-flex h-[22px] items-center rounded-full bg-acs px-2 font-mono text-xs text-ac">
-              {s.chip}
-            </span>
-            <h1 className="mt-2.5 mb-3.5 text-[52px] leading-none font-bold tracking-[-0.04em]">
-              {s.title}
-            </h1>
-            {s.body && <p className="mb-[18px] text-[15px] text-t2">{s.body}</p>}
-            <div className="flex gap-2">
-              {s.actions.map((a) => (
-                <Link
-                  key={a.label}
-                  href={a.href}
-                  tabIndex={i === index ? 0 : -1}
-                  className={`${PILL} ${
-                    a.accent
-                      ? "border-ac bg-ac font-semibold text-on"
-                      : "border-line bg-s2 hover:border-[#3a3a3a] hover:bg-s3"
-                  }`}
-                >
-                  {a.label}
-                </Link>
-              ))}
+          <div className="absolute inset-0 bg-black/60 bg-[radial-gradient(ellipse_at_center,#0000_0%,#000c_85%)]" />
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center">
+            <div className="mx-auto max-w-[760px]">
+              <Badge variant="secondary" className="bg-acs font-mono text-ac">
+                {s.chip}
+              </Badge>
+              <h2 className="mt-3 mb-3 font-display font-extrabold uppercase text-h1 md:text-display leading-none tracking-tight font-stretch-[112.5%]">
+                {s.title}
+              </h2>
+              {s.body && <p className="mb-[18px] text-body text-t2">{s.body}</p>}
+              <div className="flex justify-center gap-2">
+                {s.actions.map((a) => (
+                  <Button
+                    key={a.label}
+                    size="lg"
+                    variant={a.accent ? "default" : "outline"}
+                    tabIndex={i === index ? 0 : -1}
+                    render={<Link href={a.href} />}
+                  >
+                    {a.label}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -106,7 +104,7 @@ export function ExploreBanner() {
       <div
         role="tablist"
         aria-label="Choose slide"
-        className="absolute right-5 bottom-5 z-10 flex"
+        className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2"
       >
         {SLIDES.map((s, i) => (
           <button

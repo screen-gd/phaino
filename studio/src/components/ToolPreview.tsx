@@ -7,7 +7,15 @@ import { useEffect, useRef } from "react";
  * server found an MP4 for this tool. The loop plays on pointer hover and
  * keyboard focus (on the enclosing link) and pauses on leave. Never autoplays.
  */
-export function ToolPreview({ poster, video }: { poster: string; video: string | null }) {
+export function ToolPreview({
+  poster,
+  video,
+  className = "aspect-4/3 rounded-xl",
+}: {
+  poster: string;
+  video: string | null;
+  className?: string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,7 +42,7 @@ export function ToolPreview({ poster, video }: { poster: string; video: string |
   }, [video]);
 
   return (
-    <div ref={ref} className="relative aspect-4/3 overflow-hidden rounded-xl bg-s3">
+    <div ref={ref} className={`relative overflow-hidden bg-s3 ${className}`}>
       {video ? (
         <video
           src={video}

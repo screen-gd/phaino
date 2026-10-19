@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { BackendSwitch } from "./BackendSwitch";
+import { CloudStatus } from "./CloudStatus";
 import { GitHubIcon, Icon, SECTION_ICONS } from "./icons";
 import { SECTIONS } from "./sections";
 
@@ -17,7 +17,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="grid h-dvh grid-cols-[64px_minmax(0,1fr)] grid-rows-[64px_minmax(0,1fr)]">
       <header className="col-span-2 flex items-center gap-3.5 border-b border-line bg-s1 pl-5 pr-3.5">
-        <Link href="/camera" className="mr-1.5 text-xl font-bold tracking-[-0.03em]">
+        <Link href="/" className="mr-1.5 text-xl font-bold tracking-[-0.03em]">
           cutaway
         </Link>
         <nav aria-label="Sections" className="flex flex-1 gap-0.5 overflow-x-auto">
@@ -35,7 +35,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <div className="flex items-center gap-2">
-          <BackendSwitch />
+          <CloudStatus />
           <a
             href="https://github.com/screen-gd/cutaway"
             target="_blank"

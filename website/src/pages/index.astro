@@ -1,0 +1,213 @@
+---
+/* Col selections: Lenis for smooth native scrolling; GSAP + ScrollTrigger for the
+   expanding hero, peel, reveals, horizontal gallery, magnetic CTAs and marquee.
+   Col's cursor-follow pick (Magic UI Pointer) is React-only, so one shared GSAP
+   quickTo follower implements the same pattern. @comfyorg/litegraph supplies Comfy's
+   graph editor on demand (Col has no recorded graph renderer). React-only Col
+   components were avoided to keep Astro lean. Static film grain replaces per-frame
+   canvas noise, and hero controls use solid scrims instead of backdrop blur.
+   See docs/landing-design.md and docs/ui-design-review.md. */
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+import Icon from '../components/Icon.astro';
+import Media from '../components/Media.astro';
+import Workflow from '../components/Workflow.astro';
+import { catalogue, tools, workflowReady } from '../data/presets';
+import '../styles/global.css';
+
+const github = 'https://github.com/screen-gd/cutaway';
+const capabilities = [
+  { name: 'Images', file: 'image', model: 'FLUX', text: 'Text to image, style presets and characters that stay consistent.', class: 'cap-image' },
+  { name: 'Video', file: 'video', model: 'LTX 2.5', text: 'Turn a prompt or a still image into a moving shot.', class: 'cap-video' },
+  { name: 'Camera moves', file: 'moves', model: '7 PRESETS', text: 'Dolly in, orbit, crash zoom and more. One click each.', class: 'cap-moves' },
+  { name: 'Effects', file: 'effects', model: 'VFX PRESETS', text: 'Set extension, match cut, morph, explode and melt.', class: 'cap-effects' },
+  { name: 'Avatars', file: 'avatar', model: 'LIPSYNC', text: 'A photo plus a voice track becomes a talking shot.', class: 'cap-avatar' },
+  { name: 'Edit & upscale', file: 'edit', model: 'STILLS + VIDEO', text: 'Inpaint, outpaint, relight and upscale.', class: 'cap-edit' },
+];
+const moves = [
+  { name: 'Orbit', file: 'orbit', subtitle: 'Find a different side.', type: 'arc', degrees: '90°', duration: '5s', number: '01', prompt: 'Slow orbit. Hold the subject.' },
+  { name: 'Dolly in', file: 'dolly-in', subtitle: 'Get closer to the story.', type: 'push', degrees: '1.8×', duration: '4s', number: '02', prompt: 'Push in. Let the trees close around.' },
+  { name: 'Crash zoom', file: 'crash-zoom', subtitle: 'Straight to the point.', type: 'push', degrees: '3.0×', duration: '2s', number: '03', prompt: 'Snap to the eyes. No warning.' },
+  { name: 'Whip pan', file: 'whip-pan', subtitle: 'Leave something behind.', type: 'arc', degrees: '180°', duration: '2s', number: '04', prompt: 'Whip right. Blur into the next shot.' },
+  { name: 'Drone pull-out', file: 'drone-pull-out', subtitle: 'Show the bigger picture.', type: 'pull', degrees: '40m', duration: '6s', number: '05', prompt: 'Rise and pull away. Reveal the valley.' },
+  { name: 'Bullet time', file: 'bullet-time', subtitle: 'Stay in the moment.', type: 'arc', degrees: '120°', duration: '5s', number: '06', prompt: 'Freeze the frame. Circle it.' },
+  { name: 'FPV dive', file: 'fpv-dive', subtitle: 'Take the long way down.', type: 'pull', degrees: '60m', duration: '5s', number: '07', prompt: 'Dive the ridge. Stay low.' },
+];
+const pickerMoves = moves.slice(0, 4);
+const community = [
+  { name: 'The slow reveal', author: '@framebyframe', forks: 128, image: 'community/reveal', shape: 'tall', crop: '50% 50%' },
+  { name: 'Into the blue', author: '@negative.space', forks: 96, image: 'community/blue', shape: '', crop: '30% 60%' },
+  { name: 'Quiet orbit', author: '@softcut', forks: 84, image: 'community/orbit', shape: 'tall', crop: '50% 30%' },
+  { name: 'After the rain', author: '@grain.room', forks: 72, image: 'community/rain', shape: '', crop: '40% 50%' },
+  { name: 'A little closer', author: '@shotbyshot', forks: 63, image: 'community/closer', shape: 'tall', crop: '60% 50%' },
+  { name: 'Last light', author: '@open.frame', forks: 51, image: 'community/light', shape: '', crop: '50% 40%' },
+  { name: 'Weightless', author: '@motion.study', forks: 44, image: 'community/blue', shape: '', crop: '80% 40%' },
+  { name: 'Hold the light', author: '@take.two', forks: 38, image: 'community/light', shape: 'tall', crop: '20% 60%' },
+];
+const communityColumns = Array.from({ length: community.length / 2 }, (_, index) => community.slice(index * 2, index * 2 + 2));
+const editTools = [
+  { id: 'relight', name: 'Relight', before: 'Flat', after: 'Relit' },
+  { id: 'upscale', name: 'Upscale', before: '540p', after: '2160p' },
+  { id: 'outpaint', name: 'Outpaint', before: 'Shot', after: 'Extended' },
+  { id: 'inpaint', name: 'Inpaint', before: 'Masked', after: 'Filled' },
+];
+const clipReady = (file: string) => existsSync(join(process.cwd(), 'public', 'media', 'moves', `${file}.mp4`));
+const readyCount = catalogue.filter((preset) => workflowReady(preset.file)).length;
+const setups = {
+  local: { comment: '# Local ComfyUI with LTX 2.5 installed', env: 'COMFY_API_URL=http://127.0.0.1:8188' },
+  cloud: { comment: '# Comfy Developer Platform', env: 'COMFY_API_KEY=your-key' },
+};
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Cutaway is an open-source AI studio for images and video. Every cinematic preset is a ComfyUI workflow you can open, remix and run yourself." />
+    <meta property="og:title" content="Cutaway · Every frame. Wide open." />
+    <meta property="og:description" content="The open-source AI studio where every preset opens into a workflow you can remix and run yourself." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@Screeendev" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Cutaway · Every frame. Wide open.</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <a class="wordmark" href="#" aria-label="Cutaway home"><span class="cut-mark" aria-hidden="true"><i></i><i></i></span>cutaway<span class="wordmark-dot">®</span></a>
+      <nav class="desktop-nav" aria-label="Main navigation"><a href="#workflows">How it works</a><a href="#studio">Features</a><a href="#presets">Presets</a><a href="#community">Community</a><a href="#run">Run it free</a></nav>
+      <div class="header-actions"><button class="motion-toggle" aria-pressed="false" aria-label="Motion on. Pause animated motion"><span class="status-dot"></span><span data-motion-label>Motion on</span></button><a class="header-github" href={github} target="_blank" rel="noreferrer"><Icon name="github" size={17}/><span>GitHub</span><span class="star-count" data-stars hidden></span><span aria-hidden="true">↗</span></a>
+        <details class="mobile-menu"><summary>Menu <Icon name="plus" size={16}/></summary><nav aria-label="Mobile navigation"><a href="#workflows">How it works</a><a href="#studio">Features</a><a href="#presets">Presets</a><a href="#community">Community</a><a href="#run">Run it free</a></nav></details>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero-sequence" aria-labelledby="hero-heading">
+        <div class="hero-pin">
+          <div class="hero-underlay" inert><Workflow /><div class="underlay-copy"><h2>Here’s what<br />made it.</h2><button class="button button-accent" data-open-workflow="Orbit">Get into the nodes <Icon name="arrow" /></button></div></div>
+          <div class="hero-frame">
+            <div class="hero-footage"><Media name="hero" alt="A lone figure in a pale coat faces silver surf on a black volcanic beach" eager /><div class="hero-shade"></div><div class="film-grain" aria-hidden="true"></div></div>
+            <div class="hero-corners" aria-hidden="true">{['tl','tr','br','bl'].map((corner) => <span class:list={['hero-corner',corner]}><svg viewBox="0 0 32 32"><path d="M0 0H32A32 32 0 0 0 0 32Z" fill="var(--bg)"/></svg></span>)}</div>
+            <div class="hero-meta mono" aria-hidden="true"><span class="rec-dot"></span><span class="timecode">00:00:00:00</span></div>
+            <div class="hero-copy"><h1 id="hero-heading">Every frame.<br />Wide open<span class="accent">.</span></h1><p>An open-source AI studio for images and video, built on ComfyUI.<br class="desktop-only" /> Every preset is a workflow. Make it yours.</p><div class="hero-ctas"><a class="button button-accent magnetic" href={github} target="_blank" rel="noreferrer"><Icon name="github" size={18}/>Star on GitHub<Icon name="arrow" size={18}/></a><a class="button button-glass magnetic" href="#moves">Try a preset <Icon name="arrow" size={18}/></a></div></div>
+            <div class="hero-bottom"><span class="hero-scroll-hint">Scroll to look under the frame <span aria-hidden="true">↓</span></span><button class="workflow-chip" data-open-workflow="Orbit"><Icon name="nodes" size={18}/><span>Open the workflow</span><span class="chip-arrow" aria-hidden="true">↗</span></button></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="workflows" class="screen workflow-section section-shell" aria-labelledby="workflow-heading">
+        <div class="section-head" data-reveal><h2 id="workflow-heading">Every preset is a workflow you can open<span class="accent">.</span></h2><p>Other AI studios hide how a shot is made. In Cutaway, each preset is a ComfyUI node graph. Open it, change any setting, save your own version.</p></div>
+        <div class="live-board" data-reveal>
+          <div class="live-toolbar">
+            <div class="move-picker" role="radiogroup" aria-label="Choose a preset">{pickerMoves.map((move, index) => <button role="radio" aria-checked={index === 0 ? 'true' : 'false'} tabindex={index === 0 ? 0 : -1} data-trace={move.name} data-trace-file={move.file} data-trace-prompt={move.prompt} data-trace-spec={`${move.duration} · 24 fps · LTX 2.5`} data-trace-clip={clipReady(move.file) ? '1' : undefined} data-trace-workflow={workflowReady(move.file) ? '1' : undefined} data-trace-motion={`${move.file.replace('-', ' ')} · ${move.degrees} · ${move.duration.replace('s', ' seconds')}`}>{move.name}</button>)}</div>
+            <span class="mono live-file"><span data-live-file>orbit</span>.workflow</span>
+          </div>
+          <div class="live-panes">
+            <figure class="preset-pane">
+              <figcaption>The preset you click</figcaption>
+              <div class="preset-card"><img src="/media/moves/orbit.webp" alt="" width="560" height="560" data-live-poster />{clipReady('orbit') && <video src="/media/moves/orbit.mp4" muted loop playsinline preload="none" poster="/media/moves/orbit.webp" data-live-video aria-label="Orbit rendered with the workflow beside it"></video>}<span class="preset-card-copy"><strong data-live-name>Orbit</strong><span class="mono" data-live-spec>5s · 24 fps · LTX 2.5</span></span></div>
+            </figure>
+            <figure class="graph-pane">
+              <figcaption>The workflow behind it</figcaption>
+              <Workflow live />
+            </figure>
+          </div>
+          <div class="board-bottom"><p>{workflowReady('orbit') ? 'This is the graph that rendered the clip. Download it and run it in ComfyUI.' : 'Example graph. Production workflows ship with the studio.'}</p><span class="board-actions">{workflowReady('orbit') && <a class="text-link" href="/workflows/orbit.json" download data-live-download><Icon name="download" size={18}/>Download <span data-live-download-name>orbit</span>.json</a>}<button class="text-link" data-open-workflow="Orbit" data-live-open>Open it in the node editor <Icon name="arrow" size={18}/></button></span></div>
+        </div>
+      </section>
+
+      <section id="studio" class="screen capabilities-section section-shell" aria-labelledby="studio-heading">
+        <div class="section-head" data-reveal><h2 id="studio-heading">One studio for images and video<span class="accent">.</span></h2><p>Six tools, all on open models: FLUX for images, LTX 2.5 for video.</p></div>
+        <div class="capabilities-grid">{capabilities.map((cap) => <article class:list={['capability', cap.class]} data-reveal>
+          <button class="capability-preview" data-cursor="Expand" data-showcase={cap.name} data-poster={`capabilities/${cap.file}`} data-description={cap.text} aria-label={`${cap.name}: ${cap.text}`}><Media name={`capabilities/${cap.file}`} alt=""/><span class="capability-shade"></span><span class="capability-top mono">{cap.model}<span class="expand-icon"><Icon name="plus" size={17}/></span></span><span class="capability-copy"><strong>{cap.name}</strong><span>{cap.text}</span></span></button>
+        </article>)}</div>
+      </section>
+
+      <section id="moves" class="moves-section" aria-labelledby="moves-heading">
+        <div class="moves-pin"><div class="moves-heading section-shell" data-reveal><div><h2 id="moves-heading">Cinematic camera moves<span class="accent">.</span></h2><p>Start from one image, pick a move, get the shot. Every move opens as a workflow.</p></div><div class="move-filters" role="group" aria-label="Filter camera moves"><button class="filter active" data-filter="all" aria-pressed="true">All moves</button><button class="filter" data-filter="push" aria-pressed="false">Push in</button><button class="filter" data-filter="arc" aria-pressed="false">Go around</button><button class="filter" data-filter="pull" aria-pressed="false">Pull away</button></div></div>
+          <div class="moves-viewport"><div class="moves-track">{moves.map((move) => <article class="move-card" data-move={move.type}>
+            <button class="move-preview" data-cursor="Play" data-showcase={move.name} data-poster={`moves/${move.file}`} data-description={move.subtitle}><Media name={`moves/${move.file}`} alt={`${move.name} illustrative poster`}/><span class="move-index mono"><span><span class="rec-dot"></span>CAM_{move.number}</span><span>{move.duration} / 24 FPS</span></span><span class="move-overlay"><span class="move-title" data-typed={move.name}>{move.name}</span><span>{move.subtitle}</span></span></button><div class="move-card-bottom"><span class="mono">{move.degrees} <span class="muted">/ {move.duration} / LTX 2.5</span></span><span class="move-actions">{workflowReady(move.file) && <a class="icon-pill" href={`/workflows/${move.file}.json`} download aria-label={`Download the ${move.name} workflow`}><Icon name="download" size={16}/></a>}<button class="workflow-pill" data-open-workflow={move.name}><Icon name="nodes" size={15}/>Open the workflow</button></span></div>
+          </article>)}</div></div>
+          <div class="moves-footer section-shell"><span class="mono" data-move-count>{moves.length} MOVES</span><div class="gallery-progress" aria-hidden="true"><span></span></div><span class="swipe-note">Scroll to explore <span aria-hidden="true">→</span></span></div>
+        </div>
+      </section>
+
+      <section id="presets" class="screen presets-section section-shell" aria-labelledby="presets-heading">
+        <div class="section-head" data-reveal><h2 id="presets-heading">Every preset, in the open<span class="accent">.</span></h2><p>{readyCount ? `${readyCount} of ${catalogue.length} workflows are ready to download and run in ComfyUI today. The rest are being built in public.` : `${catalogue.length} presets across six tools, built in public. Workflows appear here the day they run.`}</p></div>
+        <div class="preset-filters" role="group" aria-label="Filter presets by tool"><button class="filter active" aria-pressed="true" data-preset-filter="all">All</button>{tools.map((tool) => <button class="filter" aria-pressed="false" data-preset-filter={tool}>{tool}</button>)}</div>
+        <ul class="preset-list" data-reveal>{catalogue.map((preset) => <li data-tool={preset.tool} class:list={{ ready: workflowReady(preset.file) }}><span class="preset-name">{preset.name}</span><span class="preset-io">{preset.tool} · {preset.io}</span>{workflowReady(preset.file) ? <a class="preset-get" href={`/workflows/${preset.file}.json`} download><Icon name="download" size={15}/>Workflow</a> : <span class="preset-status">In progress</span>}</li>)}</ul>
+        <p class="preset-note">Each preset ships as a ComfyUI workflow you can drag into ComfyUI and run.</p>
+      </section>
+
+      <section id="edit" class="screen edit-section section-shell" aria-labelledby="edit-heading">
+        <div class="section-head" data-reveal><h2 id="edit-heading">Fix a shot without starting over<span class="accent">.</span></h2><div class="edit-side"><p>Relight, upscale, extend the frame or paint out an object. Works on stills and video.</p><div class="edit-tools" role="group" aria-label="Edit tool">{editTools.map((tool, index) => <button class:list={['filter', { active: index === 0 }]} aria-pressed={index === 0 ? 'true' : 'false'} data-tool={tool.id} data-before={tool.before} data-after={tool.after}>{tool.name}</button>)}</div></div></div>
+        <div class="comparison-wrap" data-reveal><div class="comparison" data-tool-view="relight" data-cursor="Drag" style="--split: 50%"><img class="comparison-after" src="/media/edit/after.webp" alt="Illustrative mountain lake after the edit" width="1200" height="900" loading="lazy"/><div class="comparison-before"><img src="/media/edit/before.webp" alt="The same mountain lake before the edit" width="1200" height="900" loading="lazy"/><span class="inpaint-mask" aria-hidden="true"></span></div><div class="comparison-labels mono" aria-hidden="true"><span data-before-label>FLAT</span><span data-after-label>RELIT</span></div><div class="comparison-handle" aria-hidden="true"><span>‹ ›</span></div><input type="range" min="0" max="100" value="50" aria-label="Compare before and after. Move left to reveal the edited frame." /></div><p class="comparison-caption">Illustrative: one photograph, treated in CSS to show what each tool does.</p></div>
+      </section>
+
+      <section id="community" class="screen community-section" aria-labelledby="community-heading">
+        <div class="section-head section-shell" data-reveal><h2 id="community-heading">Remix presets. Share your own<span class="accent">.</span></h2><p>The gallery is made of workflows people published. Open one, tweak it, publish your version with your name on it.</p></div>
+        <div class="fork-steps section-shell">
+          <svg class="fork-line" viewBox="0 0 1200 80" preserveAspectRatio="none" aria-hidden="true"><path class="fork-base" d="M0 60H1200" /><path class="fork-branch" d="M0 60H220C300 60 300 16 380 16H1200" pathLength="1" /></svg>
+          <ol>
+            <li data-reveal><span class="fork-point"></span><h3>Open any preset</h3><p>See every node and setting.</p></li>
+            <li data-reveal><span class="fork-point"></span><h3>Change what you want</h3><p>Swap a model, edit the prompt, retime the move.</p></li>
+            <li data-reveal><span class="fork-point"></span><h3>Publish your fork</h3><p>Others can open it and remix it again.</p></li>
+          </ol>
+        </div>
+        <div class="community-gallery" aria-label="Sample community presets"><div class="community-track">{communityColumns.map((column) => <div class="community-column">{column.map((item) => <article class:list={['community-card', item.shape]} data-forks={item.forks}><button data-open-workflow={item.name} data-cursor="Open"><img src={`/media/${item.image}.webp`} style={`object-position: ${item.crop}`} width="560" height="720" loading="lazy" alt={`${item.name} illustrative preset poster`}/><span class="community-card-overlay"><strong>{item.name}</strong><span>{item.author}<span><Icon name="fork" size={13}/>{item.forks} forks</span></span></span></button></article>)}</div>)}</div></div><div class="community-note section-shell"><span class="muted">Sample gallery. Handles and fork counts are placeholders.</span><button class="text-link" data-community-sort>Fewest forks first <Icon name="arrow" size={16}/></button></div>
+      </section>
+
+      <section id="run" class="screen run-section section-shell" aria-labelledby="run-heading">
+        <div class="section-head" data-reveal><h2 id="run-heading">Free, open source, and runs on your machine<span class="accent">.</span></h2><p>Use your own GPU, or Comfy Cloud if you don’t have one.</p></div>
+        <ul class="run-facts" aria-label="What you get">
+          <li data-reveal><strong>0 credits<span class="accent">.</span></strong><span>No subscription. Generate as much as your GPU allows.</span></li>
+          <li data-reveal><strong>0 watermarks<span class="accent">.</span></strong><span>Your outputs are clean, and they’re yours.</span></li>
+          <li data-reveal><strong>MIT<span class="accent">.</span></strong><span>Fork the code, ship it, build on it.</span></li>
+        </ul>
+        <div class="run-body" data-reveal>
+          <div class="run-intro"><h3>Set it up in a minute</h3><div class="run-switch" role="tablist" aria-label="Where it runs"><button role="tab" id="run-local" aria-selected="true" aria-controls="setup-terminal" data-run="local">On your GPU</button><button role="tab" id="run-cloud" aria-selected="false" aria-controls="setup-terminal" tabindex="-1" data-run="cloud">On Comfy Cloud</button></div><p class="compute-note">Cloud compute is billed by Comfy, not Cutaway. Model licenses apply to outputs.</p></div>
+          <div class="terminal" id="setup-terminal" role="tabpanel" aria-labelledby="run-local"><div class="terminal-bar"><span class="terminal-lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="mono">~/cutaway</span><button class="copy-button" data-copy-setup><Icon name="copy" size={15}/><span>Copy</span></button></div><pre><code><span class="terminal-comment" data-setup-comment>{setups.local.comment}</span>
+<span class="terminal-prompt">$</span> git clone https://github.com/screen-gd/cutaway.git
+<span class="terminal-prompt">$</span> cd cutaway
+<span class="terminal-prompt">$</span> cp .env.example .env.local
+<span class="terminal-prompt">$</span> echo "<span data-setup-env>{setups.local.env}</span>" &gt;&gt; .env.local
+<span class="terminal-prompt">$</span> npm install &amp;&amp; npm run dev</code></pre></div>
+        </div>
+      </section>
+
+      <section id="cost" class="screen cost-section section-shell" aria-labelledby="cost-heading">
+        <div class="section-head" data-reveal><h2 id="cost-heading">What a shot costs on your own GPU<span class="accent">.</span></h2><p>Electricity, and nothing else. Change any number to match your setup.</p></div>
+        <div class="cost-board" data-reveal>
+          <div class="cost-inputs">
+            <label class="cost-range">Clips per month <output data-cost-out="clips">200</output><input type="range" min="10" max="1000" step="10" value="200" data-cost="clips" /></label>
+            <label>Render time per clip, seconds<input type="number" min="5" max="3600" step="5" value="180" data-cost="seconds" inputmode="numeric" /><span class="cost-hint">Estimate. Depends on your GPU, model and resolution.</span></label>
+            <label>GPU power draw, watts<input type="number" min="10" max="1000" step="5" value="80" data-cost="watts" inputmode="numeric" /><span class="cost-hint">A mid-range laptop GPU draws about 80 W.</span></label>
+            <label>Electricity, $ per kWh<input type="number" min="0" max="2" step="0.01" value="0.18" data-cost="rate" inputmode="decimal" /><span class="cost-hint">Example rate. Use your own bill.</span></label>
+            <label>Your current plan, $ per month<input type="number" min="0" max="10000" step="1" placeholder="Optional" data-cost="plan" inputmode="decimal" /></label>
+          </div>
+          <div class="cost-result" aria-live="polite"><span class="cost-label">Your month of shots</span><strong data-cost-month>$0.14</strong><span class="cost-per" data-cost-clip>about $0.0007 per clip</span><span class="cost-compare" data-cost-compare hidden></span></div>
+        </div>
+      </section>
+
+      <section id="export" class="screen export-section section-shell" aria-labelledby="export-heading"><div class="section-head" data-reveal><h2 id="export-heading">Drops straight into your edit<span class="accent">.</span></h2><p>Cutaway matches your frame rate and resolution, adds handles, and exports FCPXML or EDL for Resolve, Premiere and Final Cut.</p></div><div class="timeline" data-reveal role="img" aria-label="Illustrative editing timeline: a Cutaway shot on video track two, with handles, above your original footage"><div class="timeline-toolbar"><span><span class="status-dot"></span> CUTAWAY → YOUR EDIT</span><span class="mono">24 FPS <span class="muted">/</span> 3840 × 2160 <span class="muted">/</span> 12F HANDLES</span></div><div class="timeline-body"><div class="timeline-ruler mono"><span>01:00:00:00</span><span>01:00:02:00</span><span>01:00:04:00</span><span>01:00:06:00</span><span>01:00:08:00</span></div><div class="timeline-track"><span class="track-label mono">V2</span><div class="generated-clip"><span class="clip-handle left-handle"></span><img src="/media/moves/orbit.webp" alt="" width="120" height="68" loading="lazy" /><span class="mono">CUTAWAY_ORBIT_001 <span>+12F</span></span><span class="clip-handle right-handle"></span></div></div><div class="timeline-track"><span class="track-label mono">V1</span><div class="source-clip"><span class="mono">A001_C004_SHORE</span></div><div class="source-clip short-clip"><span class="mono">A001_C007</span></div></div><div class="timeline-track audio-track"><span class="track-label mono">A1</span><div class="waveform" aria-hidden="true"></div></div><div class="timeline-playhead" aria-hidden="true"><span></span></div></div></div><div class="export-formats"><span>DaVinci Resolve</span><span>Premiere Pro</span><span>Final Cut Pro</span><span class="muted">FCPXML · EDL · ProRes · H.264</span></div></section>
+
+      <div class="challenge-credit section-shell"><span class="cut-mark small" aria-hidden="true"><i></i><i></i></span><p>Built for Comfy’s <span>Open Source Higgsfield</span> challenge.</p><a href={github} target="_blank" rel="noreferrer" aria-label="Follow Cutaway's challenge build on GitHub"><Icon name="arrow" size={18}/></a></div>
+
+      <section class="footer-cta section-shell" aria-labelledby="footer-heading"><div data-reveal><h2 id="footer-heading">Open the studio<span class="accent">.</span></h2><p>Free and open source. Star the repo to follow the build.</p></div><div class="footer-actions"><a class="button button-accent magnetic" href={github} target="_blank" rel="noreferrer"><Icon name="github" size={18}/>Get Cutaway on GitHub <Icon name="arrow"/></a><a class="button button-glass magnetic" href="https://x.com/Screeendev" target="_blank" rel="noreferrer">Follow @Screeendev <Icon name="arrow"/></a></div><div class="footer-wordmark" aria-hidden="true"><span class="footer-word">cutaway</span><span class="footer-arrow">↗</span></div></section>
+    </main>
+    <footer class="site-footer section-shell"><span>© {new Date().getFullYear()} Cutaway</span><span class="footer-license">Built on ComfyUI.</span><div><a href={github} target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a><a href="https://x.com/Screeendev" target="_blank" rel="noreferrer">X / @Screeendev <span aria-hidden="true">↗</span></a><a href={`${github}/blob/main/LICENSE`} target="_blank" rel="noreferrer">MIT</a></div></footer>
+
+    <div class="cursor-chip" aria-hidden="true"><Icon name="play" size={14}/><span data-cursor-label>Play</span></div>
+
+    <dialog id="studio-dialog" aria-labelledby="dialog-title" data-lenis-prevent><div class="dialog-shell"><div class="dialog-header"><span class="wordmark"><span class="cut-mark small" aria-hidden="true"><i></i><i></i></span>cutaway</span><button class="dialog-close" aria-label="Close preview"><Icon name="close"/></button></div><div class="dialog-title-row"><div><span class="mono muted">PRESET / WORKFLOW ANATOMY</span><h2 id="dialog-title">Orbit</h2></div><div class="dialog-tabs" role="tablist" aria-label="Preset view"><button role="tab" id="preview-tab" aria-controls="preview-panel" aria-selected="true" data-tab="preview">Preview</button><button role="tab" id="workflow-tab" aria-controls="workflow-panel" aria-selected="false" tabindex="-1" data-tab="workflow">Open the workflow <Icon name="nodes" size={16}/></button></div></div><div id="preview-panel" role="tabpanel" aria-labelledby="preview-tab"><div class="dialog-preview"><img id="dialog-poster" src="/media/hero.webp" alt="Illustrative preset poster" width="1600" height="1000"/><video id="dialog-video" muted loop playsinline controls hidden><track kind="captions" src="/media/captions.vtt" srclang="en" label="English"/></video><span class="poster-notice mono">ILLUSTRATIVE POSTER / FOOTAGE COMING SOON</span></div><p id="dialog-description">Find a different side.</p></div><div id="workflow-panel" role="tabpanel" aria-labelledby="workflow-tab" hidden><div class="graph-editor"><canvas id="workflow-canvas" aria-label="Editable illustrative Comfy-style node graph. Use the controls below for keyboard access." role="img"></canvas><p class="graph-loading">Opening the graph…</p></div><div class="workflow-controls"><label>Your direction<input id="workflow-prompt" type="text" value="Slow orbit. Hold the subject." maxlength="240" /></label><label>Duration <output id="duration-output" for="workflow-duration">5 seconds</output><input id="workflow-duration" type="range" min="2" max="10" value="5" /></label><button class="button button-accent" data-download-workflow><Icon name="fork" size={17}/>Save your remix <Icon name="arrow" size={17}/></button></div><details class="workflow-json"><summary>Inspect the example JSON</summary><pre id="workflow-json"></pre></details><p class="workflow-example-note">Editable workflow anatomy, not a runnable ComfyUI preset. Production graphs and model setup are still in development.</p></div></div></dialog>
+    <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+    <script>
+      import '../scripts/studio';
+    </script>
+  </body>
+</html>

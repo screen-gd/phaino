@@ -1,0 +1,13 @@
+---
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+interface Props { name: string; alt: string; class?: string; eager?: boolean; }
+const { name, alt, class: className = '', eager = false } = Astro.props;
+const video = `/media/${name}.mp4`;
+const hasVideo = existsSync(join(process.cwd(), 'public', video));
+---
+<div class:list={['media', className]} data-media>
+  <img src={`/media/${name}.webp`} srcset={name === 'hero' ? '/media/hero-640.webp 640w, /media/hero-1280.webp 1280w, /media/hero-1920.webp 1920w' : undefined} sizes={name === 'hero' ? '(max-width: 800px) 160vh, 100vw' : undefined} alt={alt} width="1600" height="1000" loading={eager ? 'eager' : 'lazy'} fetchpriority={eager ? 'high' : 'auto'} decoding="async" />
+  {hasVideo && <video data-src={video} poster={`/media/${name}.webp`} muted loop playsinline preload="none" aria-label={alt}><track kind="captions" src="/media/captions.vtt" srclang="en" label="English" /></video>}
+  {name !== 'hero' && <div class="media-corners" aria-hidden="true">{['tl','tr','br','bl'].map((corner) => <span class:list={['media-corner',corner]}><svg viewBox="0 0 32 32"><path d="M0 0H32A32 32 0 0 0 0 32Z" fill="var(--bg)"/></svg></span>)}</div>}
+</div>

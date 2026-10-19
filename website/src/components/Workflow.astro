@@ -1,0 +1,27 @@
+---
+/* Workflow anatomy as semantic HTML + SVG wires. `live` adds the data hooks and
+   drawable wires that the workflow section's preset picker drives (see studio.ts). */
+interface Props { live?: boolean; }
+const { live = false } = Astro.props;
+const nodes = [
+  { title: 'Load image', type: 'INPUT', value: 'first_frame.png', class: 'input-node', ports: ['IMAGE'], key: 'input' },
+  { title: 'Your direction', type: 'PROMPT', value: 'Slow orbit. Hold the subject.', class: 'prompt-node', ports: ['CONDITIONING'], key: 'prompt' },
+  { title: 'Camera motion', type: 'CONTROL', value: 'orbit · 90° · 5 seconds', class: 'motion-node', ports: ['MOTION'], key: 'motion' },
+  { title: 'LTX 2.5', type: 'GENERATE', value: '1280 × 720 · 24 fps', class: 'generate-node', ports: ['LATENT', 'FRAMES'], key: 'generate' },
+  { title: 'Your next shot', type: 'OUTPUT', value: 'orbit_001.mp4', class: 'output-node', ports: ['VIDEO'], key: 'output' },
+];
+// Wire order matters: studio.ts draws them as image→generate, prompt→motion, motion→generate, generate→output.
+const wires = ['M235 102C430 102 475 150 650 150', 'M235 303C340 303 315 235 420 235', 'M610 217C640 217 620 183 650 183', 'M840 168C915 168 815 310 905 310'];
+---
+<div class:list={['workflow', { 'workflow-live': live }]} aria-label="Illustrative workflow: an image and a prompt feed a camera-motion node and LTX 2.5, which renders the video">
+  <svg class="workflow-wires" viewBox="0 0 1080 420" fill="none" preserveAspectRatio="none" aria-hidden="true">
+    <g class="base-wires" stroke="currentColor" stroke-width="1.5">{wires.map((d) => <path d={d} />)}</g>
+    <g class="signal-wires" stroke="var(--accent)" stroke-width="2">{wires.map((d) => <path d={d} pathLength="1" />)}</g>
+  </svg>
+  {nodes.map((node) => <div class:list={['workflow-node', node.class]} data-node={node.key}>
+    <span class="node-type">{node.type}<span class="node-dot" /></span>
+    <strong>{node.title}</strong>
+    <span class="node-value" data-live={live ? node.key : undefined}>{node.value}</span>
+    <div class="node-ports">{node.ports.map((port) => <span><i />{port}</span>)}</div>
+  </div>)}
+</div>

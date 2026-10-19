@@ -1,0 +1,7 @@
+# The main app lives at the repo root; the marketing site is a workspace package.
+packages:
+  - website
+
+allowBuilds:
+  esbuild: true
+  sharp: true

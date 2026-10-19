@@ -1,0 +1,14 @@
+{
+  "name": "cutaway",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open-source AI studio for images and video, built on ComfyUI. The studio app lives at the repo root; the marketing site is in website/.",
+  "license": "MIT",
+  "packageManager": "pnpm@12.11.2",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "website:dev": "pnpm --filter cutaway-website dev",
+    "website:build": "pnpm --filter cutaway-website build",
+    "website:preview": "pnpm --filter cutaway-website preview"
+  }
+}

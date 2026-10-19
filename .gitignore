@@ -1,0 +1,13 @@
+node_modules/
+.next/
+out/
+.env*
+!.env.example
+*.log
+outputs/
+uploads/
+.DS_Store
+dist/
+.astro/
+.review/
+.taste-skill/

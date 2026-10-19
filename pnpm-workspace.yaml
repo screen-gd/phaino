@@ -1,6 +1,13 @@
-# The main app lives at the repo root; the marketing site is a workspace package.
+# The studio app and the marketing site are workspace packages.
 packages:
   - website
+  - studio
+
+# eslint-import-resolver-typescript >= 3.7 pulls in unrs-resolver, whose
+# postinstall script is blocked by the supply-chain policy. Pin the last
+# release that does not depend on it (still satisfies eslint-config-next ^3.5.2).
+overrides:
+  eslint-import-resolver-typescript: 3.6.3
 
 allowBuilds:
   esbuild: true

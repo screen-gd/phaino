@@ -11,3 +11,6 @@ dist/
 .astro/
 .review/
 .taste-skill/
+studio/.data/
+*.tsbuildinfo
+next-env.d.ts

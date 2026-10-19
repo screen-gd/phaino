@@ -11,7 +11,7 @@ const STEPS: ToolStep[] = [
   },
   {
     title: "Generate",
-    body: "Open models run free on your GPU; Partner models use Comfy credits. Every shot opens as a workflow.",
+    body: "Open models run on Comfy Cloud. Partner models use Comfy credits. Every shot opens as a workflow.",
   },
 ];
 

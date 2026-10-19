@@ -1,0 +1,33 @@
+{
+  "sample": true,
+  "forks": [
+    {
+      "handle": "@framebyframe",
+      "title": "Orbit reveal",
+      "presetId": "orbit",
+      "forkCount": 128,
+      "thumb": "/explore/blue.webp"
+    },
+    {
+      "handle": "@negative.space",
+      "title": "Mono portrait",
+      "presetId": "dolly-in",
+      "forkCount": 96,
+      "thumb": "/explore/closer.webp"
+    },
+    {
+      "handle": "@softcut",
+      "title": "Soft relight",
+      "presetId": "drone-pull-out",
+      "forkCount": 84,
+      "thumb": "/explore/light.webp"
+    },
+    {
+      "handle": "@grain.room",
+      "title": "Grain pass",
+      "presetId": "bullet-time",
+      "forkCount": 72,
+      "thumb": "/explore/rain.webp"
+    }
+  ]
+}

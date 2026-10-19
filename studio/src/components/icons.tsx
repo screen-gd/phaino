@@ -1,4 +1,5 @@
 const PATHS = {
+  explore: "M12 3l2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z",
   camera: "M20 12a8 8 0 1 1-3-6.2M20 4v4h-4",
   image: "M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4",
   workflows:
@@ -6,6 +7,7 @@ const PATHS = {
   community:
     "M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16 11a3 3 0 1 0 0-6M2 20a6 6 0 0 1 12 0M15 14a6 6 0 0 1 7 6",
   export: "M12 3v12M7 8l5-5 5 5M4 15v5h16v-5",
+  avatars: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0",
   settings:
     "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2",
 } as const;

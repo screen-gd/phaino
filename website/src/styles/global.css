@@ -1,9 +1,11 @@
-@import '@fontsource-variable/archivo';
-@import '@fontsource/ibm-plex-mono/400.css';
 @import 'tailwindcss';
 @import 'lenis/dist/lenis.css';
 
-@theme { --font-sans: 'Archivo Variable', sans-serif; --font-mono: 'IBM Plex Mono', monospace; }
+@font-face { font-family: 'Mona Sans'; font-style: normal; font-display: swap; font-weight: 200 900; font-stretch: 75% 125%; src: url('../assets/fonts/mona-sans-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Outfit'; font-style: normal; font-display: swap; font-weight: 100 900; src: url('../assets/fonts/outfit-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Geist Mono'; font-style: normal; font-display: swap; font-weight: 100 900; src: url('../assets/fonts/geist-mono-latin.woff2') format('woff2'); }
+
+@theme { --font-sans: 'Mona Sans', sans-serif; --font-mono: 'Geist Mono', monospace; }
 
 /* Tally orange: the light on a camera that says it is rolling. It marks actions,
    live signal on node wires and the record dot, and nothing else. Neutrals carry no
@@ -51,17 +53,8 @@ p { line-height: 1.55; font-size: 17px; }
 .skip-link { position: fixed; top: 12px; left: 12px; z-index: 100; padding: 12px 18px; background: var(--accent); color: var(--accent-ink); transform: translateY(-150%); }
 .skip-link:focus { transform: none; }
 .site-header { position: sticky; top: 0; z-index: 30; height: var(--header-height); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 24px; background: var(--bg); }
-.wordmark { display: inline-flex; align-items: center; gap: 9px; font-size: 24px; letter-spacing: -.065em; font-weight: 650; line-height: 1; }
-.wordmark-dot { align-self: flex-start; font-size: 10px; margin: 2px 0 0 -5px; letter-spacing: 0; }
-.cut-mark { width: 26px; height: 29px; display: inline-block; position: relative; }
-.cut-mark i:first-child { position: absolute; inset: 2px 6px 2px 0; border: 6px solid currentColor; border-right: 0; }
-.cut-mark i:last-child { width: 6px; height: 25px; position: absolute; right: 0; top: 2px; background: var(--accent); transform: skew(-20deg); }
-.cut-mark.small { width: 20px; height: 23px; }
-.cut-mark.small i:first-child { border-width: 5px; }
-.cut-mark.small i:last-child { width: 5px; height: 19px; }
-.site-header .cut-mark { width: 22px; height: 25px; }
-.site-header .cut-mark i:first-child { border-width: 5px; }
-.site-header .cut-mark i:last-child { width: 5px; height: 21px; }
+.wordmark { display: inline-flex; align-items: center; gap: .3em; font-family: 'Outfit', sans-serif; font-size: 24px; letter-spacing: -.024em; font-weight: 800; line-height: 1; }
+.phaino-mark { width: 1em; height: 1em; color: var(--accent); }
 .desktop-nav { display: flex; gap: 28px; margin-left: 24px; font-size: 13px; }
 .desktop-nav a { color: #c8c8c8; padding: 12px 0; transition: color 160ms; }
 .desktop-nav a:hover { color: white; }
@@ -339,7 +332,7 @@ p { line-height: 1.55; font-size: 17px; }
 .export-formats > .muted { margin-left: auto; font-size: 13px; align-self: center; }
 
 .challenge-credit { display: flex; align-items: center; justify-content: center; gap: 16px; padding-top: 40px; padding-bottom: 72px; }
-.challenge-credit .cut-mark { color: #bdbdbd; }
+.challenge-credit .phaino-mark { width: 22px; height: 22px; }
 .challenge-credit p { font-size: 14px; color: var(--muted); }
 .challenge-credit p > span { color: var(--ink); }
 .challenge-credit > a { padding: 10px; transition: color 160ms; }
@@ -351,6 +344,7 @@ p { line-height: 1.55; font-size: 17px; }
 .footer-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .footer-wordmark { display: flex; align-items: baseline; justify-content: space-between; width: 100%; padding-top: 72px; padding-bottom: 6px; font-size: clamp(100px,22vw,355px); font-weight: 650; line-height: .9; letter-spacing: -.087em; color: #1c1c1c; overflow: hidden; }
 .footer-word, .footer-arrow { display: inline-block; }
+.footer-word { font-family: 'Outfit', sans-serif; font-weight: 800; letter-spacing: -.024em; }
 .footer-arrow { color: var(--accent); font-size: .7em; font-weight: 400; letter-spacing: -.09em; padding-right: .05em; }
 .site-footer { display: flex; align-items: center; justify-content: space-between; gap: 30px; padding-top: 30px; padding-bottom: 30px; color: var(--muted); font-size: 13px; }
 .site-footer > div { display: flex; gap: 26px; color: #e6e6e6; }

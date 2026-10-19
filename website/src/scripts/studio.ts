@@ -360,7 +360,7 @@ const setups = {
   cloud: { comment: '# Comfy Developer Platform', env: 'COMFY_API_KEY=your-key' },
 } as const;
 let runTarget: keyof typeof setups = 'local';
-const setupCommands = () => ['git clone https://github.com/screen-gd/cutaway.git', 'cd cutaway', 'cp .env.example .env.local', `echo "${setups[runTarget].env}" >> .env.local`, 'npm install && npm run dev'].join('\n');
+const setupCommands = () => ['git clone https://github.com/screen-gd/phaino.git', 'cd phaino', 'cp .env.example .env.local', `echo "${setups[runTarget].env}" >> .env.local`, 'npm install && npm run dev'].join('\n');
 const runTabs = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-run]'));
 function setRunTarget(tab: HTMLButtonElement) {
   const target = tab.dataset.run;
@@ -409,7 +409,7 @@ let graphPromise: Promise<void> | undefined;
 let focusOrigin: HTMLElement | null = null;
 
 function exampleData() {
-  return { format: 'cutaway-workflow-anatomy', executable: false, preset: currentPreset, direction: promptInput?.value ?? '', duration: Number(durationInput?.value ?? 5), graph: graphEditor?.serialize() ?? null };
+  return { format: 'phaino-workflow-anatomy', executable: false, preset: currentPreset, direction: promptInput?.value ?? '', duration: Number(durationInput?.value ?? 5), graph: graphEditor?.serialize() ?? null };
 }
 function updateGraph() {
   graphEditor?.update({ name: currentPreset, direction: promptInput?.value ?? '', duration: Number(durationInput?.value ?? 5) });
@@ -561,9 +561,9 @@ updateCost();
   const badge = document.querySelector<HTMLElement>('[data-stars]');
   if (!badge) return;
   try {
-    const cached = sessionStorage.getItem('cutaway-stars');
-    const stars = cached ? Number(cached) : (await (await fetch('https://api.github.com/repos/screen-gd/cutaway')).json() as { stargazers_count?: number }).stargazers_count ?? 0;
-    sessionStorage.setItem('cutaway-stars', String(stars));
+    const cached = sessionStorage.getItem('phaino-stars');
+    const stars = cached ? Number(cached) : (await (await fetch('https://api.github.com/repos/screen-gd/phaino')).json() as { stargazers_count?: number }).stargazers_count ?? 0;
+    sessionStorage.setItem('phaino-stars', String(stars));
     if (stars >= 25) { badge.textContent = stars >= 1000 ? `${(stars / 1000).toFixed(1)}k` : String(stars); badge.hidden = false; }
   } catch { /* Offline or rate-limited: the plain GitHub link still works. */ }
 })();

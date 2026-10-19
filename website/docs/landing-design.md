@@ -1,12 +1,12 @@
-# Cutaway landing page
+# Phaino landing page
 
 Design uses Fleet's installed design-taste-frontend (approved as the replacement for gpt-taste), motion-design, motion-catalogue, and TypeScript preferences.
 
 ## Direction
 
-On this page, Cutaway's open workflow becomes a literal cut through the finished frame. The same separated frame appears in the logo, reveal, preset cards and closing wordmark. The Taste draw selected `one-motif`; the brief overrides its default section layouts, mono ban and square corners. No product screenshots or testimonials are invented.
+On this page, Phaino's image plane opens to reveal the workflow behind a finished frame. The supplied two-part curved mark appears in the header, preview dialog and challenge credit, with the Outfit wordmark in the header and closing section. The Taste draw selected `one-motif`; the brief overrides its default section layouts, mono ban and square corners. No product screenshots or testimonials are invented.
 
-Archivo's compact grotesk is paired with IBM Plex Mono for actual technical metadata. Tally orange (#ff5b22), the light a camera shows while it records, marks actions, live signal on node wires and the record dot, against true black with untinted greys. It replaced an earlier lime that sat too close to Higgsfield's own accent. Media keeps a desaturated grade so the accent stays the only saturated colour in the UI. Motion is Premium: power3.out, 140 / 400 / 800ms; no bounce. Scroll movement expresses the opening workflow, and other elements move quietly behind it.
+Mona Sans is paired with Geist Mono for technical metadata. The Phaino wordmark uses Outfit 800. The three variable fonts are bundled in website/src/assets/fonts with their licenses. Tally orange (#ff5b22), the light a camera shows while it records, marks actions, live signal on node wires and the record dot, against true black with untinted greys. It replaced an earlier lime that sat too close to Higgsfield's own accent. Media keeps a desaturated grade so the accent stays the only saturated colour in the UI. Motion is Premium: power3.out, 140 / 400 / 800ms; no bounce. Scroll movement expresses the opening workflow, and other elements move quietly behind it.
 
 ## Argument and copy deck
 
@@ -16,7 +16,7 @@ Archivo's compact grotesk is paired with IBM Plex Mono for actual technical meta
 4. Direct the camera. / Seven named camera presets with workflow access, preview slots, and adjustable motion in the example graph.
 5. Keep the shot. Change the rest. / Keyboard-operable before / after scrubber demonstrating a placeholder grade.
 6. Make a move. Pass it on. / Open, make it yours, publish. Placeholder community entries have attributed example handles and fork counts.
-7. Your machine. Your rules. / Local GPU or Comfy Cloud. No Cutaway credits, no watermark. MIT software; cloud compute is metered separately and model licenses apply.
+7. Your machine. Your rules. / Local GPU or Comfy Cloud. No Phaino credits, no watermark. MIT software; cloud compute is metered separately and model licenses apply.
 8. It belongs on your timeline. / FPS, resolution, handles, FCPXML / EDL, shown with a scrub-linked NLE strip.
 9. Built for Comfy's Open Source Higgsfield challenge. / Small credit only.
 10. Open the studio. / GitHub and X. Studio remains under development, so this opens the repository rather than pretending a generation service exists.

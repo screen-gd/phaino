@@ -1,6 +1,6 @@
 # UI design review, October 2026
 
-Reviewed against design-taste-frontend (the approved gpt-taste replacement), motion-design and motion-catalogue, using the existing screenshots in `.review/screens` and the source. The direction holds up: the film-frame hero, the open-workflow peel and the node-graph language (now in tally orange, see landing-design.md) are specific to Cutaway. The weaknesses were in execution detail, not in the concept.
+Reviewed against design-taste-frontend (the approved gpt-taste replacement), motion-design and motion-catalogue, using the existing screenshots in `.review/screens` and the source. The direction holds up: the film-frame hero, the open-workflow peel and the node-graph language (now in tally orange, see landing-design.md) are specific to Phaino. The weaknesses were in execution detail, not in the concept.
 
 Kept as is: the 52px sticky header, the centred hero with four equal gutters and its four-side expansion, the lateral peel, the coastal artwork and its mobile `sizes` and crop, static grain, Lenis at 0.6s with `scrub: true`, and the mono face for real specs.
 

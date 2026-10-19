@@ -4,8 +4,11 @@ import { Icon, SECTION_ICONS } from "@/components/icons";
 import { ToolPreview } from "@/components/ToolPreview";
 import { communityFeedSchema, type CommunityFork } from "@/lib/community";
 import { toolLoopUrl } from "@/server/media";
-import { listPresetSummaries, type PresetSummary } from "@/server/presets/summary";
+import { listPresets } from "@/server/presets/load";
+import type { Preset } from "@/server/presets/schema";
 import sampleFeed from "@/data/community.sample.json";
+
+export const dynamic = "force-dynamic";
 
 type Tool = {
   href: string;
@@ -68,16 +71,21 @@ function ToolTile({ tool }: { tool: Tool }) {
   );
 }
 
-function PresetCard({ preset }: { preset: PresetSummary }) {
+function PresetCard({ preset }: { preset: Preset }) {
   const partner = preset.model.license === "partner";
   return (
     <div className="w-[260px] flex-none rounded-panel border border-line bg-s1 p-2">
-      <div className="aspect-16/10 overflow-hidden rounded-xl bg-s3">
+      <div className="relative aspect-16/10 overflow-hidden rounded-xl bg-s3">
         <img
           src={`/api/presets/${preset.id}/thumb`}
           alt=""
           className="h-full w-full object-cover"
         />
+        {preset.chip && (
+          <span className={`${CHIP} absolute top-2 left-2 border-transparent bg-black/70 text-t2`}>
+            {preset.chip}
+          </span>
+        )}
       </div>
       <div className="flex items-center justify-between gap-2 px-1.5 pt-2.5 pb-1">
         <b className="min-w-0 truncate font-semibold">{preset.name}</b>
@@ -126,7 +134,7 @@ function ForkCard({ fork }: { fork: CommunityFork }) {
 }
 
 export default function Home() {
-  const presets = listPresetSummaries();
+  const presets = listPresets();
   const feed = communityFeedSchema.parse(sampleFeed);
 
   return (

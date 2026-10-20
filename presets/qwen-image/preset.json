@@ -66,6 +66,44 @@
           ]
         }
       ]
+    },
+    {
+      "type": "text",
+      "key": "negative",
+      "label": "Negative prompt",
+      "default": "低分辨率，低画质，肢体畸形，手指畸形，画面过饱和，蜡像感，人脸无细节，过度光滑，画面具有AI感。构图混乱。文字模糊，扭曲",
+      "advanced": true,
+      "bind": {
+        "node": "238:228",
+        "field": "text"
+      }
+    },
+    {
+      "type": "int",
+      "key": "steps",
+      "label": "Steps",
+      "default": 50,
+      "min": 1,
+      "max": 150,
+      "advanced": true,
+      "bind": {
+        "node": "238:224",
+        "field": "value"
+      }
+    },
+    {
+      "type": "float",
+      "key": "cfg",
+      "label": "CFG",
+      "default": 4,
+      "min": 1,
+      "max": 10,
+      "step": 0.1,
+      "advanced": true,
+      "bind": {
+        "node": "238:223",
+        "field": "value"
+      }
     }
   ],
   "outputs": [

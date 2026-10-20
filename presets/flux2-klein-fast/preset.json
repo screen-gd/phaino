@@ -189,6 +189,33 @@
         "node": "77:83",
         "field": "batch_size"
       }
+    },
+    {
+      "type": "int",
+      "key": "steps",
+      "label": "Steps",
+      "default": 4,
+      "min": 1,
+      "max": 12,
+      "advanced": true,
+      "bind": {
+        "node": "77:93",
+        "field": "steps"
+      }
+    },
+    {
+      "type": "float",
+      "key": "cfg",
+      "label": "CFG",
+      "default": 1,
+      "min": 1,
+      "max": 4,
+      "step": 0.1,
+      "advanced": true,
+      "bind": {
+        "node": "77:90",
+        "field": "cfg"
+      }
     }
   ],
   "outputs": [

@@ -3,7 +3,6 @@ import type { Preset } from "@/server/presets/schema";
 const COMFY_IMAGE_PREVIEWS: Record<string, string> = {
   "flux2-klein": "/explore/models/flux2-klein.webp",
   "flux2-klein-fast": "/explore/models/flux2-klein-fast.webp",
-  "nano-banana-2": "/explore/models/nano-banana-2.webp",
   "qwen-image": "/explore/models/qwen-image.webp",
 };
 

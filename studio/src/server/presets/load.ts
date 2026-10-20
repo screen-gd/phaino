@@ -1,19 +1,50 @@
 import "server-only";
 import fs from "node:fs";
 import path from "node:path";
-import { getEnv } from "@/server/env";
+import { getEnv, type StudioEnv } from "@/server/env";
 import { presetSchema, type Preset } from "./schema";
 
-const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+/** A preset as listed: Preset plus where it lives (built-in or user fork). */
+export type ListedPreset = Preset & { origin: "builtin" | "fork" };
 
 export type LoadedPreset = {
-  preset: Preset;
+  preset: ListedPreset;
   workflowApi: Record<string, unknown>;
   workflowUi: unknown;
 };
 
-function presetDir(name: string) {
-  return path.join(getEnv().presetsDir, name);
+function presetDir(env: StudioEnv, name: string) {
+  return path.join(env.presetsDir, name);
+}
+
+export function forkDir(env: StudioEnv, name: string) {
+  return path.join(env.forksDir, name);
+}
+
+/**
+ * The folder a preset id resolves to: PRESETS_DIR first, then forks.
+ * Null when the id isn't a slug, has no preset.json, or is a hidden
+ * partner preset.
+ */
+export function resolvePresetDir(id: string, env: StudioEnv = getEnv()): string | null {
+  if (!SLUG.test(id)) return null;
+  const builtin = presetDir(env, id);
+  const dir = fs.existsSync(path.join(builtin, "preset.json")) ? builtin : forkDir(env, id);
+  const presetFile = path.join(dir, "preset.json");
+  if (!fs.existsSync(presetFile)) return null;
+  try {
+    const preset = parsePreset(id, JSON.parse(fs.readFileSync(presetFile, "utf8")));
+    return presetVisible(preset, env) ? dir : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Partner presets hide unless PHAINO_PARTNER_MODELS=on. */
+export function presetVisible(preset: Preset, env: StudioEnv = getEnv()): boolean {
+  return preset.model.license !== "partner" || env.partnerModels;
 }
 
 function parsePreset(dirName: string, raw: unknown): Preset {
@@ -31,46 +62,67 @@ function parsePreset(dirName: string, raw: unknown): Preset {
   return parsed.data;
 }
 
-/**
- * Every valid preset under PRESETS_DIR, sorted by category then order.
- * Invalid folders are skipped with a warning so one bad preset cannot
- * take down the whole list.
- */
-export function listPresets(): Preset[] {
-  const dir = getEnv().presetsDir;
+function listDir(dir: string, origin: "builtin" | "fork"): ListedPreset[] {
   let entries: fs.Dirent[];
   try {
     entries = fs.readdirSync(dir, { withFileTypes: true });
   } catch {
     return [];
   }
-
-  const out: Preset[] = [];
+  const out: ListedPreset[] = [];
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
     const file = path.join(dir, entry.name, "preset.json");
     if (!fs.existsSync(file)) continue;
     try {
-      out.push(parsePreset(entry.name, JSON.parse(fs.readFileSync(file, "utf8"))));
+      out.push({
+        ...parsePreset(entry.name, JSON.parse(fs.readFileSync(file, "utf8"))),
+        origin,
+      });
     } catch (error) {
       console.warn(error instanceof Error ? error.message : `Skipping preset "${entry.name}"`);
     }
   }
-  return out.sort((a, b) => a.category.localeCompare(b.category) || a.order - b.order);
+  return out;
 }
 
 /**
- * One preset with its exported graphs. Returns null when the folder or
- * preset.json does not exist; throws when the preset is present but invalid
- * or its exported graphs are missing.
+ * Every valid preset under PRESETS_DIR plus the user's forks, sorted by
+ * category then order. Invalid folders are skipped with a warning so one
+ * bad preset cannot take down the whole list. Partner presets are hidden
+ * unless PHAINO_PARTNER_MODELS=on.
  */
-export function getPreset(id: string): LoadedPreset | null {
+export function listPresets(env: StudioEnv = getEnv()): ListedPreset[] {
+  const all = [...listDir(env.presetsDir, "builtin"), ...listDir(env.forksDir, "fork")];
+  return all
+    .filter((p) => presetVisible(p, env))
+    .sort(
+      (a, b) =>
+        a.category.localeCompare(b.category) ||
+        a.order - b.order ||
+        (a.origin === "fork" ? 1 : 0) - (b.origin === "fork" ? 1 : 0),
+    );
+}
+
+/**
+ * One preset with its exported graphs, from PRESETS_DIR or forks.
+ * Returns null when the folder or preset.json does not exist, the preset is
+ * a hidden partner preset, or the id is not a slug; throws when the preset
+ * is present but invalid or its exported graphs are missing.
+ */
+export function getPreset(id: string, env: StudioEnv = getEnv()): LoadedPreset | null {
   if (!SLUG.test(id)) return null;
-  const dir = presetDir(id);
+  const isFork = !fs.existsSync(path.join(presetDir(env, id), "preset.json"));
+  const dir = isFork ? forkDir(env, id) : presetDir(env, id);
   const presetFile = path.join(dir, "preset.json");
   if (!fs.existsSync(presetFile)) return null;
 
-  const preset = parsePreset(id, JSON.parse(fs.readFileSync(presetFile, "utf8")));
+  const raw = parsePreset(id, JSON.parse(fs.readFileSync(presetFile, "utf8")));
+  const preset: ListedPreset = {
+    ...raw,
+    origin: isFork ? "fork" : "builtin",
+  };
+  if (!presetVisible(preset, env)) return null;
 
   const apiFile = path.join(dir, "workflow_api.json");
   const uiFile = path.join(dir, "workflow.json");
@@ -86,3 +138,4 @@ export function getPreset(id: string): LoadedPreset | null {
     workflowUi: JSON.parse(fs.readFileSync(uiFile, "utf8")),
   };
 }
+

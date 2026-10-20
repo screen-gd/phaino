@@ -1,4 +1,6 @@
 import type { Preset } from "@/server/presets/schema";
+import type { ListedPreset } from "@/server/presets/load";
+import { presetPreview } from "@/lib/preset-preview";
 
 /** Serializable preset data for ToolStudio — no bind node ids. */
 export type StudioParam =
@@ -37,7 +39,8 @@ export type StudioPreset = {
   name: string;
   description: string;
   chip?: string;
-  model: { id: string; label: string; license: "open" | "partner" };
+  model: { id: string; label: string };
+  isFork?: boolean;
   thumbUrl: string;
   inputs: StudioInput[];
   params: StudioParam[];
@@ -68,14 +71,15 @@ export type StudioJob = {
 };
 
 /** Map a server preset to the serializable ToolStudio shape. */
-export function toStudioPreset(p: Preset): StudioPreset {
+export function toStudioPreset(p: Preset | ListedPreset): StudioPreset {
   return {
     id: p.id,
     name: p.name,
     description: p.description,
     chip: p.chip,
-    model: p.model,
-    thumbUrl: `/api/presets/${p.id}/thumb`,
+    model: { id: p.model.id, label: p.model.label },
+    isFork: "origin" in p ? p.origin === "fork" : undefined,
+    thumbUrl: presetPreview(p),
     inputs: p.inputs.map(({ key, label, required }) => ({ key, label, required })),
     params: p.params.map((param): StudioParam => {
       switch (param.type) {
@@ -113,3 +117,4 @@ export function toStudioPreset(p: Preset): StudioPreset {
     }),
   };
 }
+

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listPresets, type ListedPreset } from "@/server/presets/load";
 import { presetPreview } from "@/lib/preset-preview";
+import { MODEL_FAMILIES, matchesFamily } from "@/lib/model-families";
 import fs from "node:fs";
 import path from "node:path";
 import { getEnv } from "@/server/env";
@@ -53,16 +54,45 @@ function PresetCard({ preset }: { preset: ListedPreset }) {
   );
 }
 
-export default function WorkflowsPage() {
+export default async function WorkflowsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ model?: string }>;
+}) {
+  const { model } = await searchParams;
   const presets = listPresets();
-  const forks = presets.filter((p) => p.origin === "fork");
-  const builtins = presets.filter((p) => p.origin !== "fork");
+  const families = MODEL_FAMILIES.filter((f) =>
+    presets.some((p) => matchesFamily(p, f.id)),
+  );
+  const filtered = model
+    ? presets.filter((p) => matchesFamily(p, model))
+    : presets;
+  const forks = filtered.filter((p) => p.origin === "fork");
+  const builtins = filtered.filter((p) => p.origin !== "fork");
 
   return (
     <div className="px-4 py-6 sm:px-6">
+      <div className="flex flex-wrap gap-2">
+        <Link
+          href="/workflows"
+          className={`rounded-full border px-3 py-1.5 text-caption ${!model ? "border-white text-t1" : "border-line text-t3 hover:text-t1"}`}
+        >
+          All
+        </Link>
+        {families.map((f) => (
+          <Link
+            key={f.id}
+            href={`/workflows?model=${f.id}`}
+            className={`rounded-full border px-3 py-1.5 text-caption ${model === f.id ? "border-white text-t1" : "border-line text-t3 hover:text-t1"}`}
+          >
+            {f.label}
+          </Link>
+        ))}
+      </div>
+
       {forks.length > 0 && (
         <>
-          <h1 className="font-display text-h3 font-extrabold uppercase text-t1 font-stretch-[112.5%]">
+          <h1 className="mt-6 font-display text-h3 font-extrabold uppercase text-t1 font-stretch-[112.5%]">
             My forks
           </h1>
           <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
@@ -83,4 +113,3 @@ export default function WorkflowsPage() {
     </div>
   );
 }
-

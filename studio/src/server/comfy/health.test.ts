@@ -34,7 +34,7 @@ describe("classifyProbe", () => {
   it("maps missing configuration to not_configured naming the env var", () => {
     const result = classifyProbe({ kind: "not_configured", envVar: "COMFY_API_KEY" });
     expect(result.status).toBe("not_configured");
-    expect(result.message).toContain("COMFY_API_KEY");
+    expect(result.message).toBe("Add your Comfy API key in Settings");
   });
 
   it("maps unexpected statuses to error", () => {

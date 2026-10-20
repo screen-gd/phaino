@@ -5,11 +5,14 @@ import { comfyTarget } from "./client";
 const baseEnv = {
   comfyApiKey: undefined,
   comfyBaseUrl: undefined,
+  partnerModels: false,
   presetsDir: "/presets",
   forksDir: "/forks",
   dataDir: "/data",
   user: "local",
   siteUrl: "http://localhost:3000",
+  ffmpegPath: "ffmpeg",
+  ffprobePath: "ffprobe",
   trackerFile: "/tracker/tasks.json",
 } satisfies StudioEnv;
 

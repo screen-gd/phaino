@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { EmptyPage } from "@/components/EmptyPage";
 import { PublishDialog } from "@/components/PublishDialog";
 import { AddToSequence } from "@/components/sequence/AddToSequence";
@@ -54,6 +55,14 @@ export default async function LibraryPage() {
                 <div className="absolute top-2 right-2 z-10 opacity-0 transition-opacity group-hover:opacity-100">
                   <AddToSequence path={item.relPath} iconOnly />
                 </div>
+              )}
+              {item.kind === "image" && (
+                <Link
+                  href={`/video?preset=ltx25-i2v&from=${encodeURIComponent(item.relPath)}`}
+                  className="absolute top-2 left-2 z-10 rounded-md bg-black/70 px-2 py-1 text-[11px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100"
+                >
+                  Animate
+                </Link>
               )}
               <div className="absolute right-2 bottom-2 z-10">
                 <PublishDialog

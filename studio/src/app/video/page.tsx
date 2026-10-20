@@ -1,14 +1,18 @@
 import { Suspense } from "react";
 import { VideoStudio } from "@/components/studio/VideoStudio";
 import { toStudioPreset } from "@/components/toolStudioData";
+import { presetEstimates } from "@/server/jobs/credits";
 import { listPresets } from "@/server/presets/load";
 
 export const dynamic = "force-dynamic";
 
 export default function VideoPage() {
-  const presets = listPresets()
-    .filter((p) => p.category === "video")
-    .map(toStudioPreset);
+  const listed = listPresets().filter((p) => p.category === "video");
+  const estimates = presetEstimates(listed.map((p) => p.id));
+  const presets = listed.map((p) => ({
+    ...toStudioPreset(p),
+    estimate: estimates[p.id],
+  }));
   return (
     <Suspense>
       <VideoStudio category="video" presets={presets} />

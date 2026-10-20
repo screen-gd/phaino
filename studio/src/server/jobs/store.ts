@@ -29,6 +29,8 @@ const rowSchema = z.object({
   outputs: z.string(),
   created_at: z.string(),
   updated_at: z.string(),
+  started_at: z.string().nullable(),
+  finished_at: z.string().nullable(),
 });
 
 /** One job row, with JSON columns parsed. */
@@ -46,6 +48,8 @@ export type JobRecord = {
   outputs: string[];
   createdAt: string;
   updatedAt: string;
+  startedAt: string | null;
+  finishedAt: string | null;
 };
 
 export type JobPatch = Partial<
@@ -86,6 +90,8 @@ function toRecord(row: z.infer<typeof rowSchema>): JobRecord {
     outputs: z.array(z.string()).parse(JSON.parse(row.outputs)),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    startedAt: row.started_at ?? null,
+    finishedAt: row.finished_at ?? null,
   };
 }
 
@@ -93,6 +99,16 @@ function toRecord(row: z.infer<typeof rowSchema>): JobRecord {
 export class JobStore {
   constructor(private readonly db: DatabaseSync) {
     db.exec(CREATE_SQL);
+    const cols = db
+      .prepare("SELECT name FROM pragma_table_info('jobs')")
+      .all()
+      .map((r) => (r as { name: string }).name);
+    if (!cols.includes("started_at")) {
+      db.exec("ALTER TABLE jobs ADD COLUMN started_at TEXT");
+    }
+    if (!cols.includes("finished_at")) {
+      db.exec("ALTER TABLE jobs ADD COLUMN finished_at TEXT");
+    }
   }
 
   create(
@@ -122,6 +138,33 @@ export class JobStore {
   get(id: string): JobRecord | null {
     const row = this.db.prepare("SELECT * FROM jobs WHERE id = ?").get(id);
     return row ? toRecord(rowSchema.parse(row)) : null;
+  }
+
+  /** Median GPU seconds over the newest completed jobs of a preset. */
+  runtimeStats(
+    presetId: string,
+    limit = 5,
+  ): { count: number; medianSeconds: number | null } {
+    const rows = this.db
+      .prepare(
+        `SELECT started_at, finished_at FROM jobs
+         WHERE preset_id = ? AND status = 'succeeded'
+           AND started_at IS NOT NULL AND finished_at IS NOT NULL
+         ORDER BY created_at DESC LIMIT ?`,
+      )
+      .all(presetId, limit) as { started_at: string; finished_at: string }[];
+    if (rows.length === 0) return { count: 0, medianSeconds: null };
+    const durations = rows
+      .map((r) => (Date.parse(r.finished_at) - Date.parse(r.started_at)) / 1000)
+      .filter((d) => Number.isFinite(d) && d >= 0)
+      .sort((a, b) => a - b);
+    if (durations.length === 0) return { count: rows.length, medianSeconds: null };
+    const mid = Math.floor(durations.length / 2);
+    const median =
+      durations.length % 2 === 1
+        ? durations[mid]
+        : (durations[mid - 1] + durations[mid]) / 2;
+    return { count: durations.length, medianSeconds: median };
   }
 
   /** Non-terminal rows, for resume after a restart. */
@@ -157,6 +200,11 @@ export class JobStore {
     if (patch.message !== undefined) { sets.push("message = ?"); vals.push(patch.message); }
     if (patch.error !== undefined) { sets.push("error = ?"); vals.push(patch.error); }
     if (patch.outputs !== undefined) { sets.push("outputs = ?"); vals.push(JSON.stringify(patch.outputs)); }
+    if (patch.status === "running") { sets.push("started_at = COALESCE(started_at, ?)"); vals.push(now); }
+    if (patch.status === "succeeded" || patch.status === "failed" || patch.status === "cancelled") {
+      sets.push("finished_at = COALESCE(finished_at, ?)");
+      vals.push(now);
+    }
     vals.push(id);
     this.db.prepare(`UPDATE jobs SET ${sets.join(", ")} WHERE id = ?`).run(...vals);
     const row = this.get(id);

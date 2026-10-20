@@ -105,6 +105,19 @@ export function CurrentJob({
               }
             />
             {outputKind === "video" && <AddToSequence path={output} />}
+            {outputKind === "image" && (
+              <Button
+                variant="outline"
+                size="xs"
+                render={
+                  <Link
+                    href={`/video?preset=ltx25-i2v&from=${encodeURIComponent(output)}`}
+                  />
+                }
+              >
+                Animate
+              </Button>
+            )}
             <Button variant="ghost" size="xs" render={<Link href="/library" />}>
               Open in Library
             </Button>
@@ -187,6 +200,14 @@ export function RecentGrid({
                 iconOnly
                 className="absolute top-1.5 right-1.5 opacity-0 transition-opacity group-hover:opacity-100"
               />
+            )}
+            {r.status === "succeeded" && !isVid && out && (
+              <Link
+                href={`/video?preset=ltx25-i2v&from=${encodeURIComponent(out)}`}
+                className="absolute top-1.5 left-1.5 rounded-md bg-black/70 px-2 py-1 text-[11px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100"
+              >
+                Animate
+              </Link>
             )}
           </li>
         );

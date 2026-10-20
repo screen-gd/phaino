@@ -1,11 +1,18 @@
-export type ExploreMedia = { src: string; poster: string; kind?: "video" | "image" };
+export type ExploreMedia = {
+  src: string;
+  poster: string;
+  kind: "video" | "image";
+  w: number;
+  h: number;
+};
 
-type ModelDemo = {
+export type MediaItem = {
   title: string;
   description: string;
   href: string;
   credit: string;
   source: string;
+  model: string;
   media: ExploreMedia;
 };
 
@@ -16,7 +23,14 @@ export const MODEL_DEMOS = [
     href: "/camera",
     credit: "LTX 2.5 model demo · Comfy",
     source: "https://comfy.org/ltx-2.5/",
-    media: { src: "https://media.comfy.org/website/ltx-2.5/card-1.webm", poster: "https://media.comfy.org/website/ltx-2.5/card-1.webp" },
+    model: "ltx-2.5",
+    media: {
+      kind: "video",
+      w: 1216,
+      h: 640,
+      src: "https://media.comfy.org/website/ltx-2.5/card-1.webm",
+      poster: "https://media.comfy.org/website/ltx-2.5/card-1.webp",
+    },
   },
   {
     title: "LTX 2.5",
@@ -24,7 +38,14 @@ export const MODEL_DEMOS = [
     href: "/video?preset=ltx25-i2v",
     credit: "LTX 2.5 model demo · Comfy",
     source: "https://comfy.org/ltx-2.5/",
-    media: { src: "https://media.comfy.org/website/ltx-2.5/card-2.webm", poster: "https://media.comfy.org/website/ltx-2.5/card-2.webp" },
+    model: "ltx-2.5",
+    media: {
+      kind: "video",
+      w: 1216,
+      h: 640,
+      src: "https://media.comfy.org/website/ltx-2.5/card-2.webm",
+      poster: "https://media.comfy.org/website/ltx-2.5/card-2.webp",
+    },
   },
   {
     title: "Wan 2.2",
@@ -32,7 +53,14 @@ export const MODEL_DEMOS = [
     href: "/video?preset=wan22-i2v",
     credit: "Wan 2.2 workflow example · Comfy (MIT)",
     source: "https://docs.comfy.org/tutorials/video/wan/wan2_2",
-    media: { src: "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/main/output/video_wan2_2_14B_i2v.mp4", poster: "/explore/examples/wan22.webp" },
+    model: "wan-2.2",
+    media: {
+      kind: "video",
+      w: 640,
+      h: 640,
+      src: "https://raw.githubusercontent.com/Comfy-Org/workflow_templates/main/output/video_wan2_2_14B_i2v.mp4",
+      poster: "/explore/examples/wan22.webp",
+    },
   },
   {
     title: "LTX 2.5 text to video",
@@ -40,7 +68,14 @@ export const MODEL_DEMOS = [
     href: "/video?preset=ltx25-i2v",
     credit: "LTX 2.5 workflow example · Comfy (MIT)",
     source: "https://github.com/Comfy-Org/workflow_templates/blob/main/templates/video_ltx2_5_t2v.json",
-    media: { src: "/explore/examples/ltx25-t2v.mp4", poster: "/explore/examples/ltx25-t2v.webp" },
+    model: "ltx-2.5",
+    media: {
+      kind: "video",
+      w: 720,
+      h: 412,
+      src: "/explore/examples/ltx25-t2v.mp4",
+      poster: "/explore/examples/ltx25-t2v.webp",
+    },
   },
   {
     title: "LTX 2.5 first and last frame",
@@ -48,7 +83,14 @@ export const MODEL_DEMOS = [
     href: "/video?preset=ltx25-i2v",
     credit: "LTX 2.5 workflow example · Comfy (MIT)",
     source: "https://github.com/Comfy-Org/workflow_templates/blob/main/templates/video_ltx2_5_flf2v.json",
-    media: { src: "/explore/examples/ltx25-flf2v.mp4", poster: "/explore/examples/ltx25-flf2v.webp" },
+    model: "ltx-2.5",
+    media: {
+      kind: "video",
+      w: 720,
+      h: 396,
+      src: "/explore/examples/ltx25-flf2v.mp4",
+      poster: "/explore/examples/ltx25-flf2v.webp",
+    },
   },
   {
     title: "LTX 2.5 guided video",
@@ -56,7 +98,14 @@ export const MODEL_DEMOS = [
     href: "/video?preset=ltx25-i2v",
     credit: "LTX 2.5 workflow example · Comfy (MIT)",
     source: "https://github.com/Comfy-Org/workflow_templates/blob/main/templates/video_ltx2_5_dfr_i2v.json",
-    media: { src: "/explore/examples/ltx25-dfr-i2v.mp4", poster: "/explore/examples/ltx25-dfr-i2v.webp" },
+    model: "ltx-2.5",
+    media: {
+      kind: "video",
+      w: 720,
+      h: 396,
+      src: "/explore/examples/ltx25-dfr-i2v.mp4",
+      poster: "/explore/examples/ltx25-dfr-i2v.webp",
+    },
   },
   {
     title: "Qwen Image",
@@ -64,7 +113,14 @@ export const MODEL_DEMOS = [
     href: "/image?preset=qwen-image",
     credit: "Qwen Image workflow example · Comfy (MIT)",
     source: "https://github.com/Comfy-Org/workflow_templates/blob/main/templates/image_qwen_image.json",
-    media: { kind: "image", src: "/explore/examples/qwen-image.webp", poster: "/explore/examples/qwen-image.webp" },
+    model: "qwen-image-2512",
+    media: {
+      kind: "image",
+      w: 1280,
+      h: 1280,
+      src: "/explore/examples/qwen-image.webp",
+      poster: "/explore/examples/qwen-image.webp",
+    },
   },
   {
     title: "Qwen Image styles",
@@ -72,7 +128,14 @@ export const MODEL_DEMOS = [
     href: "/image?preset=qwen-image",
     credit: "Qwen Image LoRA workflow example · Comfy (MIT)",
     source: "https://github.com/Comfy-Org/workflow_templates/blob/main/templates/template_sugar_coated_gummy_style_qwen.json",
-    media: { kind: "image", src: "/explore/examples/qwen-gummy.webp", poster: "/explore/examples/qwen-gummy.webp" },
+    model: "qwen-image-2512",
+    media: {
+      kind: "image",
+      w: 1280,
+      h: 1280,
+      src: "/explore/examples/qwen-gummy.webp",
+      poster: "/explore/examples/qwen-gummy.webp",
+    },
   },
   {
     title: "FLUX.2 Klein",
@@ -80,33 +143,88 @@ export const MODEL_DEMOS = [
     href: "/image?preset=flux2-klein",
     credit: "FLUX.2 Klein workflow example · Comfy (MIT)",
     source: "https://github.com/Comfy-Org/workflow_templates/blob/main/templates/image_flux2_klein_text_to_image.json",
-    media: { kind: "image", src: "/explore/examples/flux2-klein.webp", poster: "/explore/examples/flux2-klein.webp" },
+    model: "flux2-klein-4b",
+    media: {
+      kind: "image",
+      w: 1024,
+      h: 1024,
+      src: "/explore/examples/flux2-klein.webp",
+      poster: "/explore/examples/flux2-klein.webp",
+    },
   },
-] satisfies ModelDemo[];
+] satisfies MediaItem[];
 
 export const COMFY_SHOWCASE_URL = "https://comfy.org/ltx-2.5/";
-
-type Creation = { title: string; source: string; media: ExploreMedia };
 
 export const COMFY_CREATIONS = [
   {
     title: "LTX 2.5 portrait study",
+    description: "",
+    href: COMFY_SHOWCASE_URL,
+    credit: "LTX 2.5 model demo · Comfy",
     source: COMFY_SHOWCASE_URL,
-    media: { src: "https://media.comfy.org/website/ltx-2.5/card-3.webm", poster: "https://media.comfy.org/website/ltx-2.5/card-3.webp" },
+    model: "ltx-2.5",
+    media: {
+      kind: "video",
+      w: 1216,
+      h: 640,
+      src: "https://media.comfy.org/website/ltx-2.5/card-3.webm",
+      poster: "https://media.comfy.org/website/ltx-2.5/card-3.webp",
+    },
   },
   {
     title: "LTX 2.5 mountain flight",
+    description: "",
+    href: COMFY_SHOWCASE_URL,
+    credit: "LTX 2.5 model demo · Comfy",
     source: COMFY_SHOWCASE_URL,
-    media: { src: "https://media.comfy.org/website/ltx-2.5/card-4.webm", poster: "https://media.comfy.org/website/ltx-2.5/card-4.webp" },
+    model: "ltx-2.5",
+    media: {
+      kind: "video",
+      w: 1216,
+      h: 640,
+      src: "https://media.comfy.org/website/ltx-2.5/card-4.webm",
+      poster: "https://media.comfy.org/website/ltx-2.5/card-4.webp",
+    },
   },
   {
     title: "LTX 2.5 astronaut under the aurora",
+    description: "",
+    href: COMFY_SHOWCASE_URL,
+    credit: "LTX 2.5 model demo · Comfy",
     source: COMFY_SHOWCASE_URL,
-    media: { src: "https://media.comfy.org/website/ltx-2.5/card-5.webm", poster: "https://media.comfy.org/website/ltx-2.5/card-5.webp" },
+    model: "ltx-2.5",
+    media: {
+      kind: "video",
+      w: 1216,
+      h: 640,
+      src: "https://media.comfy.org/website/ltx-2.5/card-5.webm",
+      poster: "https://media.comfy.org/website/ltx-2.5/card-5.webp",
+    },
   },
   {
     title: "LTX 2.5 rider above the clouds",
+    description: "",
+    href: COMFY_SHOWCASE_URL,
+    credit: "LTX 2.5 model demo · Comfy",
     source: COMFY_SHOWCASE_URL,
-    media: { src: "https://media.comfy.org/website/ltx-2.5/card-6.webm", poster: "https://media.comfy.org/website/ltx-2.5/card-6.webp" },
+    model: "ltx-2.5",
+    media: {
+      kind: "video",
+      w: 1216,
+      h: 640,
+      src: "https://media.comfy.org/website/ltx-2.5/card-6.webm",
+      poster: "https://media.comfy.org/website/ltx-2.5/card-6.webp",
+    },
   },
-] satisfies Creation[];
+] satisfies MediaItem[];
+
+/** MODEL_DEMOS + COMFY_CREATIONS, deduplicated by media src. */
+export const EXPLORE_MEDIA: MediaItem[] = (() => {
+  const seen = new Set<string>();
+  return [...MODEL_DEMOS, ...COMFY_CREATIONS].filter((item) => {
+    if (seen.has(item.media.src)) return false;
+    seen.add(item.media.src);
+    return true;
+  });
+})();

@@ -1,14 +1,18 @@
 import Link from "next/link";
 import { CloudPromo } from "@/components/CloudPromo";
+import { CommunityGrid } from "@/components/CommunityGrid";
 import { ExploreBanner } from "@/components/ExploreBanner";
+import { ExploreVideo } from "@/components/ExploreVideo";
 import { Icon, SECTION_ICONS, type IconName } from "@/components/icons";
 import { ExploreCarousel } from "@/components/ExploreCarousel";
-import { ComfyCreations } from "@/components/ComfyCreations";
 import { ExploreFooter } from "@/components/ExploreFooter";
 import { presetPreview } from "@/lib/preset-preview";
+import { EXPLORE_MEDIA, type MediaItem } from "@/lib/explore-media";
+import { MODEL_FAMILIES, matchesFamily } from "@/lib/model-families";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { listPresets } from "@/server/presets/load";
+import { getPreset, listPresets } from "@/server/presets/load";
+import { miniGraph, type MiniGraph } from "@/server/presets/miniGraph";
 import type { Preset } from "@/server/presets/schema";
 
 export const dynamic = "force-dynamic";
@@ -99,8 +103,12 @@ function ToolTile({ tool }: { tool: (typeof TOOLS)[number] }) {
 }
 
 /** The whole preset card opens its studio with the preset selected. */
-function PresetCard({ preset }: { preset: Preset }) {
+function PresetCard({ preset, mini }: { preset: Preset; mini: MiniGraph | null }) {
   const tryHref = `/${preset.category}?preset=${preset.id}`;
+  const imageIn = preset.inputs.some((i) => i.required && i.key === "image");
+  const outKind = preset.outputs[0]?.kind ?? "video";
+  const inLabel = imageIn ? "Image" : "Text";
+  const outLabel = outKind === "image" ? "Image" : "Video";
   return (
     <Link href={tryHref} aria-label={`Try ${preset.name}`} className="group relative block aspect-video overflow-hidden rounded-xl border border-line bg-s3 focus-visible:outline-2 focus-visible:outline-ac">
       <img
@@ -108,6 +116,39 @@ function PresetCard({ preset }: { preset: Preset }) {
         alt=""
         className="h-full w-full object-cover"
       />
+      {mini && (
+        <svg
+          aria-hidden="true"
+          viewBox={`0 0 1 ${(1 / mini.aspect).toFixed(3)}`}
+          preserveAspectRatio="xMidYMid slice"
+          className="absolute inset-0 h-full w-full bg-black/75 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
+        >
+          {mini.links.map(([x1, y1, x2, y2], i) => (
+            <line
+              key={i}
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              stroke="#555"
+              strokeWidth={0.002}
+            />
+          ))}
+          {mini.nodes.map((n, i) => (
+            <rect
+              key={i}
+              x={n.x}
+              y={n.y}
+              width={n.w}
+              height={n.h}
+              rx={0.004}
+              fill="none"
+              stroke={n.bound ? "#FF5B22" : "#3a3a3a"}
+              strokeWidth={0.002}
+            />
+          ))}
+        </svg>
+      )}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-linear-to-t from-black/80 to-transparent" />
       {preset.chip && (
         <Badge
@@ -126,13 +167,66 @@ function PresetCard({ preset }: { preset: Preset }) {
       <b className="pointer-events-none absolute bottom-2.5 left-3 text-body font-semibold">
         {preset.name}
       </b>
+      <span
+        aria-label={`${inLabel} to ${outLabel}`}
+        className="pointer-events-none absolute right-2 bottom-2 flex items-center gap-1 rounded-full bg-black/70 px-2 py-1 text-t2"
+      >
+        <Icon d={imageIn ? SECTION_ICONS.image : SECTION_ICONS.pencil} className="h-3 w-3" />
+        <Icon d={SECTION_ICONS.chevronRight} className="h-2.5 w-2.5 text-t3" />
+        <Icon d={outKind === "image" ? SECTION_ICONS.image : SECTION_ICONS.video} className="h-3 w-3" />
+      </span>
     </Link>
+  );
+}
+
+/** Example media tile filling the last slots of a model row. */
+function MediaTile({ item }: { item: MediaItem }) {
+  const external = item.href.startsWith("http");
+  return (
+    <div className="group relative aspect-video overflow-hidden rounded-xl border border-line bg-s2">
+      {item.media.kind === "video" ? (
+        <ExploreVideo media={item.media} title={item.title} source={item.source} />
+      ) : (
+        <img
+          src={item.media.src}
+          alt=""
+          className="h-full w-full object-cover"
+        />
+      )}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-linear-to-t from-black/80 to-transparent" />
+      <Link
+        href={item.href}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noreferrer" : undefined}
+        className="absolute bottom-2.5 left-3 text-caption font-semibold text-white hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ac"
+      >
+        {item.title}
+      </Link>
+    </div>
   );
 }
 
 export default function Home() {
   const catalog = listPresets();
-  const presets = catalog.slice(0, 8);
+
+  const minis = new Map<string, MiniGraph | null>();
+  for (const p of catalog) {
+    try {
+      const loaded = getPreset(p.id);
+      minis.set(p.id, loaded ? miniGraph(loaded.preset, loaded.workflowUi) : null);
+    } catch {
+      minis.set(p.id, null);
+    }
+  }
+
+  const families = MODEL_FAMILIES.map((family) => {
+    const presets = catalog.filter((p) => matchesFamily(p, family.id));
+    const cards = presets.slice(0, 4);
+    const media = EXPLORE_MEDIA.filter((m) =>
+      family.mediaModels.includes(m.model),
+    ).slice(0, Math.max(0, 4 - cards.length));
+    return { family, presets, cards, media };
+  }).filter((f) => f.presets.length > 0);
 
   return (
     <div className="px-3 pt-3 pb-10">
@@ -153,47 +247,33 @@ export default function Home() {
         <ExploreBanner />
       </div>
 
-      <SectionHead
-        title="Trending presets"
-        sub="Camera moves on LTX 2.5, images on FLUX.2 Klein"
-        actions={[
-          { label: "Start generating", href: "/camera", accent: true },
-          { label: "All workflows", href: "/workflows" },
-        ]}
-      />
-      {presets.length === 0 ? (
-        <p className="text-t3">No presets yet</p>
-      ) : (
-        <div className="relative">
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-            {presets.map((p) => (
-              <PresetCard key={p.id} preset={p} />
+      {families.map(({ family, presets, cards, media }) => (
+        <section key={family.id}>
+          <SectionHead
+            title={family.label}
+            sub={`${presets.length} preset${presets.length === 1 ? "" : "s"}`}
+            actions={[{ label: "View all", href: family.viewAll }]}
+          />
+          <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 sm:overflow-visible sm:pb-0">
+            {cards.map((p) => (
+              <div key={p.id} className="w-64 flex-none snap-start sm:w-auto">
+                <PresetCard preset={p} mini={minis.get(p.id) ?? null} />
+              </div>
+            ))}
+            {media.map((item) => (
+              <div key={item.media.src} className="w-64 flex-none snap-start sm:w-auto">
+                <MediaTile item={item} />
+              </div>
             ))}
           </div>
-          {presets.length > 4 && (
-            <>
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[48%] bg-linear-to-b from-transparent via-black/70 to-black" />
-              <div className="pointer-events-none absolute inset-x-0 bottom-5 z-20 flex justify-center">
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  className="pointer-events-auto"
-                  render={<Link href="/workflows" />}
-                >
-                  View all presets
-                  <Icon d={SECTION_ICONS.arrowUpRight} />
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
-      )}
+        </section>
+      ))}
 
       <SectionHead
         title="Made with Comfy"
         actions={[{ label: "See the showcase", href: "/community" }]}
       />
-      <ComfyCreations />
+      <CommunityGrid items={EXPLORE_MEDIA.slice(0, 8)} />
       <ExploreFooter presets={catalog} />
     </div>
   );

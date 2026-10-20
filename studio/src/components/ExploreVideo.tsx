@@ -5,11 +5,13 @@ import { Icon, SECTION_ICONS } from "@/components/icons";
 import type { ExploreMedia } from "@/lib/explore-media";
 
 /** Muted loops start on arrival and stop when hidden or outside the viewport. */
-export function ExploreVideo({ media, title, source, portrait = false }: {
+export function ExploreVideo({ media, title, source, portrait = false, natural = false }: {
   media: ExploreMedia;
   title: string;
   source: string;
   portrait?: boolean;
+  /** Render at the media's own aspect ratio (masonry tiles). */
+  natural?: boolean;
 }) {
   const video = useRef<HTMLVideoElement>(null);
   const [paused, setPaused] = useState(false);
@@ -43,7 +45,10 @@ export function ExploreVideo({ media, title, source, portrait = false }: {
   }, [paused]);
 
   return (
-    <div className={`group relative overflow-hidden rounded-xl border border-line bg-s2 ${portrait ? "aspect-[4/5]" : "aspect-video"}`}>
+    <div
+      className={`group relative overflow-hidden rounded-xl border border-line bg-s2 ${natural ? "" : portrait ? "aspect-[4/5]" : "aspect-video"}`}
+      style={natural ? { aspectRatio: `${media.w} / ${media.h}` } : undefined}
+    >
       <img src={media.poster} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
       {!failed && (
         <video

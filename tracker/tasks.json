@@ -350,7 +350,7 @@
           "id": "explore-model-sections",
           "title": "Per-model sections with View all",
           "status": "done",
-          "notes": "One section per model family; /workflows ?model= pill filter"
+          "notes": "Removed at user request; presets stay in one grid, /workflows keeps the ?model= filter"
         },
         {
           "id": "explore-grid",

@@ -2,51 +2,16 @@ import Link from "next/link";
 import { CloudPromo } from "@/components/CloudPromo";
 import { ExploreBanner } from "@/components/ExploreBanner";
 import { Icon, SECTION_ICONS, type IconName } from "@/components/icons";
-import { ToolPreview } from "@/components/ToolPreview";
+import { ExploreCarousel } from "@/components/ExploreCarousel";
+import { ComfyCreations } from "@/components/ComfyCreations";
+import { ExploreFooter } from "@/components/ExploreFooter";
+import { presetPreview } from "@/lib/preset-preview";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { communityFeedSchema, type CommunityFork } from "@/lib/community";
-import { toolLoopUrl } from "@/server/media";
 import { listPresets } from "@/server/presets/load";
 import type { Preset } from "@/server/presets/schema";
-import sampleFeed from "@/data/community.sample.json";
 
 export const dynamic = "force-dynamic";
-
-const FEATURES = [
-  {
-    title: "Camera moves",
-    sub: "7 moves on LTX 2.5",
-    href: "/camera",
-    poster: "/explore/moves.webp",
-    loop: "camera",
-    soon: false,
-  },
-  {
-    title: "Image",
-    sub: "FLUX.2 Klein text to image",
-    href: "/image",
-    poster: "/explore/image.webp",
-    loop: "image",
-    soon: false,
-  },
-  {
-    title: "Workflows",
-    sub: "Every shot opens as a ComfyUI workflow",
-    href: "/workflows",
-    poster: "/api/presets/orbit/thumb",
-    loop: null,
-    soon: false,
-  },
-  {
-    title: "Export",
-    sub: "FCPXML and EDL for your editor",
-    href: "/export",
-    poster: "/explore/video.webp",
-    loop: null,
-    soon: true,
-  },
-] as const;
 
 const TOOLS = [
   { href: "/camera", name: "Camera moves", kind: "Video", badge: "New", desc: "7 moves on LTX 2.5", icon: "camera" },
@@ -103,33 +68,6 @@ function SectionHead({
   );
 }
 
-/** Wide card in the bleeding feature scroller: media, title and subtitle. */
-function FeatureCard({ feature }: { feature: (typeof FEATURES)[number] }) {
-  return (
-    <Link
-      href={feature.href}
-      className="w-[clamp(300px,28vw,440px)] flex-none snap-start"
-    >
-      <div className="relative">
-        <ToolPreview
-          poster={feature.poster}
-          video={feature.loop ? toolLoopUrl(feature.loop) : null}
-          className="aspect-video rounded-xl border border-line"
-        />
-        {feature.soon && (
-          <Badge variant="secondary" className="absolute top-2 left-2">
-            Soon
-          </Badge>
-        )}
-      </div>
-      <b className="mt-3 block font-display font-bold uppercase text-body font-stretch-[112.5%]">
-        {feature.title}
-      </b>
-      <span className="block text-caption text-t3">{feature.sub}</span>
-    </Link>
-  );
-}
-
 /** Small tool tile: icon and kind chip on top, name, badge and description below. */
 function ToolTile({ tool }: { tool: (typeof TOOLS)[number] }) {
   return (
@@ -160,19 +98,16 @@ function ToolTile({ tool }: { tool: (typeof TOOLS)[number] }) {
   );
 }
 
-/** Preset thumb card: overlay Try link, badges, and Try/Workflow buttons above it. */
+/** The whole preset card opens its studio with the preset selected. */
 function PresetCard({ preset }: { preset: Preset }) {
-  const partner = preset.model.license === "partner";
   const tryHref = `/${preset.category}?preset=${preset.id}`;
   return (
-    <div className="group relative aspect-video overflow-hidden rounded-xl border border-line bg-s3">
-      <Link href={tryHref} aria-label={`Try ${preset.name}`} className="absolute inset-0">
-        <img
-          src={`/api/presets/${preset.id}/thumb`}
-          alt=""
-          className="h-full w-full object-cover"
-        />
-      </Link>
+    <Link href={tryHref} aria-label={`Try ${preset.name}`} className="group relative block aspect-video overflow-hidden rounded-xl border border-line bg-s3 focus-visible:outline-2 focus-visible:outline-ac">
+      <img
+        src={presetPreview(preset)}
+        alt=""
+        className="h-full w-full object-cover"
+      />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-linear-to-t from-black/80 to-transparent" />
       {preset.chip && (
         <Badge
@@ -183,86 +118,27 @@ function PresetCard({ preset }: { preset: Preset }) {
         </Badge>
       )}
       <Badge
-        variant={partner ? "default" : "secondary"}
-        className={`pointer-events-none absolute top-2 right-2 font-mono ${
-          partner ? "" : "bg-black/70 text-t2"
-        }`}
+        variant="secondary"
+        className="pointer-events-none absolute top-2 right-2 font-mono bg-black/70 text-t2"
       >
         {preset.model.label}
       </Badge>
       <b className="pointer-events-none absolute bottom-2.5 left-3 text-body font-semibold">
         {preset.name}
       </b>
-      <div className="absolute right-2.5 bottom-2 z-10 flex gap-1.5">
-        <Button size="xs" render={<Link href={tryHref} />}>
-          Try
-        </Button>
-        <Button
-          size="xs"
-          variant="secondary"
-          render={<Link href={`/workflows/${preset.id}`} />}
-        >
-          Workflow
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-/** Community fork card: image, Run/Fork buttons, author row and fork count. */
-function ForkCard({ fork }: { fork: CommunityFork }) {
-  const runHref = `/camera?preset=${fork.presetId}`;
-  return (
-    <div className="relative aspect-[4/5] overflow-hidden rounded-xl border border-line bg-s3">
-      <Link href={runHref} aria-label={`Run ${fork.title}`} className="absolute inset-0">
-        <img src={fork.thumb} alt="" className="h-full w-full object-cover" />
-      </Link>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-linear-to-t from-black/80 to-transparent" />
-      <div className="absolute top-2 right-2 z-10 flex gap-1.5">
-        <Button size="xs" render={<Link href={runHref} />}>
-          Run
-        </Button>
-        <Button
-          size="xs"
-          variant="secondary"
-          render={<Link href={`/workflows/${fork.presetId}`} />}
-        >
-          Fork
-        </Button>
-      </div>
-      <div className="pointer-events-none absolute bottom-2.5 left-3">
-        <b className="block text-body font-semibold">{fork.title}</b>
-        <span className="mt-1 flex items-center gap-1.5 text-caption text-t2">
-          <span className="grid h-5 w-5 place-items-center rounded-full bg-s3 text-caption font-semibold uppercase">
-            {fork.handle.replace(/^@/, "").charAt(0)}
-          </span>
-          {fork.handle}
-        </span>
-      </div>
-      <Badge
-        variant="secondary"
-        className="pointer-events-none absolute right-2.5 bottom-2.5 bg-black/70 font-mono text-t2"
-      >
-        <Icon d={SECTION_ICONS.fork} className="size-3.5" />
-        {fork.forkCount}
-      </Badge>
-    </div>
+    </Link>
   );
 }
 
 export default function Home() {
-  const presets = listPresets().slice(0, 8);
-  const feed = communityFeedSchema.parse(sampleFeed);
+  const catalog = listPresets();
+  const presets = catalog.slice(0, 8);
 
   return (
     <div className="px-3 pt-3 pb-10">
       <h1 className="sr-only">Explore</h1>
 
-      <div className="-mr-3 flex snap-x gap-2 overflow-x-auto pr-3 [scrollbar-width:thin]">
-        {FEATURES.map((f) => (
-          <FeatureCard key={f.href} feature={f} />
-        ))}
-      </div>
+      <ExploreCarousel />
 
       <div className="mt-8 grid gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <CloudPromo />
@@ -296,8 +172,8 @@ export default function Home() {
           </div>
           {presets.length > 4 && (
             <>
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[45%] bg-linear-to-b from-transparent to-bg" />
-              <div className="pointer-events-none absolute inset-x-0 bottom-5 flex justify-center">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[48%] bg-linear-to-b from-transparent via-black/70 to-black" />
+              <div className="pointer-events-none absolute inset-x-0 bottom-5 z-20 flex justify-center">
                 <Button
                   variant="secondary"
                   size="lg"
@@ -314,15 +190,11 @@ export default function Home() {
       )}
 
       <SectionHead
-        title="Community forks"
-        sub="Sample data"
-        actions={[{ label: "See the feed", href: "/community" }]}
+        title="Made with Comfy"
+        actions={[{ label: "See the showcase", href: "/community" }]}
       />
-      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-        {feed.forks.map((f) => (
-          <ForkCard key={f.handle} fork={f} />
-        ))}
-      </div>
+      <ComfyCreations />
+      <ExploreFooter presets={catalog} />
     </div>
   );
 }

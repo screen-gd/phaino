@@ -7,7 +7,6 @@ export type MenuRow = {
   href: string;
   icon?: IconName;
   badge?: "New" | "Soon";
-  license?: "open" | "partner";
   thumb?: string;
 };
 
@@ -62,7 +61,6 @@ export function buildNavMenus(presets: Preset[]): NavMenus {
           title: p.name,
           description: p.description,
           href: `/image?preset=${p.id}`,
-          license: p.model.license,
           icon: "image",
         }),
       ),
@@ -109,7 +107,6 @@ export function buildNavMenus(presets: Preset[]): NavMenus {
           title: p.name,
           description: p.description,
           href: `/video?preset=${p.id}`,
-          license: p.model.license,
           icon: "video",
         }),
       ),
@@ -124,3 +121,4 @@ export function buildNavMenus(presets: Preset[]): NavMenus {
     ),
   };
 }
+

@@ -18,5 +18,5 @@ export const SECTIONS: readonly {
   { href: "/edit", label: "Edit", group: "studio", badge: "Soon" },
   { href: "/workflows", label: "Workflows", group: "studio" },
   { href: "/community", label: "Community", group: "studio" },
-  { href: "/export", label: "Export", group: "studio", badge: "Soon" },
+  { href: "/export", label: "Export", group: "studio", badge: "New" },
 ];

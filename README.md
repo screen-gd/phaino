@@ -6,18 +6,17 @@ Phaino is an open-source AI video and image studio on Comfy Cloud. Pick a preset
 
 - **Explore**: the home grid of all presets and categories.
 - **Tools**: Camera moves, Image and Video tool pages bound to presets, with a live job runner: uploads, progress over SSE, cancel, and recent runs.
-- **Presets and models**: 15 presets in `presets/`:
+- **Presets and models**: 12 open-weights presets in `presets/`:
 
-  | Preset | Tool | Model | License |
-  | --- | --- | --- | --- |
-  | bullet-time, crash-zoom, dolly-in, drone-pull-out, fpv-dive, orbit, whip-pan | Camera | LTX 2.5 | Open |
-  | ltx25-i2v | Video | LTX 2.5 | Open |
-  | wan22-i2v | Video | Wan 2.2 | Open |
-  | kling3-video | Video | Kling 3.0 | Partner |
-  | seedance25-i2v | Video | Seedance 2.5 | Partner |
-  | flux2-klein, flux2-klein-fast | Image | FLUX.2 Klein | Open |
-  | qwen-image | Image | Qwen Image | Open |
-  | nano-banana-2 | Image | Nano Banana 2 | Partner |
+  | Preset | Tool | Model |
+  | --- | --- | --- |
+  | bullet-time, crash-zoom, dolly-in, drone-pull-out, fpv-dive, orbit, whip-pan | Camera | LTX 2.5 |
+  | ltx25-i2v | Video | LTX 2.5 |
+  | wan22-i2v | Video | Wan 2.2 |
+  | flux2-klein, flux2-klein-fast | Image | FLUX.2 Klein |
+  | qwen-image | Image | Qwen Image |
+
+  Partner-model presets (Kling 3.0, Seedance 2.5, Nano Banana 2) ship in `presets/` but are hidden unless `PHAINO_PARTNER_MODELS=on`.
 
 - **Library**: every generated output, shareable to social.
 - **Social posting**: user-added connections (managed services or direct API keys) publish outputs to YouTube, Instagram, X, LinkedIn, TikTok, Threads and Bluesky.
@@ -53,7 +52,7 @@ Open http://localhost:3000. Check backend connectivity at http://localhost:3000/
 
 ## Comfy Cloud setup
 
-Create an API key at [platform.comfy.org/profile/api-keys](https://platform.comfy.org/profile/api-keys) and set it as `COMFY_API_KEY` in `studio/.env.local`. Partner presets (Kling, Seedance, Nano Banana) run on hosted API nodes and use [Comfy credits](https://docs.comfy.org/tutorials/partner-nodes/pricing); open presets run on Comfy Cloud and need the model files listed in [presets/README.md](presets/README.md).
+Create an API key at [platform.comfy.org/profile/api-keys](https://platform.comfy.org/profile/api-keys) and set it as `COMFY_API_KEY` in `studio/.env.local`, or paste it into Settings > Comfy Cloud. All built-in presets run on open-weights models on Comfy Cloud and need the model files listed in [presets/README.md](presets/README.md). Partner presets (Kling, Seedance, Nano Banana) run on hosted API nodes and use [Comfy credits](https://docs.comfy.org/tutorials/partner-nodes/pricing); they're hidden unless `PHAINO_PARTNER_MODELS=on`.
 
 ### Advanced: your own ComfyUI
 
@@ -75,11 +74,14 @@ All variables live in `studio/.env.local` (copy `studio/.env.example`). The old 
 | `COMFY_API_KEY` | Comfy Cloud / Comfy Router API key |
 | `COMFY_BASE_URL` | Optional custom Comfy API v2 endpoint (blank = Comfy Cloud) |
 | `PRESETS_DIR` | Preset folder (default `../presets` from `studio/`) |
-| `FORKS_DIR` | User forks folder (default `../forks` from `studio/`) |
+| `FORKS_DIR` | User forks folder (default `<PHAINO_DATA_DIR>/forks`) |
+| `PHAINO_PARTNER_MODELS` | Show partner-model presets (uses Comfy credits). Off by default |
 | `TRACKER_FILE` | Tracker data file (default `../tracker/tasks.json` from `studio/`) |
 | `PHAINO_DATA_DIR` | Local data folder (default `./.data` under `studio/`) |
 | `PHAINO_USER` | Local user name (default `local`) |
 | `PHAINO_SITE_URL` | Public origin for OG metadata (default `http://localhost:3000`) |
+| `FFMPEG_PATH` | ffmpeg binary for sequence export (default `ffmpeg` on PATH) |
+| `FFPROBE_PATH` | ffprobe binary for sequence export (default `ffprobe` on PATH) |
 
 ## Social posting
 

@@ -14,7 +14,11 @@ function freshSeed() {
 }
 
 /** All state for a tool page: preset, uploads, params, submit, jobs, SSE. */
-export function useStudio(category: string, presets: StudioPreset[]) {
+export function useStudio(
+  category: string,
+  presets: StudioPreset[],
+  opts: { prefillKey?: string } = {},
+) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const wanted = searchParams.get("preset");
@@ -64,7 +68,11 @@ export function useStudio(category: string, presets: StudioPreset[]) {
   // of an existing output (used by "Animate" on image results).
   useEffect(() => {
     if (!fromPath || !preset || fromApplied.current === preset.id) return;
-    const target = preset.inputs.find((i) => i.required && !uploads[i.key]);
+    const target =
+      preset.inputs.find((i) => i.required && !uploads[i.key]) ??
+      (opts.prefillKey && !uploads[opts.prefillKey]
+        ? { key: opts.prefillKey }
+        : undefined);
     if (!target) {
       fromApplied.current = preset.id;
       return;
@@ -109,11 +117,13 @@ export function useStudio(category: string, presets: StudioPreset[]) {
   );
 
   const selectPreset = useCallback(
-    (id: string) => {
+    (id: string, opts2: { keep?: boolean } = {}) => {
       if (!presets.some((p) => p.id === id)) return;
       setPresetId(id);
-      setUploads({});
-      setValues({});
+      if (!opts2.keep) {
+        setUploads({});
+        setValues({});
+      }
       setError(null);
       router.replace(`?preset=${id}`, { scroll: false });
     },

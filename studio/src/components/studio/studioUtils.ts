@@ -1,16 +1,15 @@
 import type { StudioParam, StudioPreset } from "@/components/toolStudioData";
 
 /** Case-insensitive match on name, model label and description. */
-export function filterPresets(
-  presets: StudioPreset[],
-  query: string,
-): StudioPreset[] {
+export function filterPresets<
+  T extends { name: string; description: string; model?: { label?: string } },
+>(presets: T[], query: string): T[] {
   const q = query.trim().toLowerCase();
   if (!q) return presets;
   return presets.filter(
     (p) =>
       p.name.toLowerCase().includes(q) ||
-      p.model.label.toLowerCase().includes(q) ||
+      (p.model?.label ?? "").toLowerCase().includes(q) ||
       p.description.toLowerCase().includes(q),
   );
 }

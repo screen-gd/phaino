@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "export:workflows": "node scripts/export-workflows.ts"
+    "export:workflows": "node scripts/export-workflows.ts",
+    "models:sync": "node --conditions=react-server scripts/sync-models.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

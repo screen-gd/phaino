@@ -1,4 +1,4 @@
-import type { Preset, PresetBind } from "./schema";
+import { bindsOf, type Preset, type PresetBind } from "./schema.ts";
 
 /** Loosely-typed API-format graph: node id -> { class_type, inputs }. */
 export type WorkflowApi = Record<
@@ -130,16 +130,18 @@ export function applyPreset(
               },
             ).trim()
           : raw;
-        write(graph, param.bind, final);
+        for (const b of bindsOf(param.bind)) write(graph, b, final);
         break;
       }
       case "seed":
-        write(graph, param.bind, resolved[param.key]);
+        for (const b of bindsOf(param.bind)) {
+          write(graph, b, resolved[param.key]);
+        }
         break;
       case "choice": {
         const option = param.options.find((o) => o.value === resolved[param.key]);
         if (!option) break; // unreachable: validated above
-        if (param.bind) write(graph, param.bind, option.value);
+        for (const b of bindsOf(param.bind)) write(graph, b, option.value);
         for (const set of option.set ?? []) {
           write(graph, set, set.value);
         }
@@ -147,7 +149,9 @@ export function applyPreset(
       }
       case "int":
       case "float":
-        write(graph, param.bind, resolved[param.key]);
+        for (const b of bindsOf(param.bind)) {
+          write(graph, b, resolved[param.key]);
+        }
         break;
     }
   }

@@ -8,6 +8,7 @@ import { AppShell } from "@/components/AppShell";
 import { buildNavMenus } from "@/components/navMenus";
 import { getEnv } from "@/server/env";
 import { getGitHubStars } from "@/server/github";
+import { toStudioModels } from "@/server/models/view";
 import { listPresets } from "@/server/presets/load";
 
 export const metadata: Metadata = {
@@ -18,7 +19,10 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const menus = buildNavMenus(listPresets());
+  const menus = buildNavMenus(listPresets(), [
+    ...toStudioModels("image"),
+    ...toStudioModels("video"),
+  ]);
   const stars = await getGitHubStars();
   return (
     <html lang="en" className="dark">

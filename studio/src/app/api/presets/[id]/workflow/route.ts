@@ -1,7 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import { getEnv } from "@/server/env";
-import { resolvePresetDir } from "@/server/presets/load";
+import { getPreset, resolvePresetDir } from "@/server/presets/load";
+import { cacheFiles, loadModelsManifest } from "@/server/models/resolve";
+import { modeForPresetId } from "@/server/models/registry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,11 +21,19 @@ export async function GET(
   const format = new URL(request.url).searchParams.get("format") === "api"
     ? "api"
     : "ui";
-  const dir = resolvePresetDir(id, getEnv());
-  if (!dir) {
+  const env = getEnv();
+  const dir = resolvePresetDir(id, env);
+  let file: string;
+  if (dir) {
+    file = path.join(dir, format === "api" ? "workflow_api.json" : "workflow.json");
+  } else if (modeForPresetId(id) && getPreset(id, env)) {
+    const entry = loadModelsManifest(env)?.modes?.[id];
+    if (!entry) return new Response("Not found", { status: 404 });
+    const files = cacheFiles(entry.template, env);
+    file = format === "api" ? files.apiFile : files.uiFile;
+  } else {
     return new Response("Not found", { status: 404 });
   }
-  const file = path.join(dir, format === "api" ? "workflow_api.json" : "workflow.json");
   if (!fs.existsSync(file)) {
     return new Response("Not found", { status: 404 });
   }

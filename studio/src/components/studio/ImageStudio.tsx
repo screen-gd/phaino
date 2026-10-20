@@ -1,15 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon, SECTION_ICONS } from "../icons";
 import { CurrentJob, RecentGrid } from "./JobViews";
 import { EstimateCaption } from "./CreditEstimate";
 import { ModelPicker } from "./ModelPicker";
+import { useModelMaps } from "./modelRows";
 import { AdvancedChip, ParamChip } from "./ParamControls";
 import { UploadCard } from "./UploadCard";
 import { useStudio } from "./useStudio";
-import type { StudioParam, StudioPreset } from "@/components/toolStudioData";
+import { MODE_LABELS, resolveImageMode, type ModeKey } from "@/lib/modes";
+import type {
+  StudioModel,
+  StudioParam,
+  StudioPreset,
+} from "@/components/toolStudioData";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -30,13 +36,59 @@ function promptParamOf(
 }
 
 /** Image tool: centered hero + bottom prompt bar, no side panel. */
-export function ImageStudio({ presets }: { presets: StudioPreset[] }) {
-  const s = useStudio("image", presets);
+export function ImageStudio({
+  presets,
+  models = [],
+}: {
+  presets: StudioPreset[];
+  models?: StudioModel[];
+}) {
+  const s = useStudio("image", presets, { prefillKey: "image" });
   const health = useComfyHealth();
   const taRef = useRef<HTMLTextAreaElement>(null);
   const [attachOpen, setAttachOpen] = useState(false);
 
   const preset = s.preset;
+
+  const { modelOf, modeOf, pickerRows } = useModelMaps(models, presets);
+  const model = preset ? modelOf.get(preset.id) : undefined;
+  const activeMode = preset ? modeOf.get(preset.id) : undefined;
+
+  // Reference slot bound to the edit mode's image input key.
+  const refSlotKey = useMemo(() => {
+    if (!model?.modes.edit) return undefined;
+    return presets.find((p) => p.id === model.modes.edit)?.inputs[0]?.key;
+  }, [model, presets]);
+  const slots = useMemo(() => {
+    if (!preset) return [];
+    if (model && refSlotKey) {
+      return [{ key: refSlotKey, label: "Reference", required: false }];
+    }
+    return preset.inputs.map((i) => ({
+      key: i.key,
+      label: i.label,
+      required: i.required,
+    }));
+  }, [model, preset, refSlotKey]);
+
+  const modeRes =
+    model && preset
+      ? resolveImageMode(
+          Object.keys(model.modes) as ModeKey[],
+          !!(refSlotKey && s.uploads[refSlotKey]),
+        )
+      : null;
+  const modeError = modeRes?.error ?? null;
+
+  // Filling the reference switches to the model's edit mode.
+  useEffect(() => {
+    if (!model || !preset) return;
+    const target = modeRes?.mode ? model.modes[modeRes.mode] : undefined;
+    if (target && target !== preset.id) {
+      s.selectPreset(target, { keep: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [model?.id, preset?.id, modeRes?.mode, s.uploads, refSlotKey]);
   const promptParam = promptParamOf(preset);
   const extraText =
     preset?.params.filter(
@@ -147,7 +199,7 @@ export function ImageStudio({ presets }: { presets: StudioPreset[] }) {
                 className="max-h-[100px] w-full resize-none bg-transparent text-body text-t1 outline-none placeholder:text-t3"
               />
               <div className="mt-1 flex items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {preset && preset.inputs.length > 0 && (
+                {preset && slots.length > 0 && (
                   <Popover open={attachOpen} onOpenChange={setAttachOpen}>
                     <PopoverTrigger
                       render={
@@ -168,12 +220,10 @@ export function ImageStudio({ presets }: { presets: StudioPreset[] }) {
                     >
                       <div
                         className={`grid gap-2 ${
-                          preset.inputs.length > 1
-                            ? "grid-cols-2"
-                            : "grid-cols-1"
+                          slots.length > 1 ? "grid-cols-2" : "grid-cols-1"
                         }`}
                       >
-                        {preset.inputs.map((inp) => (
+                        {slots.map((inp) => (
                           <UploadCard
                             key={inp.key}
                             label={inp.label}
@@ -198,8 +248,8 @@ export function ImageStudio({ presets }: { presets: StudioPreset[] }) {
                 )}
                 {preset && (
                   <ModelPicker
-                    presets={presets}
-                    selectedId={preset.id}
+                    presets={pickerRows}
+                    selectedId={model?.defaultPresetId ?? preset.id}
                     onSelect={s.selectPreset}
                     side="top"
                     align="start"
@@ -207,7 +257,7 @@ export function ImageStudio({ presets }: { presets: StudioPreset[] }) {
                     trigger={
                       <button
                         type="button"
-                        aria-label={`Model: ${preset.name}`}
+                        aria-label={`Model: ${model ? model.label : preset.name}`}
                         className="flex h-8 shrink-0 items-center gap-1.5 rounded-lg bg-white/5 px-2 text-sm font-medium text-t1 hover:bg-white/10"
                       >
                         <img
@@ -215,7 +265,14 @@ export function ImageStudio({ presets }: { presets: StudioPreset[] }) {
                           alt=""
                           className="h-5 w-5 rounded object-cover"
                         />
-                        <span className="max-w-28 truncate">{preset.name}</span>
+                        <span className="max-w-28 truncate">
+                          {model ? model.label : preset.name}
+                        </span>
+                        {activeMode && (
+                          <span className="text-[10px] font-normal text-t3">
+                            {MODE_LABELS[activeMode]}
+                          </span>
+                        )}
                         <Icon
                           d={SECTION_ICONS.chevronDown}
                           className="h-3 w-3 text-t3"
@@ -265,7 +322,7 @@ export function ImageStudio({ presets }: { presets: StudioPreset[] }) {
             <Button
               className="h-20 w-[120px] flex-none rounded-xl font-display text-xs font-bold uppercase tracking-wide"
               loading={s.submitting}
-              disabled={!s.ready || s.submitting}
+              disabled={!s.ready || !!modeError || s.submitting}
               onClick={() => void s.submit()}
             >
               Generate
@@ -273,8 +330,10 @@ export function ImageStudio({ presets }: { presets: StudioPreset[] }) {
           </div>
         </div>
         <div className="mt-1.5 flex h-4 items-center gap-3 px-2">
-          {s.error && (
-            <p className="truncate text-xs text-destructive">{s.error}</p>
+          {(s.error || modeError) && (
+            <p className="truncate text-xs text-destructive">
+              {s.error ?? modeError}
+            </p>
           )}
           <span className="ml-auto">
             {preset && (

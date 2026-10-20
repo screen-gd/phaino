@@ -3,7 +3,16 @@
 import { useRef, useState, type ReactElement } from "react";
 import { Icon, SECTION_ICONS } from "../icons";
 import { filterPresets } from "./studioUtils";
-import type { StudioPreset } from "@/components/toolStudioData";
+
+/** A picker row: a model (one row per model) or a standalone preset/fork. */
+export type PickerRow = {
+  id: string;
+  name: string;
+  description: string;
+  thumbUrl: string;
+  isFork?: boolean;
+  model?: { label?: string };
+};
 import {
   Popover,
   PopoverPopup,
@@ -18,8 +27,8 @@ function ModelList({
   onHover,
   onPick,
 }: {
-  presets: StudioPreset[];
-  rows: StudioPreset[];
+  presets: PickerRow[];
+  rows: PickerRow[];
   selectedId: string;
   active: number;
   onHover: (idx: number) => void;
@@ -81,7 +90,7 @@ export function ModelPicker({
   sideOffset = 8,
   trigger,
 }: {
-  presets: StudioPreset[];
+  presets: PickerRow[];
   selectedId: string;
   onSelect: (id: string) => void;
   side?: "top" | "bottom" | "left" | "right";

@@ -6,7 +6,7 @@ Phaino is an open-source AI video and image studio on Comfy Cloud. Pick a preset
 
 - **Explore**: the home grid of all presets and categories.
 - **Tools**: Camera moves, Image and Video tool pages bound to presets, with a live job runner: uploads, progress over SSE, cancel, and recent runs.
-- **Presets and models**: 12 open-weights presets in `presets/`:
+- **Presets and models**: open-weights presets in `presets/`:
 
   | Preset | Tool | Model |
   | --- | --- | --- |
@@ -15,6 +15,8 @@ Phaino is an open-source AI video and image studio on Comfy Cloud. Pick a preset
   | wan22-i2v | Video | Wan 2.2 |
   | flux2-klein, flux2-klein-fast | Image | FLUX.2 Klein |
   | qwen-image | Image | Qwen Image |
+
+  The Image and Video pickers list **models**, not presets. Each model's modes (text to video, image to video, first and last frame, text to image, edit) come from the registry in `studio/src/server/models/registry.ts`; template-backed modes are synced from the official Comfy templates into `models/cache` by `pnpm models:sync` (see "Add a model" below). Registered models: LTX 2.5, Wan 2.2, HunyuanVideo 1.5, MiniMax H3, Kandinsky 5, FLUX 3 Klein (+Fast), FLUX.2 Klein (+Fast), Qwen Image, Qwen Image 2.1, Z-Image Turbo and HiDream I1 Fast.
 
   Partner-model presets (Kling 3.0, Seedance 2.5, Nano Banana 2) ship in `presets/` but are hidden unless `PHAINO_PARTNER_MODELS=on`.
 
@@ -101,6 +103,7 @@ Open the studio's Settings, scroll to Social accounts and choose "Add connection
 | `pnpm lint` | Lint all packages |
 | `pnpm typecheck` | Type-check all packages |
 | `pnpm test` | Run all tests |
+| `cd studio && pnpm models:sync` | Sync template-backed model modes into `models/cache` |
 
 ## Presets
 
@@ -120,6 +123,25 @@ python -m venv .venv
 ```
 
 Then from the repo root: `pnpm --filter phaino-studio export:workflows`.
+
+### Add a model
+
+Models are one line in `studio/src/server/models/registry.ts`: a mode points at a preset folder or an official `Comfy-Org/workflow_templates` template:
+
+```ts
+{ id: "wan22", label: "Wan 2.2", kind: "video",
+  modes: { t2v: { template: "video_wan2_2_14B_t2v" } } }
+```
+
+Then sync the template-backed modes (fetches the template at the pinned `TEMPLATES_REF`, runs `graphToPrompt` in a headless ComfyUI, detects prompt/seed/size/duration/image binds automatically, gates on no-API-nodes + public model downloads, and writes `models/cache` + `models/manifest.json`):
+
+```bash
+cd studio
+pnpm models:sync            # use the pinned ref
+pnpm models:sync -- --update-ref   # pin main's sha first
+```
+
+Sync reads only; it never queues a generation. A mode that fails a gate stays in the manifest with its reasons and is hidden from the app.
 
 ## Marketing site
 

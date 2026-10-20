@@ -4,10 +4,17 @@ import { FooterWordmark } from "@/components/FooterWordmark";
 import { GitHubIcon, Icon, SECTION_ICONS } from "@/components/icons";
 import { SECTIONS } from "@/components/sections";
 import type { Preset } from "@/server/presets/schema";
+import type { StudioModel } from "@/components/toolStudioData";
 
 const REPO = "https://github.com/screen-gd/phaino";
 
-export function ExploreFooter({ presets }: { presets: Preset[] }) {
+export function ExploreFooter({
+  presets,
+  models = [],
+}: {
+  presets: Preset[];
+  models?: StudioModel[];
+}) {
   const camera = presets.filter((preset) => preset.category === "camera");
   const groups = [
     {
@@ -19,12 +26,14 @@ export function ExploreFooter({ presets }: { presets: Preset[] }) {
         { label: "Library", href: "/library" },
       ],
     },
-    ...(["image", "video"] satisfies Preset["category"][]).map((category) => ({
-      title: category === "image" ? "Image models" : "Video models",
-      links: presets.filter((preset) => preset.category === category).map((preset) => ({
-        label: preset.name,
-        href: `/${category}?preset=${preset.id}`,
-      })),
+    ...(["image", "video"] satisfies Preset["category"][]).map((kind) => ({
+      title: kind === "image" ? "Image models" : "Video models",
+      links: models
+        .filter((m) => m.kind === kind)
+        .map((m) => ({
+          label: m.label,
+          href: `/${kind}?preset=${m.defaultPresetId}`,
+        })),
     })),
     {
       title: "Camera moves",

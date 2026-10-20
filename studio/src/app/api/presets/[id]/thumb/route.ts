@@ -1,8 +1,7 @@
 import fs from "node:fs";
-import path from "node:path";
 import { Readable } from "node:stream";
 import { getEnv } from "@/server/env";
-import { resolvePresetDir } from "@/server/presets/load";
+import { resolveThumbPath } from "@/server/presets/load";
 
 export const runtime = "nodejs";
 
@@ -17,11 +16,10 @@ export async function GET(
   if (!SLUG.test(id)) {
     return new Response("Invalid preset id", { status: 400 });
   }
-  const dir = resolvePresetDir(id, getEnv());
-  if (!dir) {
+  const file = resolveThumbPath(id, getEnv());
+  if (!file) {
     return new Response("Not found", { status: 404 });
   }
-  const file = path.join(dir, "thumb.webp");
 
   try {
     const stat = fs.statSync(file);

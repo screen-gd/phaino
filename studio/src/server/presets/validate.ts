@@ -1,7 +1,7 @@
 import "server-only";
 import fs from "node:fs";
 import path from "node:path";
-import type { Preset, PresetBind } from "./schema";
+import { bindsOf, type Preset, type PresetBind } from "./schema.ts";
 
 /**
  * Validates a workflow_api.json graph against the object_info snapshot:
@@ -106,14 +106,15 @@ export function validateWorkflowApi(
     if (p) problems.push(p);
   }
   for (const param of preset.params) {
-    if ("bind" in param && param.bind) {
-      const p = bindProblem(snapshot, graph, param.bind, `param ${param.key}`);
+    const paramBinds = "bind" in param ? bindsOf(param.bind) : [];
+    for (const b of paramBinds) {
+      const p = bindProblem(snapshot, graph, b, `param ${param.key}`);
       if (p) problems.push(p);
     }
     if (param.type === "choice") {
       for (const option of param.options) {
         const checks: { bind: PresetBind; value: unknown }[] = [
-          ...(param.bind ? [{ bind: param.bind, value: option.value }] : []),
+          ...paramBinds.map((b) => ({ bind: b, value: option.value })),
           ...(option.set ?? []).map((set) => ({ bind: set, value: set.value })),
         ];
         for (const { bind, value } of checks) {
@@ -138,7 +139,7 @@ export function validateWorkflowApi(
     const node = graph[out.node];
     if (!node) {
       problems.push(`output node ${out.node} missing`);
-    } else if (!["SaveVideo", "SaveImage"].includes(node.class_type ?? "")) {
+    } else if (!node.class_type?.startsWith("Save")) {
       problems.push(`output node ${out.node} is not a Save* node`);
     }
   }

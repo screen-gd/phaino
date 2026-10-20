@@ -373,6 +373,81 @@
       ]
     },
     {
+      "id": "m9",
+      "title": "M9 Models from official Comfy templates",
+      "tasks": [
+        {
+          "id": "m9-registry",
+          "title": "Model registry (model, modes, template or preset source)",
+          "status": "done"
+        },
+        {
+          "id": "m9-sync",
+          "title": "models:sync + hard gates (no API nodes, open weights, binds)",
+          "status": "done",
+          "notes": "manifest at models/manifest.json; ref pinned in registry.ts"
+        },
+        {
+          "id": "m9-bindings",
+          "title": "Automatic binding detection into real presets",
+          "status": "done"
+        },
+        {
+          "id": "m9-pickers",
+          "title": "Model pickers and live mode switching on Image/Video",
+          "status": "done"
+        },
+        {
+          "id": "m9-ltx25",
+          "title": "LTX 2.5 t2v + flf2v modes",
+          "status": "done",
+          "notes": "Needs a real run"
+        },
+        {
+          "id": "m9-wan22",
+          "title": "Wan 2.2 t2v + flf2v modes",
+          "status": "done",
+          "notes": "Needs a real run"
+        },
+        {
+          "id": "m9-hunyuan15",
+          "title": "HunyuanVideo 1.5 model",
+          "status": "done",
+          "notes": "Needs a real run"
+        },
+        {
+          "id": "m9-minimax-h3",
+          "title": "MiniMax H3 model",
+          "status": "done",
+          "notes": "Needs a real run"
+        },
+        {
+          "id": "m9-kandinsky5",
+          "title": "Kandinsky 5 model",
+          "status": "done",
+          "notes": "Needs a real run"
+        },
+        {
+          "id": "m9-flux3-klein",
+          "title": "FLUX 3 Klein + Fast models (t2i + edit)",
+          "status": "done",
+          "notes": "Needs a real run"
+        },
+        {
+          "id": "m9-qwen-21",
+          "title": "Qwen Image 2.1 model + Qwen edit mode",
+          "status": "done",
+          "notes": "Needs a real run"
+        },
+        {
+          "id": "m9-zimage-hidream",
+          "title": "Z-Image Turbo and HiDream I1 Fast models",
+          "status": "done",
+          "notes": "Needs a real run"
+        }
+      ]
+    },
+    {
       "id": "ops",
       "title": "Housekeeping",
       "tasks": [

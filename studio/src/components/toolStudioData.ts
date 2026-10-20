@@ -61,6 +61,19 @@ export type StudioPreset = {
   params: StudioParam[];
 };
 
+export type StudioModel = {
+  id: string;
+  label: string;
+  kind: "image" | "video";
+  /** mode -> preset id, only the passing modes. */
+  modes: Partial<Record<import("@/lib/modes").ModeKey, string>>;
+  /** The picker row's preset: t2v/t2i first, else the first listed mode. */
+  defaultPresetId: string;
+  thumbUrl: string;
+  /** e.g. "Text to video · Image to video · First and last frame". */
+  modeLabels: string;
+};
+
 export type JobStatusClient =
   | "queued"
   | "running"

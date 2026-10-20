@@ -10,15 +10,17 @@
  * Reads only and never queues a prompt. Needs a running ComfyUI.
  */
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { detectPreset } from "../src/server/models/bindings.ts";
+import { detectPreset, detectToolPreset } from "../src/server/models/bindings.ts";
 import {
   MODEL_REGISTRY,
   TEMPLATES_REF,
   modePresetId,
   type ModelMode,
 } from "../src/server/models/registry.ts";
+import { EDIT_TOOLS, toolPresetId } from "../src/server/models/tools.ts";
 import { validateWorkflowApi } from "../src/server/presets/validate.ts";
 import {
   buildSnapshot,
@@ -125,23 +127,49 @@ async function main() {
   }
   console.log(`models:sync at ${TEMPLATES_REPO}@${ref}, ComfyUI ${COMFYUI_URL}`);
 
-  const modes: {
-    model: (typeof MODEL_REGISTRY)[number];
-    mode: ModelMode;
+  const items: {
+    id: string;
     template: string;
+    bucket: "modes" | "tools";
+    detect: (api: ApiGraph, ui: UiWorkflow) => {
+      preset: unknown;
+      problems: string[];
+      models: { name: string; url: string }[];
+    };
   }[] = [];
   for (const model of MODEL_REGISTRY) {
     for (const [mode, src] of Object.entries(model.modes)) {
       if (src && "template" in src) {
-        modes.push({ model, mode: mode as ModelMode, template: src.template });
+        items.push({
+          id: modePresetId(model, mode as ModelMode),
+          template: src.template,
+          bucket: "modes",
+          detect: (api, ui) =>
+            detectPreset(model, mode as ModelMode, api, ui, {
+              nodes: objectInfoRef.current as never,
+            }),
+        });
       }
     }
   }
-  console.log(`${modes.length} template-backed modes`);
+  for (const tool of EDIT_TOOLS) {
+    if (!tool.template) continue;
+    items.push({
+      id: toolPresetId(tool),
+      template: tool.template,
+      bucket: "tools",
+      detect: (api, ui) =>
+        detectToolPreset(tool, api, ui, { nodes: objectInfoRef.current as never }),
+    });
+  }
+  const objectInfoRef = { current: {} as Record<string, unknown> };
+  console.log(
+    `${items.length} template-backed entries (${items.filter((i) => i.bucket === "modes").length} modes, ${items.filter((i) => i.bucket === "tools").length} tools)`,
+  );
 
   fs.mkdirSync(CACHE_DIR, { recursive: true });
   const templates = new Map<string, unknown>();
-  for (const { template } of modes) {
+  for (const { template } of items) {
     if (!templates.has(template)) {
       templates.set(template, await fetchTemplateAtRef(template, ref));
       console.log(`fetched ${template}.json`);
@@ -150,41 +178,69 @@ async function main() {
 
   const version = await comfyuiVersion();
   const objectInfo = await fetchObjectInfo();
+  objectInfoRef.current = objectInfo;
   const browser = await launchBrowser();
   const manifest: Record<string, ModeManifest> = {};
+  const toolManifest: Record<string, ModeManifest> = {};
   const usedClasses = new Set<string>();
+  const templateHashes: Record<string, string> = {};
 
   try {
     const page = await openComfyPage(browser);
     const feVersion = await frontendVersion(page);
 
-    for (const { model, mode, template } of modes) {
-      const id = modePresetId(model, mode);
+    // Cache files are keyed by the template content hash: an unchanged
+    // template reuses its converted graphs instead of re-serializing them
+    // (graphToPrompt output embeds random UUIDs, so a naive rewrite churns).
+    const prev = fs.existsSync(MANIFEST)
+      ? (JSON.parse(fs.readFileSync(MANIFEST, "utf8")) as {
+          templates?: Record<string, string>;
+        })
+      : {};
+    const prevHashes = prev.templates ?? {};
+
+    for (const { id, template, bucket, detect } of items) {
       const reasons: string[] = [];
       const ui = templates.get(template) as UiWorkflow;
+      const target = bucket === "tools" ? toolManifest : manifest;
+      const hash = createHash("sha256")
+        .update(JSON.stringify(ui))
+        .digest("hex")
+        .slice(0, 16);
+      templateHashes[template] = hash;
+      const apiFile = path.join(CACHE_DIR, `${template}.api.json`);
+      const uiFile = path.join(CACHE_DIR, `${template}.ui.json`);
       let api: ApiGraph;
-      try {
-        const result = await graphToPrompt(page, structuredClone(ui));
-        api = result.output as ApiGraph;
-        fs.writeFileSync(
-          path.join(CACHE_DIR, `${template}.ui.json`),
-          JSON.stringify(result.workflow, null, 2) + "\n",
-        );
-        fs.writeFileSync(
-          path.join(CACHE_DIR, `${template}.api.json`),
-          JSON.stringify(result.output, null, 2) + "\n",
-        );
-      } catch (error) {
-        manifest[id] = {
-          template,
-          gate: "fail",
-          reasons: [
-            `graphToPrompt: ${error instanceof Error ? error.message : String(error)}`,
-          ],
-          licenses: [],
-        };
-        console.log(`${id}: FAIL (graphToPrompt)`);
-        continue;
+      if (
+        prevHashes[template] === hash &&
+        fs.existsSync(apiFile) &&
+        fs.existsSync(uiFile)
+      ) {
+        api = JSON.parse(fs.readFileSync(apiFile, "utf8"));
+      } else {
+        try {
+          const result = await graphToPrompt(page, structuredClone(ui));
+          api = result.output as ApiGraph;
+          fs.writeFileSync(
+            uiFile,
+            JSON.stringify(result.workflow, null, 2) + "\n",
+          );
+          fs.writeFileSync(
+            apiFile,
+            JSON.stringify(result.output, null, 2) + "\n",
+          );
+        } catch (error) {
+          target[id] = {
+            template,
+            gate: "fail",
+            reasons: [
+              `graphToPrompt: ${error instanceof Error ? error.message : String(error)}`,
+            ],
+            licenses: [],
+          };
+          console.log(`${id}: FAIL (graphToPrompt)`);
+          continue;
+        }
       }
 
       // Gate 1: no partner/API/Comfy Cloud nodes.
@@ -199,7 +255,7 @@ async function main() {
       }
 
       // Detect binds, then gate 3 checks its result.
-      const detection = detectPreset(model, mode, api, ui, { nodes: objectInfo as never });
+      const detection = detect(api, ui);
       reasons.push(...detection.problems);
 
       // Gate 2: every model file is publicly downloadable; HF repos with
@@ -220,7 +276,7 @@ async function main() {
 
       // Gate 4: validator against the object_info snapshot.
       if (detection.preset) {
-        const problems = validateWorkflowApi(api, detection.preset, {
+        const problems = validateWorkflowApi(api, detection.preset as never, {
           nodes: objectInfo as never,
         });
         reasons.push(...problems);
@@ -251,7 +307,7 @@ async function main() {
       }
 
       const gate = reasons.length === 0 && detection.preset ? "pass" : "fail";
-      manifest[id] = { template, gate, reasons, licenses };
+      target[id] = { template, gate, reasons, licenses };
       console.log(`${id}: ${gate.toUpperCase()}${reasons.length ? ` (${reasons.join("; ")})` : ""}`);
     }
 
@@ -278,9 +334,19 @@ async function main() {
   }
 
   fs.mkdirSync(path.dirname(MANIFEST), { recursive: true });
-  fs.writeFileSync(MANIFEST, JSON.stringify({ ref, modes: manifest }, null, 2) + "\n");
+  fs.writeFileSync(
+    MANIFEST,
+    JSON.stringify(
+      { ref, modes: manifest, tools: toolManifest, templates: templateHashes },
+      null,
+      2,
+    ) + "\n",
+  );
   const passing = Object.values(manifest).filter((m) => m.gate === "pass").length;
-  console.log(`manifest: ${passing}/${Object.keys(manifest).length} modes pass`);
+  const toolsPassing = Object.values(toolManifest).filter((m) => m.gate === "pass").length;
+  console.log(
+    `manifest: ${passing}/${Object.keys(manifest).length} modes, ${toolsPassing}/${Object.keys(toolManifest).length} tools pass`,
+  );
 }
 
 await main();

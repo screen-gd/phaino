@@ -15,7 +15,7 @@ export const SECTIONS: readonly {
   { href: "/effects", label: "Effects", group: "studio", badge: "Soon" },
   { href: "/characters", label: "Characters", group: "studio", badge: "Soon" },
   { href: "/avatars", label: "Avatars", group: "studio", badge: "Soon" },
-  { href: "/edit", label: "Edit", group: "studio", badge: "Soon" },
+  { href: "/edit", label: "Edit", group: "studio", badge: "New" },
   { href: "/workflows", label: "Workflows", group: "studio" },
   { href: "/community", label: "Community", group: "studio" },
   { href: "/editor", label: "Editor", group: "studio", badge: "New" },

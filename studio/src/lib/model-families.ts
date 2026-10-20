@@ -34,6 +34,7 @@ export const MODEL_ALIASES: Record<string, readonly string[]> = {
 
 export const MODEL_FAMILIES: readonly ModelFamily[] = [
   { id: "camera", label: "Camera moves", viewAll: "/camera" },
+  { id: "edit", label: "Edit", viewAll: "/edit" },
   ...MODEL_REGISTRY.map((m) => ({
     id: m.id,
     label: m.label,
@@ -44,7 +45,8 @@ export const MODEL_FAMILIES: readonly ModelFamily[] = [
 /** Does a preset belong to the family? Registry ids match aliases too. */
 export function matchesFamily(preset: PresetLike, familyId: string): boolean {
   if (familyId === "camera") return preset.category === "camera";
-  if (preset.category === "camera") return false;
+  if (familyId === "edit") return preset.category === "edit";
+  if (preset.category === "camera" || preset.category === "edit") return false;
   return (
     preset.model.id === familyId ||
     (MODEL_ALIASES[familyId] ?? []).includes(preset.model.id)

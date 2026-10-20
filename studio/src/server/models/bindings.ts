@@ -2,6 +2,11 @@ import "server-only";
 
 import { presetSchema, type Preset, type PresetBind } from "../presets/schema.ts";
 import { MODE_LABELS, modePresetId, type ModelEntry, type ModelMode } from "./registry.ts";
+import {
+  REFRAME_ASPECTS,
+  toolPresetId,
+  type EditTool,
+} from "./tools.ts";
 import { comboOptions, type ObjectInfo, type WorkflowApiGraph } from "../presets/validate.ts";
 
 type ApiNode = { class_type?: string; inputs?: Record<string, unknown> };
@@ -485,4 +490,350 @@ export function detectPreset(
     return { preset: null, problems, models };
   }
   return { preset: parsed.data, problems, models };
+}
+
+export type ToolDetection = Detection & {
+  /** Frame-count literals, each capped at its own template default. */
+  frames?: (PresetBind & { cap: number })[];
+  /** A fixed output size the probe-derived dims replace. */
+  size?: {
+    width: { node: string; field: string; value: number };
+    height: { node: string; field: string; value: number };
+  };
+  /** A literal CreateVideo fps: the input must be conformed to it. */
+  inputFps?: number;
+  /** ImagePadForOutpaint node for the reframe tool's derived pads. */
+  padsNode?: string;
+};
+
+/**
+ * A number literal behind an input: either the input itself or the
+ * `value` of a linked PrimitiveInt/PrimitiveFloat (Wan templates wire
+ * Length/Width/Height primitives into the sampler).
+ */
+function resolveLiteral(
+  api: WorkflowApiGraph,
+  nodeId: string,
+  field: string,
+): { node: string; field: string; value: number } | null {
+  const v = api[nodeId]?.inputs?.[field];
+  if (typeof v === "number") return { node: nodeId, field, value: v };
+  if (isLink(v)) {
+    const src = api[v[0]];
+    const pv = src?.inputs?.value;
+    if (
+      /^Primitive(Int|Float)/.test(src?.class_type ?? "") &&
+      typeof pv === "number"
+    ) {
+      return { node: v[0], field: "value", value: pv };
+    }
+  }
+  return null;
+}
+
+/**
+ * Detect a Preset for an edit tool template: one LoadVideo source, one
+ * Save-video output, optional prompt/seed/reference params, and runtime
+ * derived binds (frame counts, outpaint pads). Prompt and seed are only
+ * required when the tool asks for them.
+ */
+export function detectToolPreset(
+  tool: EditTool,
+  api: WorkflowApiGraph,
+  ui: UiWorkflowDoc,
+  objectInfo: ObjectInfo,
+): ToolDetection {
+  const problems: string[] = [];
+  const id = toolPresetId(tool);
+
+  const models: DetectedModel[] = [];
+  for (const node of ui.nodes ?? []) {
+    for (const m of node.properties?.models ?? []) {
+      if (m.name && m.url) models.push({ name: m.name, url: m.url });
+    }
+  }
+
+  // Output: exactly one Save-style node producing video.
+  const saveNodes = Object.entries(api).filter(([, n]) =>
+    /^Save(Image|Video|WEBM|AnimatedWEBP|AnimatedPNG)/.test(n.class_type ?? ""),
+  );
+  const videoSaves = saveNodes.filter(([, n]) =>
+    /Video|WEBM/i.test(n.class_type ?? ""),
+  );
+  const outputs: Preset["outputs"] = [];
+  if (videoSaves.length !== 1) {
+    problems.push(
+      `output: expected one Save video node, found ${videoSaves.length}`,
+    );
+  } else {
+    outputs.push({ node: videoSaves[0][0], kind: "video" });
+  }
+
+  // Input: exactly one LoadVideo node.
+  const loadVideos = Object.keys(api).filter(
+    (id) => api[id].class_type === "LoadVideo",
+  );
+  const inputs: Preset["inputs"] = [];
+  if (loadVideos.length !== 1) {
+    problems.push(
+      `video input: expected one LoadVideo node, found ${loadVideos.length}`,
+    );
+  } else {
+    inputs.push({
+      key: "video",
+      type: "video",
+      label: "Source video",
+      required: true,
+      bind: { node: loadVideos[0], field: "file" },
+    });
+  }
+
+  // Reference image: a linked LoadImage when the tool wants one. Required
+  // whenever something consumes it — the template's stock filename would
+  // fail at run.
+  const loadImages = Object.keys(api).filter(
+    (id) => api[id].class_type === "LoadImage",
+  );
+  if (tool.controls?.reference && loadImages.length === 0) {
+    problems.push("reference: expected a LoadImage node, found none");
+  }
+  if (loadImages.length > 0) {
+    const id0 = loadImages[0];
+    const used = consumerInputNames(api, id0).length > 0;
+    inputs.push({
+      key: "reference",
+      type: "image",
+      label: "Reference image",
+      required: used,
+      bind: { node: id0, field: "image" },
+    });
+  }
+
+  const params: Preset["params"] = [];
+
+  // Prompt: the hint node (e.g. SAM3 detect text on Remove) wins; otherwise
+  // trace the positive conditioning like the model modes do.
+  if (tool.prompt) {
+    let promptBind: { node: string; field: string; value: string } | null = null;
+    if (tool.promptHint) {
+      const hit = Object.entries(api).find(([, n]) =>
+        tool.promptHint!.nodeClass.test(n.class_type ?? ""),
+      );
+      if (hit) {
+        const direct = hit[1].inputs?.[tool.promptHint.field];
+        if (typeof direct === "string") {
+          promptBind = {
+            node: hit[0],
+            field: tool.promptHint.field,
+            value: direct,
+          };
+        } else {
+          // e.g. SAM3_Detect: the object name lives in the text encode
+          // upstream of its `conditioning` input.
+          promptBind =
+            traceText(api, { nodeId: hit[0], input: "conditioning" }) ??
+            traceText(api, { nodeId: hit[0], input: "text" });
+        }
+      }
+    }
+    if (!promptBind) {
+      const condSink =
+        Object.entries(api).find(
+          ([, n]) => isLink(n.inputs?.positive) && isLink(n.inputs?.negative),
+        ) ??
+        Object.entries(api).find(([, n]) => isLink(n.inputs?.positive)) ??
+        Object.entries(api).find(([, n]) => isLink(n.inputs?.conditioning));
+      if (condSink) {
+        promptBind =
+          traceText(api, { nodeId: condSink[0], input: "positive" }) ??
+          traceText(api, { nodeId: condSink[0], input: "conditioning" });
+      }
+    }
+    if (!promptBind) {
+      problems.push("prompt: no text input found");
+    } else {
+      params.push({
+        type: "text",
+        key: "prompt",
+        label: tool.promptHint ? "What to remove" : "Prompt",
+        default: promptBind.value,
+        placeholder: "Describe it",
+        bind: { node: promptBind.node, field: promptBind.field },
+      });
+    }
+  }
+
+  // Seed: bound when present, never required for tools.
+  const seedBinds = literalInputs(api, /^(seed|noise_seed)$/).map(
+    (s) => ({ node: s.node, field: s.field }),
+  );
+  if (seedBinds.length > 0) {
+    params.push({
+      type: "seed",
+      key: "seed",
+      label: "Seed",
+      bind: seedBinds.length === 1 ? seedBinds[0] : seedBinds,
+    });
+  }
+
+  // Frame-count inputs feeding a sampler or a Video Slice, literal or
+  // linked to a Length primitive: rewritten at run time to the prepared
+  // clip's frame count, capped at each template default.
+  const frameInputs = Object.entries(api).flatMap(([nodeId, n]) =>
+    Object.keys(n.inputs ?? {})
+      .filter((f) =>
+        /^(length|num_frames|frames|frame_count|slice_length|slice_count|frame_load_cap)$/.test(
+          f,
+        ),
+      )
+      .map((f) => resolveLiteral(api, nodeId, f)),
+  );
+  const frames = frameInputs
+    .filter((f): f is NonNullable<typeof f> => f !== null)
+    .map((f) => ({ node: f.node, field: f.field, cap: f.value }));
+  const frameBinds = frames.length > 0 ? frames : undefined;
+
+  // Output size: one node with resolvable width+height literals wins. When
+  // both dims resolve on more than one node the control is ambiguous.
+  const sizePairs = Object.keys(api).flatMap((nodeId) => {
+    const w = resolveLiteral(api, nodeId, "width");
+    const h = resolveLiteral(api, nodeId, "height");
+    return w && h ? [{ width: w, height: h }] : [];
+  });
+  const size = sizePairs.length === 1 ? sizePairs[0] : undefined;
+
+  // A literal CreateVideo fps fixes the output frame rate; the input clip is
+  // re-encoded to it before queueing.
+  const fpsLit = Object.keys(api)
+    .filter((id) => api[id].class_type === "CreateVideo")
+    .map((id) => resolveLiteral(api, id, "fps"))
+    .find((f) => f !== null);
+  const inputFps = fpsLit?.value;
+
+  // Reframe: the ImagePadForOutpaint node takes pads derived from the source
+  // size and the chosen target aspect; the aspect itself is a bind-free
+  // choice the runner consumes.
+  let padsNode: string | undefined;
+  const padNodes = Object.keys(api).filter(
+    (id) => api[id].class_type === "ImagePadForOutpaint",
+  );
+  if (tool.controls?.aspect) {
+    if (padNodes.length === 0) {
+      problems.push("aspect: no ImagePadForOutpaint node found");
+    } else {
+      padsNode = padNodes[0];
+      params.push({
+        type: "choice",
+        key: "aspect",
+        label: "Aspect",
+        default: REFRAME_ASPECTS[0],
+        options: REFRAME_ASPECTS.map((a) => ({ value: a, label: a })),
+      });
+    }
+  }
+
+  // FPS boost: the multiplier literal, or the primitive behind a linked
+  // multiplier input (the interpolation template wires a PrimitiveInt).
+  if (tool.controls?.multiplier) {
+    let mult = literalInputs(api, /^(multiplier|factor|interpolation_factor)$/);
+    if (mult.length === 0) {
+      const linked = Object.entries(api).flatMap(([nodeId, n]) =>
+        Object.entries(n.inputs ?? {})
+          .filter(
+            ([f, v]) =>
+              /^(multiplier|factor|interpolation_factor)$/.test(f) && isLink(v),
+          )
+          .map(([f, v]) => ({ node: nodeId, field: f, src: (v as [string, number])[0] })),
+      );
+      for (const l of linked) {
+        const prim = api[l.src];
+        const pv = prim?.inputs?.value;
+        if (
+          (prim?.class_type === "PrimitiveInt" ||
+            prim?.class_type === "PrimitiveFloat") &&
+          typeof pv === "number"
+        ) {
+          mult = [{ node: l.src, field: "value", value: pv }];
+        }
+      }
+    }
+    if (mult.length === 1 && [2, 4].includes(mult[0].value)) {
+      const m = mult[0];
+      params.push({
+        type: "choice",
+        key: "multiplier",
+        label: "Multiplier",
+        default: m.value,
+        options: [2, 4].map((v) => ({
+          value: v,
+          label: `${v}x`,
+        })),
+        bind: { node: m.node, field: m.field },
+      });
+    } else if (mult.length > 1) {
+      problems.push(`multiplier: ambiguous, ${mult.length} candidates`);
+    }
+  }
+
+  // Upscale: a lone resolution combo controls the output size.
+  if (tool.controls?.size) {
+    const sizeFields = Object.entries(api).flatMap(([nodeId, n]) =>
+      Object.entries(n.inputs ?? {})
+        .filter(
+          ([field, v]) => /^resolution$/i.test(field) && !isLink(v),
+        )
+        .map(([field, v]) => ({ node: nodeId, field, value: v, cls: n.class_type ?? "" })),
+    );
+    if (sizeFields.length === 1) {
+      const s = sizeFields[0];
+      const spec =
+        objectInfo.nodes[s.cls]?.input?.required?.[s.field] ??
+        objectInfo.nodes[s.cls]?.input?.optional?.[s.field];
+      const options = spec
+        ? (comboOptions(spec) ?? []).filter(
+            (o): o is string | number => typeof o === "string" || typeof o === "number",
+          )
+        : [];
+      if (options.length > 0 && options.includes(s.value as string | number)) {
+        params.push({
+          type: "choice",
+          key: "size",
+          label: "Resolution",
+          default: s.value as string | number,
+          options: options.map((o) => ({ value: o, label: String(o) })),
+          bind: { node: s.node, field: s.field },
+        });
+      }
+    }
+  }
+
+  const candidate = {
+    id,
+    name: tool.label,
+    description: tool.description,
+    category: "edit",
+    order: 60,
+    engine: "workflow",
+    model: { id: tool.id, label: tool.label, license: "open" },
+    source: { template: tool.template ?? "" },
+    inputs,
+    params,
+    outputs,
+  };
+  const parsed = presetSchema.safeParse(candidate);
+  if (!parsed.success) {
+    problems.push(
+      `schema: ${parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`,
+    );
+    return { preset: null, problems, models };
+  }
+  return {
+    preset: parsed.data,
+    problems,
+    models,
+    frames: frameBinds,
+    size,
+    inputFps,
+    padsNode,
+  };
 }

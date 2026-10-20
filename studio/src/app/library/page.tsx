@@ -2,6 +2,7 @@ import Link from "next/link";
 import { EmptyPage } from "@/components/EmptyPage";
 import { PublishDialog } from "@/components/PublishDialog";
 import { AddToSequence } from "@/components/sequence/AddToSequence";
+import { EditVideoButton } from "@/components/edit/EditVideoButton";
 import { Button } from "@/components/ui/button";
 import { getEnv } from "@/server/env";
 import { listOutputs, type OutputItem } from "@/server/social/media";
@@ -52,7 +53,8 @@ export default async function LibraryPage() {
                 {item.relPath}
               </b>
               {item.kind === "video" && (
-                <div className="absolute top-2 right-2 z-10 opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="absolute top-2 right-2 z-10 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                  <EditVideoButton path={item.relPath} iconOnly />
                   <AddToSequence path={item.relPath} iconOnly />
                 </div>
               )}

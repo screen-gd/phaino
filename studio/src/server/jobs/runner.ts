@@ -9,6 +9,7 @@ import type { StudioEnv } from "@/server/env";
 import { getEnv } from "@/server/env";
 import { PresetBindError, applyPreset, type WorkflowApi } from "@/server/presets/bind";
 import { getPreset } from "@/server/presets/load";
+import { applyDerived, prepareEditJob } from "@/server/edits/prepare";
 import { resolveUpload } from "@/server/uploads";
 import { getStore, type JobRecord, type JobStore } from "./store";
 
@@ -141,6 +142,8 @@ export class JobRunner {
     presetId: string;
     params: Record<string, string | number | boolean>;
     inputs: Record<string, string>;
+    /** Overrides preset.category (the extend tool files jobs under "edit"). */
+    category?: string;
   }): JobRecord {
     if (!comfyTarget(this.deps.env).configured) throw new NotConnected();
 
@@ -188,7 +191,7 @@ export class JobRunner {
       {
         id: crypto.randomUUID(),
         presetId: preset.id,
-        category: preset.category,
+        category: input.category ?? preset.category,
         params: input.params,
         inputs: values,
       },
@@ -265,15 +268,29 @@ export class JobRunner {
       const { preset } = loaded;
       const client = this.deps.getClient();
 
+      // Edit tools: probe the source video, trim to maxSeconds and derive
+      // bind values (frame counts, reframe pads) from the probe.
+      const edit =
+        row.presetId.startsWith("edit-")
+          ? await prepareEditJob(
+              row.presetId,
+              row.inputs,
+              row.params,
+              this.deps.env,
+            )
+          : null;
+      const inputs = edit?.inputs ?? row.inputs;
+
       const bound = applyPreset(
         loaded.workflowApi as WorkflowApi,
         preset,
-        { inputs: row.inputs, params: row.params },
+        { inputs, params: row.params },
         { seed: this.freshSeed() },
       );
+      if (edit) applyDerived(bound, edit.derived);
       const wf = client.workflows.fromJson(bound);
       for (const spec of preset.inputs) {
-        const uploadId = row.inputs[spec.key];
+        const uploadId = inputs[spec.key];
         if (uploadId === undefined) continue;
         const up = resolveUpload(this.deps.dataDir, uploadId);
         wf.setInput(spec.bind.node, spec.bind.field, client.assets.fromFile(up.absPath));

@@ -149,6 +149,12 @@ Sync reads only; it never queues a generation. A mode that fails a gate stays in
 
 "Render video" produces an H.264/AAC MP4 (drawtext titles, mixed audio, `+faststart`), copies it into Library outputs and offers Publish. "Export for NLE" conforms media with handles, writes FCPXML and EDL (crossfades become dissolves), and embeds the rendered movie. The audio lane and titles are not in the FCPXML/EDL interchange files. Title text uses the bundled Outfit font (`studio/assets/fonts/Outfit.ttf`, OFL). The sequence document lives at `<PHAINO_DATA_DIR>/sequence.json` (v2; v1 files migrate on load) and uploads land in `<PHAINO_DATA_DIR>/uploads/editor/`.
 
+## Edit Video
+
+`/edit` is the AI editing bench: each tool takes an existing video (upload or a generated output) and runs one official ComfyUI template: Upscale, Upscale Fast, FPS Boost, Depth Map, Reframe (VACE outpainting to a new aspect), Remove Object (VACE inpainting + SAM3 detect text), Relight and Restyle. Extend is app code: it grabs the clip's last frame with ffmpeg and runs any registered model's image-to-video mode, and the result can join the source in the Editor.
+
+`pnpm models:sync` gates tools exactly like modes (`manifest.json` `tools` key) and caches their workflows; failed tools stay hidden. Clips longer than a tool's limit are trimmed to the first N seconds (H.264 re-encode) before submission. Video uploads land in `<PHAINO_DATA_DIR>/uploads/` (mp4/mov/webm, 500 MB).
+
 ## Marketing site
 
 Astro, TypeScript and Tailwind. `pnpm dev:website` runs it; it deploys from `website/`. The visual direction is in [website/docs/landing-design.md](website/docs/landing-design.md), and media slots are documented in [website/public/media/README.md](website/public/media/README.md).

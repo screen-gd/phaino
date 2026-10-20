@@ -45,6 +45,7 @@ export type StudioInput = {
   key: string;
   label: string;
   required: boolean;
+  type: "image" | "video";
 };
 
 export type StudioPreset = {
@@ -109,7 +110,12 @@ export function toStudioPreset(p: Preset | ListedPreset): StudioPreset {
     isFork: "origin" in p ? p.origin === "fork" : undefined,
     partner: p.model.license === "partner",
     thumbUrl: presetPreview(p),
-    inputs: p.inputs.map(({ key, label, required }) => ({ key, label, required })),
+    inputs: p.inputs.map(({ key, label, required, type }) => ({
+      key,
+      label,
+      required,
+      type,
+    })),
     params: p.params.map((param): StudioParam => {
       switch (param.type) {
         case "text":

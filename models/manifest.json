@@ -314,5 +314,162 @@
         }
       ]
     }
+  },
+  "tools": {
+    "edit-upscale": {
+      "template": "utility_seedvr2_3b_int8_upscale_video",
+      "gate": "pass",
+      "reasons": [],
+      "licenses": []
+    },
+    "edit-upscale-fast": {
+      "template": "utility-gan_upscaler",
+      "gate": "pass",
+      "reasons": [],
+      "licenses": [
+        {
+          "model": "RealESRGAN_x4plus.safetensors",
+          "url": "https://huggingface.co/Comfy-Org/Real-ESRGAN_repackaged/resolve/main/RealESRGAN_x4plus.safetensors",
+          "license": "bsd-3-clause"
+        }
+      ]
+    },
+    "edit-fps-boost": {
+      "template": "utility_video_frame_interpolation",
+      "gate": "pass",
+      "reasons": [],
+      "licenses": []
+    },
+    "edit-depth": {
+      "template": "utility_depth_anything3_video_depth_estimation",
+      "gate": "pass",
+      "reasons": [],
+      "licenses": []
+    },
+    "edit-reframe": {
+      "template": "video_wan_vace_outpainting",
+      "gate": "pass",
+      "reasons": [],
+      "licenses": [
+        {
+          "model": "wan2.1_vace_1.3B_fp16.safetensors",
+          "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_vace_1.3B_fp16.safetensors",
+          "license": "apache-2.0"
+        },
+        {
+          "model": "Wan21_CausVid_bidirect2_T2V_1_3B_lora_rank32.safetensors",
+          "url": "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_bidirect2_T2V_1_3B_lora_rank32.safetensors",
+          "license": null
+        },
+        {
+          "model": "umt5_xxl_fp16.safetensors",
+          "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp16.safetensors",
+          "license": "apache-2.0"
+        },
+        {
+          "model": "wan_2.1_vae.safetensors",
+          "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors",
+          "license": "apache-2.0"
+        },
+        {
+          "model": "wan2.1_vace_14B_fp16.safetensors",
+          "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_vace_14B_fp16.safetensors",
+          "license": "apache-2.0"
+        },
+        {
+          "model": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+          "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors?download=true",
+          "license": "apache-2.0"
+        },
+        {
+          "model": "Wan21_CausVid_14B_T2V_lora_rank32.safetensors",
+          "url": "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_14B_T2V_lora_rank32.safetensors",
+          "license": null
+        }
+      ]
+    },
+    "edit-remove": {
+      "template": "video_wan_vace_inpainting",
+      "gate": "pass",
+      "reasons": [],
+      "licenses": []
+    },
+    "edit-relight": {
+      "template": "video_bernini_r_video_editing",
+      "gate": "pass",
+      "reasons": [],
+      "licenses": []
+    },
+    "edit-restyle": {
+      "template": "video_wan_vace_14B_v2v",
+      "gate": "pass",
+      "reasons": [],
+      "licenses": [
+        {
+          "model": "wan2.1_vace_14B_fp16.safetensors",
+          "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_vace_14B_fp16.safetensors",
+          "license": "apache-2.0"
+        },
+        {
+          "model": "wan_2.1_vae.safetensors",
+          "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors",
+          "license": "apache-2.0"
+        },
+        {
+          "model": "wan2.1_vace_1.3B_fp16.safetensors",
+          "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/diffusion_models/wan2.1_vace_1.3B_fp16.safetensors",
+          "license": "apache-2.0"
+        },
+        {
+          "model": "Wan21_CausVid_bidirect2_T2V_1_3B_lora_rank32.safetensors",
+          "url": "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_bidirect2_T2V_1_3B_lora_rank32.safetensors",
+          "license": null
+        },
+        {
+          "model": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
+          "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors?download=true",
+          "license": "apache-2.0"
+        },
+        {
+          "model": "umt5_xxl_fp16.safetensors",
+          "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp16.safetensors",
+          "license": "apache-2.0"
+        },
+        {
+          "model": "Wan21_CausVid_14B_T2V_lora_rank32.safetensors",
+          "url": "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Wan21_CausVid_14B_T2V_lora_rank32.safetensors",
+          "license": null
+        }
+      ]
+    }
+  },
+  "templates": {
+    "video_ltx2_5_t2v": "76be0db061857650",
+    "video_ltx2_5_flf2v": "b04ae3329f8835c9",
+    "video_wan2_2_14B_t2v": "d41f60627a017bf6",
+    "video_wan2_2_14B_flf2v": "3d75165521ebe990",
+    "video_hunyuan_video_1.5_720p_t2v": "a46110a970de7f1d",
+    "video_hunyuan_video_1.5_720p_i2v": "5e6f7fafa31ae317",
+    "video_minimax_h3_t2v": "d7b0a672f8998e02",
+    "video_minimax_h3_i2v": "3a6ee4638c2cae81",
+    "video_kandinsky5_t2v": "0fdc1b2bfc4a21e2",
+    "video_kandinsky5_i2v": "1d71f65f9e93baaf",
+    "image_flux3_klein_t2i": "836728aa01106305",
+    "image_flux3_klein_image_edit": "947a44abd623144f",
+    "image_flux3_klein_distilled_t2i": "a9d224a75be3ed0f",
+    "image_flux3_klein_distilled_image_edit": "7b6503787597a9a5",
+    "image_qwen_image_edit_2509": "75da85e874e22391",
+    "image_qwen_image_2_1_t2i": "3193ee63ff42d872",
+    "image_qwen_image_2_1_image_edit": "2816d7e0f8278897",
+    "image_z_image_turbo": "e727cc6c1bbf2efc",
+    "hidream_i1_fast": "a1c24d5a3359a3ed",
+    "utility_seedvr2_3b_int8_upscale_video": "21da0e4491ab1679",
+    "utility-gan_upscaler": "e761c2829af0d66f",
+    "utility_video_frame_interpolation": "132a89a2eeb29e0d",
+    "utility_depth_anything3_video_depth_estimation": "59c79460de460ffb",
+    "video_wan_vace_outpainting": "a8505eab16d253fb",
+    "video_wan_vace_inpainting": "78a37beba4f764e6",
+    "video_bernini_r_video_editing": "b82bc487fec263f4",
+    "video_wan_vace_14B_v2v": "a63fce06c3483901"
   }
 }

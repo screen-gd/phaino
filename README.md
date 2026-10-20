@@ -1,112 +1,168 @@
-# Cutaway
+# Phaino
+
+Phaino is an open-source AI video and image studio that runs locally on your machine, with generations through Comfy Cloud (or your own Comfy API v2 endpoint). Pick a preset, add a prompt and a first frame, and every shot runs through a real ComfyUI workflow you can open, edit and fork. The studio listens on `127.0.0.1` only. Social publishing and a hosted version are future work: [issue #4](https://github.com/screen-gd/phaino/issues/4) and [issue #5](https://github.com/screen-gd/phaino/issues/5).
+
+## What's in it
+
+- **Explore**: the home grid of all presets and categories.
+- **Tools**: Camera moves, Image and Video tool pages bound to presets, with a live job runner: uploads, progress over SSE, cancel, and recent runs.
+- **Presets and models**: open-weights presets in `presets/`:
+
+  | Preset | Tool | Model |
+  | --- | --- | --- |
+  | bullet-time, crash-zoom, dolly-in, drone-pull-out, fpv-dive, orbit, whip-pan | Camera | LTX 2.5 |
+  | ltx25-i2v | Video | LTX 2.5 |
+  | wan22-i2v | Video | Wan 2.2 |
+  | flux2-klein, flux2-klein-fast | Image | FLUX.2 Klein |
+  | qwen-image | Image | Qwen Image |
+
+  The Image and Video pickers list **models**, not presets, with search and family groups (FLUX, Qwen, Wan, LTX, ...). Each model's modes (text to video, image to video, first and last frame, text to image, edit) come from the registry in `studio/src/server/models/registry.ts`, which covers every open-weights model Comfy ships an official template for: FLUX.1/2/3 (Dev, Schnell, Krea, Kontext, Klein), Qwen Image (1, 2.1, 2511, 2512), Z-Image, HiDream (I1, O1, E1.1), SDXL, SD 3.5, Chroma, Anima, Mage-Flow, Ideogram 4, ERNIE, OmniGen2, Kandinsky 5, Wan 2.1/2.2 (+VACE, Alpha), LTXV/LTX 2/2.3, HunyuanVideo, MiniMax H3, FastH3, HuMo, Capybara and more. Template-backed modes are synced into `models/cache` by `pnpm models:sync` (see "Add a model" below); a mode that fails the gates stays hidden. Models that only edit or only take a first frame ask for that input and won't generate without it.
+
+  Partner-model presets (Kling 3.0, Seedance 2.5, Nano Banana 2) ship in `presets/` but are hidden unless `PHAINO_PARTNER_MODELS=on`.
+
+- **Library**: every generated output, downloadable or ready to edit.
+- **Controls**: per-model Advanced params (negative prompt, steps, CFG) behind a sliders chip, plus a credit estimate next to Generate (median of your last runs at 0.266 credits/s).
+- **Animate**: image results get an Animate action that starts an LTX 2.5 image-to-video job from that image.
+- **Header**: GitHub stars and your Comfy credit balance, when connected.
+- **Tracker**: `/tracker` shows what's done and what's next (data in `tracker/tasks.json`).
 
 ## Repository layout
 
-This is a pnpm workspace. The studio app lives at the repo root; the marketing site is its own package in `website/`.
-
 ```
-cutaway/
-├── (root)       Studio app, deployed from the repo root
-└── website/     Marketing site (Astro), deployed from website/
+phaino/
+    studio/     Studio app (Next.js), the main product
+    website/    Marketing site (Astro)
+    presets/    Preset workflows, exported by the M2 pipeline
+    tracker/    Project task data for /tracker
+    brand/      Brand kits (brand/phaino)
+    examples/   Real sample outputs, named <preset-id>_<n>.<ext>
 ```
 
-Install everything once from the root with `pnpm install`.
+## Requirements
 
-## Marketing site
+- Node.js 22.13+
+- pnpm (repo pins 12.x via `packageManager`)
+- ffmpeg on your PATH (used by the Editor, Edit Video prep and media uploads)
 
-Astro, TypeScript, Tailwind, GSAP and Lenis. From the root:
+## Quick start
 
 ```bash
-pnpm website:dev       # dev server
-pnpm website:build     # type check + static build to website/dist
-pnpm website:preview   # serve the build
+pnpm install
+cp studio/.env.example studio/.env.local   # fill in a backend (below)
+pnpm dev:studio
 ```
 
-To host it, point the platform at `website/` as the root directory (build `pnpm build`, output `dist`). The visual direction is in [website/docs/landing-design.md](website/docs/landing-design.md), and media slots are documented in [website/public/media/README.md](website/public/media/README.md).
+Open http://localhost:3000. Check backend connectivity at http://localhost:3000/api/health (it reports `not_configured` until a Comfy key is set).
 
-## Studio concept
+To use another port (3000 is the default): `cd studio && pnpm exec next dev -H 127.0.0.1 -p 3100`.
 
-**Drop in a clip, pick a cinematic move, get a matched shot that's ready for your timeline.**
+## Comfy Cloud setup
 
-Cutaway is an editor-first VFX shot generator built on [ComfyUI](https://comfy.org) and **LTX 2.5**. Upload a clip, choose a preset (dolly-in, orbit, whip-pan, drone pull-out...), and Cutaway generates a new shot that matches your footage, conformed to your project's frame rate and resolution, with handles, plus an FCPXML/EDL you can import straight into DaVinci Resolve, Premiere, or Final Cut.
+Create an API key at [platform.comfy.org/profile/api-keys](https://platform.comfy.org/profile/api-keys) and set it as `COMFY_API_KEY` in `studio/.env.local`, or paste it into Settings > Comfy Cloud. All built-in presets run on open-weights models on Comfy Cloud and need the model files listed in [presets/README.md](presets/README.md). Partner presets (Kling, Seedance, Nano Banana) run on hosted API nodes and use [Comfy credits](https://docs.comfy.org/tutorials/partner-nodes/pricing); they're hidden unless `PHAINO_PARTNER_MODELS=on`.
 
-Built for editors, not prompt engineers.
+### Advanced: your own ComfyUI
 
-> Entry for Comfy's **Open Source Higgsfield** challenge (Oct 2026).
+To run on your own machine instead, put the Comfy API v2 in front of a local [ComfyUI](https://github.com/comfyanonymous/ComfyUI):
 
----
+```bash
+pip install comfy-api-proxy
+comfy-api-proxy
+```
 
-## Why
+ComfyUI keeps serving on `127.0.0.1:8188`; the proxy serves the Comfy API v2 on `127.0.0.1:8189`. Set `COMFY_BASE_URL=http://127.0.0.1:8189` in `studio/.env.local`.
 
-Generative video tools hand you a clip and leave the rest to you: guessing the frame rate, re-timing, trimming, and dragging files into your NLE. Cutaway closes that gap. Every output comes back ready to drop on a timeline.
+## Environment variables
+
+All variables live in `studio/.env.local` (copy `studio/.env.example`). The old `CUTAWAY_DATA_DIR` and `CUTAWAY_USER` names still work as fallbacks.
+
+| Variable | Purpose |
+| --- | --- |
+| `COMFY_API_KEY` | Comfy Cloud / Comfy Router API key |
+| `COMFY_BASE_URL` | Optional custom Comfy API v2 endpoint (blank = Comfy Cloud) |
+| `PRESETS_DIR` | Preset folder (default `../presets` from `studio/`) |
+| `FORKS_DIR` | User forks folder (default `<PHAINO_DATA_DIR>/forks`) |
+| `PHAINO_PARTNER_MODELS` | Show partner-model presets (uses Comfy credits). Off by default |
+| `TRACKER_FILE` | Tracker data file (default `../tracker/tasks.json` from `studio/`) |
+| `PHAINO_DATA_DIR` | Local data folder (default `./.data` under `studio/`) |
+| `PHAINO_USER` | Local user name (default `local`) |
+| `PHAINO_SITE_URL` | Public origin for OG metadata (default `http://localhost:3000`) |
+| `FFMPEG_PATH` | ffmpeg binary for sequence export (default `ffmpeg` on PATH) |
+| `FFPROBE_PATH` | ffprobe binary for sequence export (default `ffprobe` on PATH) |
+
+## Scripts
+
+| Command | What it does |
+| --- | --- |
+| `pnpm dev:studio` | Studio dev server on port 3000 |
+| `pnpm dev:website` | Website dev server |
+| `pnpm preview:website` | Serve the built website |
+| `pnpm build` | Build all packages |
+| `pnpm lint` | Lint all packages |
+| `pnpm typecheck` | Type-check all packages |
+| `pnpm test` | Run all tests |
+| `cd studio && pnpm models:sync` | Sync template-backed model modes into `models/cache` |
 
 ## Presets
 
-| Preset | What it does |
-| --- | --- |
-| Dolly-in | Slow push toward the subject |
-| Crash zoom | Fast punch-in for impact |
-| Orbit | Camera arcs around the subject |
-| Whip-pan transition | Motion-blurred pan into the next shot |
-| Drone pull-out | Rising reveal away from the subject |
-| Bullet time | Freeze-frame with a camera move around it |
-| Set extension | Widen the frame beyond what was shot |
-| Match cut | Uses two clips' frames as first/last keyframes to bridge them |
+Presets live in `presets/`, one folder per preset (`preset.json` + exported `workflow.json`/`workflow_api.json` + `thumb.webp`). Schema, binds and the model files each open preset needs are documented in [presets/README.md](presets/README.md). The workflow files for every built-in model live in the repo: hand-tuned presets under `presets/*/workflow.json` and template-synced model modes and edit tools under `models/cache/` (generated by `pnpm models:sync`, manifest at `models/manifest.json`).
 
-## How it works
+### Dev: regenerating workflows
 
-```
-clip ──► ffmpeg (frame grab + metadata)
-     ──► optional keyframe edit (FLUX)
-     ──► LTX 2.5 FLF2V / I2V with preset prompt  (ComfyUI workflow)
-     ──► conform fps / resolution, add handles (ffmpeg)
-     ──► MP4 / ProRes + FCPXML / EDL
-```
-
-- **ComfyUI workflows** live in `workflows/` and run through the Comfy Developer Platform API or a local ComfyUI server.
-- **Web app** (`app/`) is Next.js: upload, preset picker, preview, export.
-- **Conform + export** (`lib/`) handles ffmpeg and timeline files.
-
-## Project layout
-
-```
-cutaway/
-├── app/          Next.js front end (upload, presets, preview, export)
-├── workflows/    ComfyUI workflow JSON, one per preset
-├── lib/          ffmpeg conform + FCPXML/EDL export
-├── presets/      preset definitions (prompts, motion params, duration)
-├── docs/         demo notes and screenshots
-└── website/      marketing site (Astro)
-```
-
-## Setup
-
-> Work in progress. Steps will firm up as the build lands.
-
-**Requirements**
-- Node.js 22+ and pnpm
-- ffmpeg on your PATH
-- A ComfyUI server with LTX 2.5 installed, **or** a Comfy Developer Platform API key
+`workflow.json`/`workflow_api.json` are produced by loading each preset's source template into a ComfyUI instance and exporting via `graphToPrompt()`. A CPU-only install is enough; no models needed:
 
 ```bash
-git clone https://github.com/screen-gd/cutaway.git
-cd cutaway
-cp .env.example .env.local   # add COMFY_API_URL and COMFY_API_KEY
-pnpm install
-pnpm dev
+git clone --depth 1 --branch v0.42.1 https://github.com/comfyanonymous/ComfyUI.git %USERPROFILE%\.cutaway\comfyui
+cd %USERPROFILE%\.cutaway\comfyui
+python -m venv .venv
+.\.venv\Scripts\pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+.\.venv\Scripts\pip install -r requirements.txt
+.\.venv\Scripts\python main.py --cpu --listen 127.0.0.1 --port 8188
 ```
 
-Open http://localhost:3000, upload a clip, pick a preset, and export.
+Then from the repo root: `pnpm --filter phaino-studio export:workflows`.
+
+### Add a model
+
+Models are one line in `studio/src/server/models/registry.ts`: a mode points at a preset folder or an official `Comfy-Org/workflow_templates` template:
+
+```ts
+{ id: "wan22", label: "Wan 2.2", kind: "video",
+  modes: { t2v: { template: "video_wan2_2_14B_t2v" } } }
+```
+
+Then sync the template-backed modes (fetches the template at the pinned `TEMPLATES_REF`, runs `graphToPrompt` in a headless ComfyUI, detects prompt/seed/size/duration/image binds automatically, gates on no-API-nodes + public model downloads, and writes `models/cache` + `models/manifest.json`):
+
+```bash
+cd studio
+pnpm models:sync            # use the pinned ref
+pnpm models:sync -- --update-ref   # pin main's sha first
+```
+
+Sync reads only; it never queues a generation. A mode that fails a gate stays in the manifest with its reasons and is hidden from the app.
+
+## Editor
+
+`/editor` is a small timeline editor for generated and imported media. It has a video lane with trim, reorder, split (S), duplicate (Ctrl+D), cut/crossfade/dip transitions and per-clip volume, a music lane with fades, a titles lane, aspect (16:9, 9:16, 1:1, 4:5) and contain/cover fitting, a media bin with drag-drop uploads, and undo/redo.
+
+"Render video" produces an H.264/AAC MP4 (drawtext titles, mixed audio, `+faststart`), and copies it into Library. "Export for NLE" conforms media with handles, writes FCPXML and EDL (crossfades become dissolves), and embeds the rendered movie. The audio lane and titles are not in the FCPXML/EDL interchange files. Title text uses the bundled Outfit font (`studio/assets/fonts/Outfit.ttf`, OFL). The sequence document lives at `<PHAINO_DATA_DIR>/sequence.json` (v2; v1 files migrate on load) and uploads land in `<PHAINO_DATA_DIR>/uploads/editor/`.
+
+## Edit Video
+
+`/edit` is the AI editing bench: each tool takes an existing video (upload or a generated output) and runs one official ComfyUI template: Upscale, Upscale Fast, FPS Boost, Depth Map, Reframe (VACE outpainting to a new aspect), Remove Object (VACE inpainting + SAM3 detect text), Relight and Restyle. Extend is app code: it grabs the clip's last frame with ffmpeg and runs any registered model's image-to-video mode, and the result can join the source in the Editor.
+
+`pnpm models:sync` gates tools exactly like modes (`manifest.json` `tools` key) and caches their workflows; failed tools stay hidden. Clips longer than a tool's limit are trimmed to the first N seconds (H.264 re-encode) before submission. Video uploads land in `<PHAINO_DATA_DIR>/uploads/` (mp4/mov/webm, 500 MB).
+
+## Marketing site
+
+Astro, TypeScript and Tailwind. `pnpm dev:website` runs it; it deploys from `website/`. The visual direction is in [website/docs/landing-design.md](website/docs/landing-design.md), and media slots are documented in [website/public/media/README.md](website/public/media/README.md).
+
+## Brand
+
+Brand assets and the guidelines board live in [brand/phaino](brand/phaino/board/guidelines.md).
 
 ## Roadmap
 
-- [ ] Base LTX 2.5 I2V workflow (dolly-in)
-- [ ] Remaining presets
-- [ ] Upload + preset picker UI
-- [ ] ffmpeg conform with handles
-- [ ] FCPXML / EDL export (Resolve-tested)
-- [ ] Share-ready before/after clip export
-- [ ] Demo video
+The camera moves, image and video tools, job runner, library and editor are built. Social publishing moved to [issue #4](https://github.com/screen-gd/phaino/issues/4); a hosted version is tracked in [issue #5](https://github.com/screen-gd/phaino/issues/5). The live list is at `/tracker`; the data is in [tracker/tasks.json](tracker/tasks.json).
 
 ## License
 

@@ -1,0 +1,524 @@
+{
+  "updated": "2026-10-21",
+  "milestones": [
+    {
+      "id": "m1",
+      "title": "M1 Shell, env, Comfy client, health check",
+      "tasks": [
+        {
+          "id": "m1-shell",
+          "title": "Shell and env",
+          "status": "done"
+        },
+        {
+          "id": "m1-client",
+          "title": "Comfy client factory",
+          "status": "done"
+        },
+        {
+          "id": "m1-health",
+          "title": "/api/health",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "m2",
+      "title": "M2 Disk-based preset system",
+      "tasks": [
+        {
+          "id": "m2-schema",
+          "title": "Zod preset schema and loader",
+          "status": "done"
+        },
+        {
+          "id": "m2-binding",
+          "title": "Param binding",
+          "status": "done"
+        },
+        {
+          "id": "m2-export",
+          "title": "Workflows exported with graphToPrompt",
+          "status": "done"
+        },
+        {
+          "id": "m2-snapshot",
+          "title": "object_info snapshot and validator tests",
+          "status": "done"
+        },
+        {
+          "id": "m2-presets",
+          "title": "9 presets",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "ui",
+      "title": "Studio UI and brand",
+      "tasks": [
+        {
+          "id": "explore-media-showcase",
+          "title": "Explore video carousel, banner navigation and credited Comfy creations",
+          "status": "done",
+          "notes": "Restored Orbit banner copy and buttons. Added carousel fade and official Comfy image examples. Combined the marketing footer CTA, oversized phaino wordmark and GitHub/X links with the feature and model directory. Removed upcoming features and footer showcase links; restored scroll-driven wordmark and arrow with reduced-motion support."
+        },
+        {
+          "id": "ui-explore",
+          "title": "Explore home in Higgsfield layout",
+          "status": "done"
+        },
+        {
+          "id": "ui-header",
+          "title": "Shrinking header",
+          "status": "done"
+        },
+        {
+          "id": "ui-coss",
+          "title": "coss ui buttons and badges",
+          "status": "done"
+        },
+        {
+          "id": "ui-brand",
+          "title": "Phaino brand kit and logo",
+          "status": "done"
+        },
+        {
+          "id": "ui-categories",
+          "title": "Higgsfield-style categories",
+          "status": "done"
+        },
+        {
+          "id": "ui-library",
+          "title": "Library page",
+          "status": "done"
+        },
+        {
+          "id": "ui-social",
+          "title": "Social posting with user-added connections (moved to issue #4)",
+          "status": "blocked"
+        },
+        {
+          "id": "ui-nav-menus",
+          "title": "Nav hover capsule and mega dropdowns",
+          "status": "done"
+        },
+        {
+          "id": "ui-icons",
+          "title": "iOS icon and OG image",
+          "status": "done"
+        },
+        {
+          "id": "ui-rename",
+          "title": "Rename repo, package and env vars from cutaway",
+          "status": "done",
+          "notes": "Repo renamed to screen-gd/phaino; Cloudflare worker renamed to phaino"
+        },
+        {
+          "id": "ui-mobile-nav",
+          "title": "Mobile nav menu",
+          "status": "done"
+        },
+        {
+          "id": "ui-readme",
+          "title": "README rewrite for Phaino",
+          "status": "done"
+        },
+        {
+          "id": "ui-tool-pages",
+          "title": "Higgsfield-style tool pages: model picker, param chips, image prompt bar",
+          "status": "done",
+          "notes": "No browser check yet"
+        },
+        {
+          "id": "ui-404",
+          "title": "Brand 404",
+          "status": "done",
+          "notes": "not-found.tsx: full-bleed dither, Outfit 404, Explore/workflows CTAs."
+        },
+        {
+          "id": "ui-oss-examples",
+          "title": "More OSS model examples on Explore",
+          "status": "done",
+          "notes": "6 new cards from Comfy-Org/workflow_templates (MIT): 3 LTX 2.5 videos, 2 Qwen images, FLUX.2 Klein."
+        },
+        {
+          "id": "ui-rune-icons",
+          "title": "Rune Icons duotone icon set",
+          "status": "done",
+          "notes": "runeicons@0.1.0 vendored (Apache-2.0); lucide-react removed; 40 icons mapped."
+        }
+      ]
+    },
+    {
+      "id": "m3",
+      "title": "M3 Camera, Image and Video tools",
+      "tasks": [
+        {
+          "id": "m3-pages",
+          "title": "Tool pages bound to presets",
+          "status": "done"
+        },
+        {
+          "id": "m3-jobs",
+          "title": "Jobs table and runner",
+          "status": "done",
+          "notes": "Tested with a fake client; first real run is M5"
+        },
+        {
+          "id": "m3-progress",
+          "title": "Live progress",
+          "status": "done"
+        },
+        {
+          "id": "m3-nokey",
+          "title": "Clear \"not connected\" error without a key",
+          "status": "done"
+        },
+        {
+          "id": "m3-byok",
+          "title": "Comfy API key in Settings (BYOK, Comfy only)",
+          "status": "done",
+          "notes": "Settings > Comfy Cloud card: key save with probe, masked display, remove, custom endpoint"
+        }
+      ]
+    },
+    {
+      "id": "m4",
+      "title": "M4 Open the workflow",
+      "tasks": [
+        {
+          "id": "m4-viewer",
+          "title": "Workflow viewer",
+          "status": "done",
+          "notes": "SVG graph at /workflows/[id]: pan/zoom/fit, subgraphs, controls highlight, inspector."
+        },
+        {
+          "id": "m4-fork",
+          "title": "Fork",
+          "status": "done",
+          "notes": "POST /api/forks, PATCH/DELETE /api/forks/[id], PUT workflow replace; forks in .data/forks."
+        },
+        {
+          "id": "m4-download",
+          "title": "Download",
+          "status": "done",
+          "notes": "GET /api/presets/[id]/workflow?format=ui|api as attachments."
+        }
+      ]
+    },
+    {
+      "id": "m5",
+      "title": "M5 First real run",
+      "tasks": [
+        {
+          "id": "m5-orbit",
+          "title": "Orbit on LTX 2.5 end to end",
+          "status": "blocked",
+          "notes": "Needs COMFY_API_KEY"
+        },
+        {
+          "id": "m5-firstframe",
+          "title": "Confirm Comfy Cloud accepts uploaded first frames",
+          "status": "todo"
+        },
+        {
+          "id": "m5-social",
+          "title": "Test a real social connection (moved to issue #4)",
+          "status": "blocked"
+        }
+      ]
+    },
+    {
+      "id": "m6",
+      "title": "M6 FLUX image and Animate to Video",
+      "tasks": [
+        {
+          "id": "m6-flux",
+          "title": "FLUX image run",
+          "status": "todo"
+        },
+        {
+          "id": "m6-animate",
+          "title": "Animate image to video",
+          "status": "done",
+          "notes": "Animate on image results and Library; copies the output into uploads via /api/uploads/from-output"
+        }
+      ]
+    },
+    {
+      "id": "m7",
+      "title": "M7 More models through Comfy",
+      "tasks": [
+        {
+          "id": "m7-ltx25",
+          "title": "LTX 2.5 image-to-video preset",
+          "status": "done"
+        },
+        {
+          "id": "m7-wan22",
+          "title": "Wan 2.2 preset",
+          "status": "done"
+        },
+        {
+          "id": "m7-qwen",
+          "title": "Qwen Image preset",
+          "status": "done"
+        },
+        {
+          "id": "m7-kling3",
+          "title": "Kling 3.0 preset",
+          "status": "done",
+          "notes": "Hidden by default (open weights only)"
+        },
+        {
+          "id": "m7-seedance25",
+          "title": "Seedance 2.5 preset",
+          "status": "done",
+          "notes": "Hidden by default (open weights only)"
+        },
+        {
+          "id": "m7-nanobanana2",
+          "title": "Nano Banana 2 preset",
+          "status": "done",
+          "notes": "Hidden by default (open weights only)"
+        },
+        {
+          "id": "m7-controls",
+          "title": "Per-model controls in tool pages",
+          "status": "done",
+          "notes": "Advanced params (negative, steps, cfg) behind an Advanced chip; float param type added"
+        },
+        {
+          "id": "m7-credits",
+          "title": "Credit cost shown before Generate",
+          "status": "done",
+          "notes": "Estimate from median of last 5 runs at 0.266 credits/s; needs a real run to confirm"
+        },
+        {
+          "id": "m7-testrun",
+          "title": "Real test run per model",
+          "status": "todo",
+          "notes": "After M5"
+        }
+      ]
+    },
+    {
+      "id": "m8",
+      "title": "M8 Editor",
+      "tasks": [
+        {
+          "id": "m8-model-v2",
+          "title": "Sequence v2 model: media, audio lane, titles, migration",
+          "status": "done"
+        },
+        {
+          "id": "m8-bin",
+          "title": "Media bin with uploads and imported media",
+          "status": "done"
+        },
+        {
+          "id": "m8-split",
+          "title": "Split and duplicate at the playhead",
+          "status": "done"
+        },
+        {
+          "id": "m8-transitions",
+          "title": "Cut, crossfade and dip transitions",
+          "status": "done"
+        },
+        {
+          "id": "m8-audio",
+          "title": "Audio lane with volume and fades",
+          "status": "done"
+        },
+        {
+          "id": "m8-titles",
+          "title": "Titles lane and drawtext overlays",
+          "status": "done"
+        },
+        {
+          "id": "m8-aspect",
+          "title": "Aspect and contain/cover fit",
+          "status": "done"
+        },
+        {
+          "id": "m8-render",
+          "title": "Render to Library, NLE package with dissolves",
+          "status": "done"
+        },
+        {
+          "id": "m8-browser",
+          "title": "Browser check of /editor",
+          "status": "todo",
+          "notes": "Player preview, shortcuts, upload flow"
+        }
+      ]
+    },
+    {
+      "id": "explore",
+      "title": "Explore upgrades",
+      "tasks": [
+        {
+          "id": "explore-previews",
+          "title": "Looping preview videos per preset",
+          "status": "todo",
+          "notes": "After M5"
+        },
+        {
+          "id": "explore-cards",
+          "title": "Input and output preset cards",
+          "status": "done",
+          "notes": "Input to output icon pill on preset cards"
+        },
+        {
+          "id": "explore-model-sections",
+          "title": "Per-model sections with View all",
+          "status": "done",
+          "notes": "Removed at user request; presets stay in one grid, /workflows keeps the ?model= filter"
+        },
+        {
+          "id": "explore-grid",
+          "title": "Mixed-height community grid",
+          "status": "done",
+          "notes": "CommunityGrid masonry on Explore and /community"
+        },
+        {
+          "id": "explore-node-preview",
+          "title": "Workflow node preview on hover",
+          "status": "done",
+          "notes": "miniGraph SVG overlay on preset card hover"
+        },
+        {
+          "id": "explore-header-meta",
+          "title": "GitHub stars and credit balance in header",
+          "status": "done",
+          "notes": "GitHub stars + Comfy credit balance in header; balance needs a real key to confirm"
+        }
+      ]
+    },
+    {
+      "id": "m9",
+      "title": "M9 Models from official Comfy templates",
+      "tasks": [
+        {
+          "id": "m9-registry",
+          "title": "Model registry (model, modes, template or preset source)",
+          "status": "done"
+        },
+        {
+          "id": "m9-sync",
+          "title": "models:sync + hard gates (no API nodes, open weights, binds)",
+          "status": "done",
+          "notes": "manifest at models/manifest.json; ref pinned in registry.ts"
+        },
+        {
+          "id": "m9-bindings",
+          "title": "Automatic binding detection into real presets",
+          "status": "done"
+        },
+        {
+          "id": "m9-pickers",
+          "title": "Model pickers and live mode switching on Image/Video",
+          "status": "done"
+        },
+        {
+          "id": "m9-ltx25",
+          "title": "LTX 2.5 t2v + flf2v modes",
+          "status": "done",
+          "notes": "Needs a real run"
+        },
+        {
+          "id": "m9-wan22",
+          "title": "Wan 2.2 t2v + flf2v modes",
+          "status": "done",
+          "notes": "Needs a real run"
+        },
+        {
+          "id": "m9-hunyuan15",
+          "title": "HunyuanVideo 1.5 model",
+          "status": "done",
+          "notes": "Needs a real run"
+        },
+        {
+          "id": "m9-minimax-h3",
+          "title": "MiniMax H3 model",
+          "status": "done",
+          "notes": "Needs a real run"
+        },
+        {
+          "id": "m9-kandinsky5",
+          "title": "Kandinsky 5 model",
+          "status": "done",
+          "notes": "Needs a real run"
+        },
+        {
+          "id": "m9-flux3-klein",
+          "title": "FLUX 3 Klein + Fast models (t2i + edit)",
+          "status": "done",
+          "notes": "Needs a real run"
+        },
+        {
+          "id": "m9-qwen-21",
+          "title": "Qwen Image 2.1 model + Qwen edit mode",
+          "status": "done",
+          "notes": "Needs a real run"
+        },
+        {
+          "id": "m9-zimage-hidream",
+          "title": "Z-Image Turbo and HiDream I1 Fast models",
+          "status": "done",
+          "notes": "Needs a real run"
+        }
+      ]
+    },
+    {
+      "id": "m10",
+      "title": "M10 All open models, local only",
+      "tasks": [
+        {
+          "id": "m10-models",
+          "title": "Register every open-weights template model (~60), sync gates",
+          "status": "done"
+        },
+        {
+          "id": "m10-picker",
+          "title": "Model picker search + family groups",
+          "status": "done"
+        },
+        {
+          "id": "m10-modes",
+          "title": "Edit-only and i2v-only model handling",
+          "status": "done"
+        },
+        {
+          "id": "m10-social",
+          "title": "Remove social publishing (moved to issue #4)",
+          "status": "done"
+        },
+        {
+          "id": "m10-local",
+          "title": "Local-only: dev/start bind 127.0.0.1, hosted in issue #5",
+          "status": "done"
+        },
+        {
+          "id": "m10-media",
+          "title": "Replace unlicensed and hotlinked media with MIT Comfy template outputs",
+          "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "ops",
+      "title": "Housekeeping",
+      "tasks": [
+        {
+          "id": "ops-commit",
+          "title": "Commit the uncommitted UI and brand work",
+          "status": "done",
+          "notes": "Committed on studio/phaino-app"
+        }
+      ]
+    }
+  ]
+}

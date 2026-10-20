@@ -1,0 +1,139 @@
+{
+  "id": "wan22-i2v",
+  "name": "Wan 2.2",
+  "description": "Image to video on Wan 2.2 14B.",
+  "category": "video",
+  "order": 2,
+  "chip": "5s",
+  "engine": "workflow",
+  "model": {
+    "id": "wan-2.2",
+    "label": "Wan 2.2",
+    "license": "open"
+  },
+  "source": {
+    "template": "video_wan2_2_14B_i2v"
+  },
+  "inputs": [
+    {
+      "key": "image",
+      "type": "image",
+      "label": "First frame",
+      "required": true,
+      "bind": {
+        "node": "97",
+        "field": "image"
+      }
+    }
+  ],
+  "params": [
+    {
+      "type": "text",
+      "key": "prompt",
+      "label": "Prompt",
+      "default": "",
+      "placeholder": "Describe the shot",
+      "bind": {
+        "node": "129:93",
+        "field": "text"
+      }
+    },
+    {
+      "type": "seed",
+      "key": "seed",
+      "label": "Seed",
+      "bind": {
+        "node": "129:86",
+        "field": "noise_seed"
+      }
+    },
+    {
+      "type": "int",
+      "key": "duration",
+      "label": "Duration (s)",
+      "default": 5,
+      "min": 1,
+      "max": 10,
+      "bind": {
+        "node": "129:161",
+        "field": "value"
+      }
+    },
+    {
+      "type": "choice",
+      "key": "size",
+      "label": "Size",
+      "default": "640x640",
+      "options": [
+        {
+          "value": "640x640",
+          "label": "1:1 640",
+          "set": [
+            { "node": "129:98", "field": "width", "value": 640 },
+            { "node": "129:98", "field": "height", "value": 640 }
+          ]
+        },
+        {
+          "value": "832x480",
+          "label": "16:9 832x480",
+          "set": [
+            { "node": "129:98", "field": "width", "value": 832 },
+            { "node": "129:98", "field": "height", "value": 480 }
+          ]
+        },
+        {
+          "value": "480x832",
+          "label": "9:16 480x832",
+          "set": [
+            { "node": "129:98", "field": "width", "value": 480 },
+            { "node": "129:98", "field": "height", "value": 832 }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "key": "negative",
+      "label": "Negative prompt",
+      "default": "色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走",
+      "advanced": true,
+      "bind": {
+        "node": "129:89",
+        "field": "text"
+      }
+    },
+    {
+      "type": "int",
+      "key": "steps",
+      "label": "Steps",
+      "default": 20,
+      "min": 1,
+      "max": 60,
+      "advanced": true,
+      "bind": {
+        "node": "129:128",
+        "field": "value"
+      }
+    },
+    {
+      "type": "float",
+      "key": "cfg",
+      "label": "CFG",
+      "default": 3.5,
+      "min": 1,
+      "max": 10,
+      "step": 0.1,
+      "advanced": true,
+      "bind": {
+        "node": "129:126",
+        "field": "value"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "node": "108",
+      "kind": "video"
+    }
+  ]
+}

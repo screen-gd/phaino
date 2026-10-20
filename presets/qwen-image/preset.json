@@ -1,0 +1,115 @@
+{
+  "id": "qwen-image",
+  "name": "Qwen Image",
+  "description": "Text to image on Qwen Image 2512.",
+  "category": "image",
+  "order": 3,
+  "engine": "workflow",
+  "model": {
+    "id": "qwen-image-2512",
+    "label": "Qwen Image",
+    "license": "open"
+  },
+  "source": {
+    "template": "image_qwen_Image_2512"
+  },
+  "inputs": [],
+  "params": [
+    {
+      "type": "text",
+      "key": "prompt",
+      "label": "Prompt",
+      "default": "",
+      "placeholder": "Describe the image",
+      "bind": {
+        "node": "238:227",
+        "field": "text"
+      }
+    },
+    {
+      "type": "seed",
+      "key": "seed",
+      "label": "Seed",
+      "bind": {
+        "node": "238:230",
+        "field": "seed"
+      }
+    },
+    {
+      "type": "choice",
+      "key": "aspect",
+      "label": "Aspect",
+      "default": "1328x1328",
+      "options": [
+        {
+          "value": "1328x1328",
+          "label": "1:1",
+          "set": [
+            { "node": "238:232", "field": "width", "value": 1328 },
+            { "node": "238:232", "field": "height", "value": 1328 }
+          ]
+        },
+        {
+          "value": "1664x928",
+          "label": "16:9",
+          "set": [
+            { "node": "238:232", "field": "width", "value": 1664 },
+            { "node": "238:232", "field": "height", "value": 928 }
+          ]
+        },
+        {
+          "value": "928x1664",
+          "label": "9:16",
+          "set": [
+            { "node": "238:232", "field": "width", "value": 928 },
+            { "node": "238:232", "field": "height", "value": 1664 }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "key": "negative",
+      "label": "Negative prompt",
+      "default": "低分辨率，低画质，肢体畸形，手指畸形，画面过饱和，蜡像感，人脸无细节，过度光滑，画面具有AI感。构图混乱。文字模糊，扭曲",
+      "advanced": true,
+      "bind": {
+        "node": "238:228",
+        "field": "text"
+      }
+    },
+    {
+      "type": "int",
+      "key": "steps",
+      "label": "Steps",
+      "default": 50,
+      "min": 1,
+      "max": 150,
+      "advanced": true,
+      "bind": {
+        "node": "238:224",
+        "field": "value"
+      }
+    },
+    {
+      "type": "float",
+      "key": "cfg",
+      "label": "CFG",
+      "default": 4,
+      "min": 1,
+      "max": 10,
+      "step": 0.1,
+      "advanced": true,
+      "bind": {
+        "node": "238:223",
+        "field": "value"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "node": "60",
+      "kind": "image"
+    }
+  ]
+}

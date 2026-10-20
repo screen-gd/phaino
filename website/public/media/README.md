@@ -33,10 +33,11 @@ Photos served by Unsplash, under the [Unsplash License](https://unsplash.com/lic
 | --- | --- |
 | Moves / orbit, community / reveal | https://images.unsplash.com/photo-1464822759023-fed622ff2c3b |
 | Image, drone pull-out, last light | https://images.unsplash.com/photo-1519681393784-d120267933ba |
-| Video, dolly-in, FPV dive, after the rain | https://images.unsplash.com/photo-1441974231531-c6227db76b6e |
+| Video, dolly-in, FPV dive, after the rain, crash zoom | https://images.unsplash.com/photo-1441974231531-c6227db76b6e |
 | Effects, whip-pan, into the blue | https://images.unsplash.com/photo-1518837695005-2083093ee35b |
-| Avatar, crash zoom, quiet orbit | https://images.unsplash.com/photo-1534528741775-53994a69daeb |
-| Edit, bullet time, a little closer, before/after | https://images.unsplash.com/photo-1470770841072-f978cf4d019e |
+| Edit, bullet time, a little closer, before/after, quiet orbit | https://images.unsplash.com/photo-1470770841072-f978cf4d019e |
+
+`capabilities/avatar.webp` is a frame from the LTX 2.3 image-plus-audio workflow output (`video_ltx2_3_ia2v.mp4`) in [Comfy-Org/workflow_templates](https://github.com/Comfy-Org/workflow_templates), MIT License, Copyright (c) 2023-present Comfy Org. Credit: Comfy.
 
 All served locally as compressed WebP. No third-party image requests occur at runtime.
 

@@ -16,6 +16,7 @@ const items: FcpxmlItem[] = [
     start: 0,
     duration: 48,
     recordIn: 0,
+    transition: { type: "crossfade", frames: 12 },
   },
   {
     name: "Dive & Drop.mp4",
@@ -23,7 +24,8 @@ const items: FcpxmlItem[] = [
     mediaFrames: 40,
     start: 4,
     duration: 24,
-    recordIn: 48,
+    // The crossfade overlaps 12 frames: record-in 48 - 12 = 36.
+    recordIn: 36,
   },
 ];
 
@@ -37,11 +39,15 @@ describe("buildFcpxml", () => {
     });
     expect(xml).toMatchSnapshot();
     expect(xml).toContain('<fcpxml version="1.10">');
-    expect(xml).toContain('name="FFVideoFormat1080p24"');
+    expect(xml).toContain('name="FFVideoFormat1920x1080p24"');
     expect(xml).toContain('frameDuration="1/24s"');
     expect(xml).toContain('start="0s"');
-    // Clip 2 record-in 48 => offset 3600s + 48/24s = 86448/24s
-    expect(xml).toContain('offset="86448/24s"');
+    // Clip 2 record-in 36 => offset 3600s + 36/24s = 86436/24s
+    expect(xml).toContain('offset="86436/24s"');
+    // Crossfade becomes a dissolve centred on the edit point: 48 - 12/2 = 42
+    expect(xml).toContain(
+      '<transition name="Cross Dissolve" offset="42/24s" duration="12/24s"/>',
+    );
     // XML escaping on the name
     expect(xml).toContain("Dive &amp; Drop.mp4");
   });
@@ -59,6 +65,7 @@ describe("buildEdl", () => {
         srcOut: i.start + i.duration,
         recIn: i.recordIn,
         recOut: i.recordIn + i.duration,
+        transition: i.transition,
       })),
     });
     expect(edl).toMatchSnapshot();
@@ -67,9 +74,13 @@ describe("buildEdl", () => {
     expect(edl).toContain(
       "001  AX      V    C        00:00:00:00 00:00:02:00 01:00:00:00 01:00:02:00",
     );
-    // Clip 2: srcIn 4f, srcOut 28f, rec 01:00:02:00 - 01:00:03:00
+    // The crossfade writes a D event for the last 12 frames of clip 1
     expect(edl).toContain(
-      "002  AX      V    C        00:00:00:04 00:00:01:04 01:00:02:00 01:00:03:00",
+      "001  AX      V    D    012   01:00:01:12 01:00:02:00 01:00:01:12 01:00:02:00",
+    );
+    // Clip 2: srcIn 4f, srcOut 28f, rec 01:00:01:12 - 01:00:02:12
+    expect(edl).toContain(
+      "002  AX      V    C        00:00:00:04 00:00:01:04 01:00:01:12 01:00:02:12",
     );
     expect(edl).toContain("* FROM CLIP NAME: Orbit.mp4");
     expect(edl).toContain("* SOURCE FILE: 01_orbit.mp4");

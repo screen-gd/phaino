@@ -8,6 +8,27 @@ export const RESOLUTIONS = {
 
 export type SequenceResolution = keyof typeof RESOLUTIONS;
 
+export type SequenceAspect = "16:9" | "9:16" | "1:1" | "4:5";
+export type SequenceFit = "contain" | "cover";
+
+/** Output size: the short edge is 1080 (1080p) or 2160 (4K). */
+export function outputSize(
+  aspect: SequenceAspect,
+  resolution: SequenceResolution,
+): [number, number] {
+  const s = resolution === "4K" ? 2160 : 1080;
+  switch (aspect) {
+    case "16:9":
+      return [Math.round((s * 16) / 9), s];
+    case "9:16":
+      return [s, Math.round((s * 16) / 9)];
+    case "1:1":
+      return [s, s];
+    case "4:5":
+      return [s, Math.round((s * 5) / 4)];
+  }
+}
+
 export function framesToTimecode(frames: number, fps: Fps): string {
   if (frames < 0) throw new Error("Negative frame count");
   const f = Math.floor(frames + 1e-9);

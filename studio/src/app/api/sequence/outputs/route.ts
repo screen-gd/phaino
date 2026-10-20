@@ -11,11 +11,11 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const items = (await listOutputs(getEnv().dataDir))
-      .filter((o) => o.kind === "video")
-      .slice(0, 50)
+      .slice(0, 60)
       .map((o) => ({
         relPath: o.relPath,
         name: path.basename(o.relPath),
+        kind: o.kind,
         mtime: o.mtimeMs,
       }));
     return NextResponse.json({ items });

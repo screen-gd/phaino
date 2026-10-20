@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { framesToTimecode } from "@/server/sequence/timecode";
-import type { Clip } from "@/server/sequence/model";
+import type { Clip, Media } from "@/server/sequence/model";
 import type { Fps } from "@/server/sequence/timecode";
 import { trimFromDrag } from "./stripMath";
 import type { StripEntry } from "./stripMath";
@@ -13,12 +13,13 @@ import type { StripEntry } from "./stripMath";
 const HATCH =
   "repeating-linear-gradient(45deg, rgba(255,91,34,0.35) 0 3px, transparent 3px 7px)";
 
-export function clipTotal(clip: Clip, fps: Fps): number {
-  return Math.floor(clip.durationSec * fps + 1e-6);
+export function clipTotal(media: Media, fps: Fps): number {
+  return Math.floor(media.durationSec * fps + 1e-6);
 }
 
 export function ClipTile({
   clip,
+  media,
   entry,
   fps,
   pxPerSec,
@@ -32,6 +33,7 @@ export function ClipTile({
   onMove,
 }: {
   clip: Clip;
+  media: Media;
   entry: StripEntry<Clip>;
   fps: Fps;
   pxPerSec: number;
@@ -44,7 +46,7 @@ export function ClipTile({
   onRemove: () => void;
   onMove: (dir: -1 | 1) => void;
 }) {
-  const total = clipTotal(clip, fps);
+  const total = clipTotal(media, fps);
   const width = Math.max(24, ((clip.out - clip.in) / fps) * pxPerSec);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: clip.id });
@@ -161,15 +163,25 @@ export function ClipTile({
         className={`relative block h-full w-full cursor-grab overflow-hidden rounded-lg border text-left ${
           selected ? "ring-2 ring-ac border-ac" : "border-line"
         } ${isDragging ? "opacity-60" : ""}`}
-        aria-label={`Clip ${clip.name}`}
+        aria-label={`Clip ${media.name}`}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={`/api/sequence/posters/${clip.id}`}
-          alt=""
-          draggable={false}
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        />
+        {media.kind === "image" ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={`/api/sequence/media/${media.id}`}
+            alt=""
+            draggable={false}
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={`/api/sequence/posters/${media.id}`}
+            alt=""
+            draggable={false}
+            className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          />
+        )}
         <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/40" />
         {/* rest-state hatch where the source is trimmed */}
         {clip.in > 0 && (
@@ -186,7 +198,8 @@ export function ClipTile({
         )}
         <span className="pointer-events-none absolute inset-x-2 bottom-1.5 flex items-end justify-between gap-1">
           <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-t1">
-            {clip.name}
+            {media.name}
+            {clip.muted ? " · muted" : ""}
           </span>
           <span className="font-mono text-[11px] text-t3">
             {framesToTimecode(clip.out - clip.in, fps)}
@@ -196,7 +209,7 @@ export function ClipTile({
       <button
         type="button"
         tabIndex={-1}
-        aria-label={`Remove ${clip.name}`}
+        aria-label={`Remove ${media.name}`}
         onClick={(e) => {
           e.stopPropagation();
           onRemove();

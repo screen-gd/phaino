@@ -10,6 +10,9 @@ const CUSTOM_PATHS = {
   dice: "M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM8.5 8.5h.01M15.5 8.5h.01M15.5 15.5h.01M8.5 15.5h.01M12 12h.01",
   fit: "M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M16 21h3a2 2 0 0 0 2-2v-3M8 21H5a2 2 0 0 1-2-2v-3",
   loader: "M21 12a9 9 0 1 1-6.219-8.56",
+  scissors: "M6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.5 7.5L20 19M8.5 16.5L20 5",
+  redo: "M21 12c0 5.5-4 9-9 9s-9-3.5-9-9 4-9 9-9c3.6 0 6.6 2 8.3 5M21 3v5h-5",
+  type: "M5 6V4h14v2M12 4v16m-3 0h6",
 } as const;
 
 export type IconName = keyof typeof RUNE_ICONS | keyof typeof CUSTOM_PATHS;

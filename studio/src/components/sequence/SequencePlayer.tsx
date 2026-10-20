@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { framesToTimecode } from "@/server/sequence/timecode";
 import type { Fps } from "@/server/sequence/timecode";
+import type { Media, Sequence, Title } from "@/server/sequence/model";
+import { mediaFor } from "@/server/sequence/model";
 import type { StripEntry } from "./stripMath";
 import { Icon, SECTION_ICONS } from "@/components/icons";
 import type { Clip } from "@/server/sequence/model";
@@ -10,10 +12,48 @@ import type { Clip } from "@/server/sequence/model";
 const iconBtn =
   "grid h-8 w-8 place-items-center rounded-md text-t2 hover:bg-s2 hover:text-t1";
 
+const ASPECT_NUM: Record<Sequence["aspect"], number> = {
+  "16:9": 16 / 9,
+  "9:16": 9 / 16,
+  "1:1": 1,
+  "4:5": 4 / 5,
+};
+
+function TitleOverlay({ titles, frame }: { titles: Title[]; frame: number }) {
+  const active = titles.filter(
+    (t) => frame >= t.start && frame < t.start + t.duration,
+  );
+  if (active.length === 0) return null;
+  const sizeClass = { s: "text-[3.2cqh]", m: "text-[5cqh]", l: "text-[7.5cqh]" } as const;
+  return (
+    <div className="pointer-events-none absolute inset-0" style={{ containerType: "size" }}>
+      {active.map((t) => (
+        <div
+          key={t.id}
+          className="absolute inset-x-0 flex justify-center px-[6%]"
+          style={{
+            top: t.position === "top" ? "7%" : t.position === "center" ? "50%" : "75%",
+            transform: t.position === "center" ? "translateY(-50%)" : undefined,
+          }}
+        >
+          <span
+            className={`text-center font-semibold text-white ${sizeClass[t.size]}`}
+            style={{ textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}
+          >
+            {t.text}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** The player stage and the 44px transport bar under it. */
 export function SequencePlayer({
   videoRef,
-  hiddenRef,
+  nextRef,
+  audioRef,
+  sequence,
   frame,
   playing,
   onToggle,
@@ -24,7 +64,9 @@ export function SequencePlayer({
   empty,
 }: {
   videoRef: React.RefObject<HTMLVideoElement | null>;
-  hiddenRef: React.RefObject<HTMLVideoElement | null>;
+  nextRef: React.RefObject<HTMLVideoElement | null>;
+  audioRef: React.RefObject<HTMLAudioElement | null>;
+  sequence: Sequence;
   frame: number;
   playing: boolean;
   onToggle: () => void;
@@ -36,19 +78,48 @@ export function SequencePlayer({
 }) {
   const tc = framesToTimecode(frame, fps);
   const totalTc = framesToTimecode(totalFrames, fps);
+  const fit = sequence.fit === "cover" ? "object-cover" : "object-contain";
+  const currentMedia: Media | undefined = currentEntry
+    ? mediaFor(sequence, currentEntry.clip.mediaId)
+    : undefined;
   return (
     <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_44px]">
       {/* Stage */}
       <div
         className={`relative min-h-0 overflow-hidden ${empty ? "bg-s1" : "bg-black"}`}
       >
-        <video
-          ref={videoRef}
-          muted
-          playsInline
-          className="absolute inset-0 h-full w-full object-contain"
-        />
-        <video ref={hiddenRef} muted playsInline className="hidden" />
+        {/* The output aspect box, centred in the stage. */}
+        <div
+          className="absolute inset-0 grid place-items-center"
+          style={{ containerType: "size" }}
+        >
+          <div
+            className="relative overflow-hidden bg-black"
+            style={{
+              aspectRatio: String(ASPECT_NUM[sequence.aspect]),
+              width: `min(100cqw, calc(100cqh * ${ASPECT_NUM[sequence.aspect]}))`,
+            }}
+          >
+            <div
+              className="absolute inset-0"
+              style={{ containerType: "size" }}
+            >
+              <video
+                ref={videoRef}
+                playsInline
+                className={`absolute inset-0 h-full w-full ${fit}`}
+              />
+              <video
+                ref={nextRef}
+                playsInline
+                className={`absolute inset-0 h-full w-full ${fit}`}
+                style={{ opacity: 0 }}
+              />
+              <TitleOverlay titles={sequence.titles} frame={frame} />
+            </div>
+          </div>
+        </div>
+        <audio ref={audioRef} className="hidden" />
         {empty && (
           <div className="absolute inset-0 grid place-items-center">
             <div className="text-center">
@@ -56,7 +127,7 @@ export function SequencePlayer({
                 <Icon d={SECTION_ICONS.edit} className="h-4.5 w-4.5" />
               </div>
               <p className="text-caption text-t3">
-                Add shots from History to start a sequence.
+                Add media to start a sequence.
               </p>
               <div className="mt-3 flex justify-center gap-2">
                 <Link
@@ -110,9 +181,9 @@ export function SequencePlayer({
           </button>
         </div>
         <div className="flex w-24 items-center justify-end gap-2">
-          {currentEntry && (
+          {currentMedia && (
             <span className="hidden truncate text-[11px] text-t3 sm:inline">
-              {currentEntry.clip.name}
+              {currentMedia.name}
             </span>
           )}
           <span className="font-mono text-[11px] text-t3">{totalTc}</span>

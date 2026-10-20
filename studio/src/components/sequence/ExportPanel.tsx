@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import type { JobRecord } from "@/server/jobs/store";
 import type { Sequence } from "@/server/sequence/model";
 import type { Fps } from "@/server/sequence/timecode";
 import { Button } from "@/components/ui/button";
+import { PublishDialog } from "@/components/PublishDialog";
 
 type Codec = "h264" | "prores";
+type Action = "render" | "package";
 
 const STORE_KEY = "phaino.exportJobId";
 
@@ -52,6 +55,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 }
 
 const FILE_LABELS: Record<string, string> = {
+  "phaino_render.mp4": "MP4 movie",
   "phaino_sequence.mp4": "MP4 movie",
   "phaino_sequence.mov": "ProRes movie",
   "phaino_sequence.fcpxml": "FCPXML",
@@ -113,9 +117,9 @@ export function ExportPanel({
     return () => esRef.current?.close();
   }, []);
 
-  // Fetch summary.txt once the export succeeds.
+  // Fetch summary.txt once an NLE package succeeds.
   useEffect(() => {
-    if (job?.status !== "succeeded") return;
+    if (job?.status !== "succeeded" || job.params?.action !== "package") return;
     const id = job.id;
     fetch(`/api/exports/${id}/summary.txt`)
       .then((r) => (r.ok ? r.text() : null))
@@ -123,16 +127,17 @@ export function ExportPanel({
         if (t !== null) setSummary({ id, text: t });
       })
       .catch(() => undefined);
-  }, [job?.id, job?.status]);
+  }, [job?.id, job?.status, job?.params]);
 
   const running = job?.status === "queued" || job?.status === "running";
+  const isPackage = job?.params?.action === "package";
 
-  const start = async () => {
+  const start = async (action: Action) => {
     setSubmitError(null);
     const res = await fetch("/api/sequence/export", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ codec }),
+      body: JSON.stringify({ action, codec }),
     });
     const data = (await res.json().catch(() => null)) as
       | { job?: JobRecord; error?: string }
@@ -151,6 +156,11 @@ export function ExportPanel({
   };
 
   const exportId = job?.params?.exportId as string | undefined;
+  // The render job copies its mp4 to outputs/editor/render-<jobId>.mp4.
+  const libraryPath =
+    job?.status === "succeeded" && !isPackage
+      ? `editor/render-${job.id}.mp4`
+      : undefined;
   const downloads =
     job?.status === "succeeded" && exportId
       ? job.outputs
@@ -214,23 +224,16 @@ export function ExportPanel({
           />
         </Row>
         <p className="px-3 pt-0.5 text-[11px] text-t3">
-          {codec === "h264"
-            ? "H.264 .mp4 for sharing"
-            : "ProRes 422 .mov for editing"}
+          Renders a finished H.264/AAC MP4. The NLE package also conforms media
+          with handles and writes FCPXML and EDL; the audio lane and titles are
+          not in the interchange files.
         </p>
-
-        {!canExport && (
-          <p className="px-3 pt-3 text-[12px] leading-snug text-t3">
-            Exports an MP4 or ProRes movie, FCPXML and EDL for Resolve, Premiere
-            or Final Cut, with handles.
-          </p>
-        )}
 
         {job && (
           <div className="mx-3 mt-3 rounded-lg border border-line bg-s2 p-2.5">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-medium text-t2">
-                {job.status}
+                {isPackage ? "Package" : "Render"} · {job.status}
               </span>
               {running && (
                 <button
@@ -258,26 +261,63 @@ export function ExportPanel({
             )}
             {job.status === "succeeded" && exportId && (
               <div className="mt-2">
-                <a
-                  href={`/api/exports/${exportId}/zip`}
-                  className="inline-flex h-8 w-full items-center justify-center rounded-md bg-ac px-2 text-[12px] font-medium text-on hover:bg-[#ff6d3a]"
-                >
-                  Download zip
-                </a>
-                <ul className="mt-2 space-y-1">
-                  {downloads.map((d) => (
-                    <li key={d.name}>
-                      <a
-                        href={d.href}
-                        download
-                        className="text-[11px] text-t2 underline-offset-2 hover:text-ac hover:underline"
+                {!isPackage && libraryPath ? (
+                  <div className="flex flex-col gap-1.5">
+                    <a
+                      href={`/api/exports/${exportId}/phaino_render.mp4`}
+                      download
+                      className="inline-flex h-8 w-full items-center justify-center rounded-md bg-ac px-2 text-[12px] font-medium text-on hover:bg-[#ff6d3a]"
+                    >
+                      Download MP4
+                    </a>
+                    <div className="flex gap-1.5">
+                      <Link
+                        href="/library"
+                        className="inline-flex h-7 flex-1 items-center justify-center rounded-md border border-line px-2 text-[12px] text-t2 hover:bg-s3 hover:text-t1"
                       >
-                        {FILE_LABELS[d.name] ?? d.name}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-                {summary?.id === job.id && (
+                        Library
+                      </Link>
+                      <PublishDialog
+                        output={{
+                          path: libraryPath,
+                          kind: "video",
+                          previewUrl: `/api/outputs/${libraryPath}`,
+                        }}
+                        trigger={
+                          <button
+                            type="button"
+                            className="inline-flex h-7 flex-1 items-center justify-center rounded-md border border-line px-2 text-[12px] text-t2 hover:bg-s3 hover:text-t1"
+                          >
+                            Publish
+                          </button>
+                        }
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <a
+                    href={`/api/exports/${exportId}/zip`}
+                    className="inline-flex h-8 w-full items-center justify-center rounded-md bg-ac px-2 text-[12px] font-medium text-on hover:bg-[#ff6d3a]"
+                  >
+                    Download zip
+                  </a>
+                )}
+                {isPackage && (
+                  <ul className="mt-2 space-y-1">
+                    {downloads.map((d) => (
+                      <li key={d.name}>
+                        <a
+                          href={d.href}
+                          download
+                          className="text-[11px] text-t2 underline-offset-2 hover:text-ac hover:underline"
+                        >
+                          {FILE_LABELS[d.name] ?? d.name}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {isPackage && summary?.id === job.id && (
                   <pre className="mt-2 max-h-40 overflow-auto rounded-md bg-s1 p-2 font-mono text-[10px] leading-relaxed text-t3">
                     {summary.text}
                   </pre>
@@ -291,13 +331,21 @@ export function ExportPanel({
         )}
       </div>
 
-      <div className="border-t border-line p-3">
+      <div className="flex flex-col gap-2 border-t border-line p-3">
         <Button
-          onClick={() => void start()}
+          onClick={() => void start("render")}
           disabled={!canExport || running}
           className="h-10 w-full bg-ac text-[13px] font-semibold text-on hover:bg-[#ff6d3a] disabled:bg-s2 disabled:text-t3 disabled:opacity-100"
         >
-          Export package
+          Render video
+        </Button>
+        <Button
+          onClick={() => void start("package")}
+          disabled={!canExport || running}
+          variant="outline"
+          className="h-9 w-full text-[13px]"
+        >
+          Export for NLE
         </Button>
       </div>
     </div>

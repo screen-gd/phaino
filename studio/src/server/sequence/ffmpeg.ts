@@ -1,116 +1,73 @@
-/** Pure ffmpeg arg builders. The fps filter runs first so trim frames are project frames. */
-import type { Fps } from "./timecode";
-import { RESOLUTIONS, type SequenceResolution } from "./timecode";
+/** ffmpeg arg builders for media conforming (NLE package). */
+import {
+  outputSize,
+  type SequenceAspect,
+  type SequenceFit,
+  type SequenceResolution,
+} from "./timecode";
 
 export type ExportCodec = "h264" | "prores";
 
-export function conformFilter({
-  fps,
-  width,
-  height,
-  startFrame,
-  endFrame,
-}: {
-  fps: Fps;
-  width: number;
-  height: number;
-  startFrame: number;
-  endFrame: number;
-}): string {
-  return [
-    `fps=${fps}`,
-    `trim=start_frame=${startFrame}:end_frame=${endFrame}`,
-    "setpts=PTS-STARTPTS",
-    `scale=${width}:${height}:force_original_aspect_ratio=decrease`,
-    `pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2:color=black`,
-    "setsar=1",
-  ].join(",");
+export function codecExt(codec: ExportCodec): ".mp4" | ".mov" {
+  return codec === "prores" ? ".mov" : ".mp4";
 }
 
-export function codecArgs(codec: ExportCodec): string[] {
-  return codec === "h264"
+function codecArgs(codec: ExportCodec): string[] {
+  return codec === "prores"
     ? [
+        "-c:v", "prores_ks",
+        "-profile:v", "3",
+        "-vendor", "apl0",
+        "-pix_fmt", "yuv422p10le",
+        "-c:a", "pcm_s16le",
+      ]
+    : [
         "-c:v", "libx264",
         "-preset", "medium",
         "-crf", "18",
         "-pix_fmt", "yuv420p",
-        "-movflags", "+faststart",
-      ]
-    : [
-        "-c:v", "prores_ks",
-        "-profile:v", "2",
-        "-pix_fmt", "yuv422p10le",
-        "-vendor", "apl0",
+        "-c:a", "aac",
+        "-b:a", "192k",
       ];
 }
 
-export function codecExt(codec: ExportCodec): ".mp4" | ".mov" {
-  return codec === "h264" ? ".mp4" : ".mov";
-}
-
-/** Conform one clip's frames [startFrame, endFrame) to project fps+size. */
-export function buildMediaCommand({
-  src,
-  out,
-  fps,
-  resolution,
-  startFrame,
-  endFrame,
-  codec,
-}: {
+export type MediaCommand = {
   src: string;
   out: string;
-  fps: Fps;
+  fps: number;
+  aspect: SequenceAspect;
   resolution: SequenceResolution;
+  fit: SequenceFit;
   startFrame: number;
   endFrame: number;
   codec: ExportCodec;
-}): string[] {
-  const [width, height] = RESOLUTIONS[resolution];
+  hasAudio: boolean;
+};
+
+/**
+ * Conform a media range: project fps and aspect (letterbox/crop) with handles,
+ * audio carried through when present.
+ */
+export function buildMediaCommand(c: MediaCommand): string[] {
+  const [w, h] = outputSize(c.aspect, c.resolution);
+  const scale =
+    c.fit === "cover"
+      ? `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h}`
+      : `scale=${w}:${h}:force_original_aspect_ratio=decrease,pad=${w}:${h}:(ow-iw)/2:(oh-ih)/2:color=black`;
+  const video = `[0:v]fps=${c.fps},trim=start_frame=${c.startFrame}:end_frame=${c.endFrame},setpts=PTS-STARTPTS,${scale},setsar=1[v]`;
+  const audio = `[0:a]atrim=start=${c.startFrame / c.fps}:end=${c.endFrame / c.fps},asetpts=PTS-STARTPTS[a]`;
   return [
     "-y",
     "-hide_banner",
     "-nostats",
     "-progress", "pipe:1",
-    "-i", src,
-    "-vf", conformFilter({ fps, width, height, startFrame, endFrame }),
-    "-an",
-    ...codecArgs(codec),
-    "-r", String(fps),
-    out,
+    "-i", c.src,
+    "-filter_complex",
+    c.hasAudio ? `${video};${audio}` : video,
+    "-map", "[v]",
+    ...(c.hasAudio ? ["-map", "[a]"] : ["-an"]),
+    ...codecArgs(c.codec),
+    "-r", String(c.fps),
+    c.out,
   ];
-}
-
-/** Concatenate clips into the sequence movie (sources trimmed in-frame). */
-export function buildSequenceCommand({
-  clips,
-  fps,
-  resolution,
-  codec,
-  out,
-}: {
-  clips: { src: string; inFrame: number; outFrame: number }[];
-  fps: Fps;
-  resolution: SequenceResolution;
-  codec: ExportCodec;
-  out: string;
-}): string[] {
-  const [width, height] = RESOLUTIONS[resolution];
-  const parts = clips.map(
-    (c, i) =>
-      `[${i}:v]${conformFilter({ fps, width, height, startFrame: c.inFrame, endFrame: c.outFrame })}[v${i}]`,
-  );
-  const inputs = clips.map((_, i) => `[v${i}]`).join("");
-  const filterComplex = `${parts.join(";")};${inputs}concat=n=${clips.length}:v=1:a=0[out]`;
-  const args = ["-y", "-hide_banner", "-nostats", "-progress", "pipe:1"];
-  for (const c of clips) args.push("-i", c.src);
-  args.push(
-    "-filter_complex", filterComplex,
-    "-map", "[out]",
-    "-an",
-    ...codecArgs(codec),
-    "-r", String(fps),
-    out,
-  );
-  return args;
 }

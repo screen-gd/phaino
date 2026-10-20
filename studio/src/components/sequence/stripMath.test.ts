@@ -1,17 +1,34 @@
 import { describe, expect, it } from "vitest";
+import type { Clip } from "@/server/sequence/model";
 import {
   frameAtX,
   layoutClips,
   locate,
+  moveFromDrag,
   nextZoomToFit,
   tickStep,
   trimFromDrag,
 } from "./stripMath";
 
+function clip(id: string, inF: number, outF: number, extra: Partial<Clip> = {}): Clip {
+  return {
+    id,
+    mediaId: id,
+    in: inF,
+    out: outF,
+    volume: 1,
+    muted: false,
+    fadeIn: 0,
+    fadeOut: 0,
+    transition: { type: "cut", frames: 0 },
+    ...extra,
+  };
+}
+
 const clips = [
-  { id: "a", in: 0, out: 48 },
-  { id: "b", in: 10, out: 34 },
-  { id: "c", in: 0, out: 12 },
+  clip("a", 0, 48),
+  clip("b", 10, 34),
+  clip("c", 0, 12),
 ];
 // a: 48 frames, b: 24, c: 12 -> total 84 at 24fps
 
@@ -25,6 +42,21 @@ describe("layoutClips", () => {
     for (let i = 1; i < l.clips.length; i++) {
       expect(l.clips[i].recordIn).toBe(l.clips[i - 1].recordOut);
     }
+  });
+
+  it("crossfade overlaps and clamps to the shorter half", () => {
+    const l = layoutClips([
+      clip("a", 0, 48, { transition: { type: "crossfade", frames: 12 } }),
+      clip("b", 0, 24),
+    ]);
+    expect(l.clips[1].recordIn).toBe(36);
+    expect(l.totalFrames).toBe(60);
+    const clamped = layoutClips([
+      clip("a", 0, 48, { transition: { type: "crossfade", frames: 30 } }),
+      clip("b", 0, 24),
+    ]);
+    expect(clamped.clips[0].transition.frames).toBe(12);
+    expect(clamped.totalFrames).toBe(60);
   });
 });
 
@@ -91,6 +123,16 @@ describe("trimFromDrag", () => {
     expect(
       trimFromDrag({ ...base, side: "right", dxPx: 36, shift: true }),
     ).toEqual({ in: 12, out: 48 });
+  });
+});
+
+describe("moveFromDrag", () => {
+  it("moves by frames and clamps at 0, shift snaps to seconds", () => {
+    // +48px = 12 frames at 96px/s, 24fps
+    expect(moveFromDrag(24, 48, 96, 24, false)).toBe(36);
+    expect(moveFromDrag(10, -999, 96, 24, false)).toBe(0);
+    // 9 frames -> snapped to 24+24? start 24 + 9 = 33 -> snaps to 24
+    expect(moveFromDrag(24, 36, 96, 24, true)).toBe(24);
   });
 });
 

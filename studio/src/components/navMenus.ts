@@ -99,11 +99,10 @@ export function buildNavMenus(
           badge: "Soon",
         },
         {
-          title: "Export",
-          href: "/export",
-          description: "FCPXML and EDL",
+          title: "Editor",
+          href: "/editor",
+          description: "Cut, titles and music",
           icon: "export",
-          badge: "Soon",
         },
       ],
       models: models

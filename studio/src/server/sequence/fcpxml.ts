@@ -1,6 +1,11 @@
 import { pathToFileURL } from "node:url";
+import type { Transition } from "./model";
 import type { Fps } from "./timecode";
-import { RESOLUTIONS, type SequenceResolution } from "./timecode";
+import {
+  outputSize,
+  type SequenceAspect,
+  type SequenceResolution,
+} from "./timecode";
 
 function esc(s: string): string {
   return s
@@ -24,28 +29,32 @@ export type FcpxmlItem = {
   start: number;
   /** Used length in frames. */
   duration: number;
-  /** Gapless record position in project frames. */
+  /** Record position in project frames (overlapped on crossfade). */
   recordIn: number;
+  /** Effective transition INTO the next clip. */
+  transition?: Transition;
 };
 
 /** FCPXML 1.10 for the whole sequence, tcStart 01:00:00:00. */
 export function buildFcpxml({
   name,
   fps,
+  aspect = "16:9",
   resolution,
   items,
 }: {
   name: string;
   fps: Fps;
+  aspect?: SequenceAspect;
   resolution: SequenceResolution;
   items: FcpxmlItem[];
 }): string {
-  const [width, height] = RESOLUTIONS[resolution];
-  const formatName =
-    resolution === "4K"
-      ? `FFVideoFormat3840x2160p${fps}`
-      : `FFVideoFormat1080p${fps}`;
-  const total = items.reduce((sum, i) => sum + i.duration, 0);
+  const [width, height] = outputSize(aspect, resolution);
+  const formatName = `FFVideoFormat${width}x${height}p${fps}`;
+  const total =
+    items.length === 0
+      ? 0
+      : Math.max(...items.map((i) => i.recordIn + i.duration));
 
   const resources = [
     `    <format id="r1" name="${formatName}" frameDuration="1/${fps}s" width="${width}" height="${height}" colorSpace="1-1-1 (Rec. 709)"/>`,
@@ -61,9 +70,18 @@ export function buildFcpxml({
 
   const spine = items.map((item, i) => {
     const offsetFrames = 3600 * fps + item.recordIn;
-    return [
-      `          <asset-clip ref="r${i + 2}" name="${esc(item.name)}" offset="${dur(offsetFrames, fps)}" start="${dur(item.start, fps)}" duration="${dur(item.duration, fps)}" format="r1" tcFormat="NDF"/>`,
-    ].join("\n");
+    const dissolve =
+      item.transition &&
+      item.transition.type === "crossfade" &&
+      item.transition.frames > 0;
+    return dissolve
+      ? [
+          `          <asset-clip ref="r${i + 2}" name="${esc(item.name)}" offset="${dur(offsetFrames, fps)}" start="${dur(item.start, fps)}" duration="${dur(item.duration, fps)}" format="r1" tcFormat="NDF">`,
+          // FCP centres a dissolve on the edit point inside the clip.
+          `            <transition name="Cross Dissolve" offset="${dur(item.duration - Math.floor(item.transition!.frames / 2), fps)}" duration="${dur(item.transition!.frames, fps)}"/>`,
+          `          </asset-clip>`,
+        ].join("\n")
+      : `          <asset-clip ref="r${i + 2}" name="${esc(item.name)}" offset="${dur(offsetFrames, fps)}" start="${dur(item.start, fps)}" duration="${dur(item.duration, fps)}" format="r1" tcFormat="NDF"/>`;
   });
 
   return [

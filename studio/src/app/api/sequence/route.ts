@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { layout } from "@/server/sequence/model";
+import {
+  audioClipSchema,
+  clipSchema,
+  layout,
+  titleSchema,
+} from "@/server/sequence/model";
 import { getSequenceStore } from "@/server/sequence/store";
 import { socialErrorResponse } from "@/server/social/errors";
 
@@ -10,16 +15,12 @@ export const dynamic = "force-dynamic";
 const patchSchema = z.object({
   fps: z.union([z.literal(24), z.literal(25), z.literal(30)]).optional(),
   resolution: z.enum(["1080p", "4K"]).optional(),
+  aspect: z.enum(["16:9", "9:16", "1:1", "4:5"]).optional(),
+  fit: z.enum(["contain", "cover"]).optional(),
   handles: z.union([z.literal(0), z.literal(12), z.literal(24)]).optional(),
-  clips: z
-    .array(
-      z.object({
-        id: z.string(),
-        in: z.number().int().nonnegative(),
-        out: z.number().int().nonnegative(),
-      }),
-    )
-    .optional(),
+  clips: z.array(clipSchema).optional(),
+  audio: z.array(audioClipSchema).optional(),
+  titles: z.array(titleSchema).optional(),
 });
 
 export async function GET() {

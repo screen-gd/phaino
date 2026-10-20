@@ -54,8 +54,8 @@ export function AddToSequence({
           type="button"
           onClick={add}
           disabled={state === "adding"}
-          aria-label={state === "added" ? "Added" : "Add to sequence"}
-          title={state === "added" ? "Added" : "Add to sequence"}
+          aria-label={state === "added" ? "Added" : "Add to Editor"}
+          title={state === "added" ? "Added" : "Add to Editor"}
           className={`grid h-6 w-6 place-items-center rounded-md border text-[13px] leading-none ${
             state === "added"
               ? "border-ac bg-ac text-on"
@@ -76,7 +76,7 @@ export function AddToSequence({
           disabled={state === "adding"}
           className={className}
         >
-          {state === "added" ? "Added" : "Add to sequence"}
+          {state === "added" ? "Added" : "Add to Editor"}
         </Button>
       )}
       {error && <span className="text-[11px] text-destructive">{error}</span>}

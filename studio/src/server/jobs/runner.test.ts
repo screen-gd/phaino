@@ -14,15 +14,20 @@ import { openStore } from "./store";
 
 const NOW = "2026-10-19T00:00:00.000Z";
 
-function envWith(key?: string): StudioEnv {
+function envWith(key: string | undefined, partnerModels = false): StudioEnv {
   return {
     comfyApiKey: key,
+    partnerModels,
     comfyBaseUrl: undefined,
-    presetsDir: "",
+    // The runner resolves presets from the env it was given, so point at the
+    // real catalog (vitest runs with cwd = studio/).
+    presetsDir: path.resolve(process.cwd(), "../presets"),
     forksDir: "",
     dataDir: "",
     user: "local",
     siteUrl: "http://localhost:3000",
+    ffmpegPath: "ffmpeg",
+    ffprobePath: "ffprobe",
     trackerFile: "",
   };
 }
@@ -57,7 +62,7 @@ function fakeJob(over: Partial<JobHandleLike> = {}): JobHandleLike {
 
 type SubmitOpts = { idempotencyKey: string; apiKey?: string };
 
-function makeDeps(job: JobHandleLike, key = "test-key") {
+function makeDeps(job: JobHandleLike, key = "test-key", partnerModels = false) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "phaino-run-"));
   const store = openStore(path.join(dir, "phaino.db"));
   const submitCalls: SubmitOpts[] = [];
@@ -78,7 +83,7 @@ function makeDeps(job: JobHandleLike, key = "test-key") {
     jobs: { get: async () => job },
   };
   const runner = new JobRunner({
-    env: envWith(key),
+    env: envWith(key, partnerModels),
     getClient: () => client,
     store,
     dataDir: dir,
@@ -117,7 +122,7 @@ describe("job runner", () => {
   });
 
   it("passes apiKey for partner presets, not for open", async () => {
-    const { dir, store, runner, submitCalls } = makeDeps(fakeJob());
+    const { dir, store, runner, submitCalls } = makeDeps(fakeJob(), "test-key", true);
     const open = runner.startJob({
       presetId: "dolly-in",
       params: {},
@@ -193,3 +198,4 @@ describe("job runner", () => {
     expect(store.get(row.id)?.status).toBe("cancelled");
   });
 });
+

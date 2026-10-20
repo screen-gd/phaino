@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { ToolStudio } from "@/components/ToolStudio";
+import { ImageStudio } from "@/components/studio/ImageStudio";
 import { toStudioPreset } from "@/components/toolStudioData";
 import { listPresets } from "@/server/presets/load";
 
@@ -11,7 +11,7 @@ export default function ImagePage() {
     .map(toStudioPreset);
   return (
     <Suspense>
-      <ToolStudio title="Image" icon="image" category="image" presets={presets} />
+      <ImageStudio presets={presets} />
     </Suspense>
   );
 }

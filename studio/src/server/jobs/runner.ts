@@ -144,7 +144,7 @@ export class JobRunner {
   }): JobRecord {
     if (!comfyTarget(this.deps.env).configured) throw new NotConnected();
 
-    const loaded = getPreset(input.presetId);
+    const loaded = getPreset(input.presetId, this.deps.env);
     if (!loaded) throw new JobInputError(`Unknown preset "${input.presetId}"`);
     const { preset } = loaded;
 
@@ -260,7 +260,7 @@ export class JobRunner {
     const row = this.deps.store.get(jobId);
     if (!row || row.status !== "queued") return;
     try {
-      const loaded = getPreset(row.presetId);
+      const loaded = getPreset(row.presetId, this.deps.env);
       if (!loaded) throw new JobInputError(`Unknown preset "${row.presetId}"`);
       const { preset } = loaded;
       const client = this.deps.getClient();
@@ -282,8 +282,8 @@ export class JobRunner {
       this.update(jobId, { status: "running", message: "Submitting" });
       const remote = await client.submit(wf, {
         idempotencyKey: row.id,
-        ...(preset.model.license === "partner" && this.deps.env.comfyApiKey
-          ? { apiKey: this.deps.env.comfyApiKey }
+        ...(preset.model.license === "partner" && comfyTarget(this.deps.env).apiKey
+          ? { apiKey: comfyTarget(this.deps.env).apiKey }
           : {}),
       });
       this.update(jobId, { comfyJobId: remote.id });
@@ -346,7 +346,7 @@ export class JobRunner {
     // result() is the authoritative terminal state.
     await remote.result();
     if (this.isCancelled(row.id)) return;
-    const preset = getPreset(row.presetId)?.preset;
+    const preset = getPreset(row.presetId, this.deps.env)?.preset;
     for (const spec of preset?.outputs ?? []) {
       for (const output of remote.getOutputs(spec.node)) {
         if (savedNames.has(output.name)) continue;
@@ -388,4 +388,5 @@ export function getRunner(): JobRunner {
   }
   return rg.__phainoJobRunner;
 }
+
 

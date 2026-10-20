@@ -73,6 +73,7 @@ export const presetSchema = z
       label: z.string(),
       license: z.enum(["open", "partner"]),
     }),
+    forkOf: slug.optional(),
     source: z.object({
       template: z.string(),
       modes: z.record(z.string(), z.number().int()).optional(),

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { ToolStudio } from "@/components/ToolStudio";
+import { VideoStudio } from "@/components/studio/VideoStudio";
 import { toStudioPreset } from "@/components/toolStudioData";
 import { listPresets } from "@/server/presets/load";
 
@@ -11,7 +11,7 @@ export default function VideoPage() {
     .map(toStudioPreset);
   return (
     <Suspense>
-      <ToolStudio title="Video" icon="video" category="video" presets={presets} />
+      <VideoStudio category="video" presets={presets} />
     </Suspense>
   );
 }

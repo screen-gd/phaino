@@ -2,12 +2,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { getEnv } from "@/server/env";
+import { resolvePresetDir } from "@/server/presets/load";
 
 export const runtime = "nodejs";
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-/** Serve `<PRESETS_DIR>/<id>/thumb.webp`. The slug shape alone blocks traversal. */
+/** Serve the preset's thumb.webp (built-in or fork). */
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -16,12 +17,11 @@ export async function GET(
   if (!SLUG.test(id)) {
     return new Response("Invalid preset id", { status: 400 });
   }
-
-  const presetsDir = path.resolve(getEnv().presetsDir);
-  const file = path.resolve(presetsDir, id, "thumb.webp");
-  if (!file.startsWith(presetsDir + path.sep)) {
-    return new Response("Invalid preset id", { status: 400 });
+  const dir = resolvePresetDir(id, getEnv());
+  if (!dir) {
+    return new Response("Not found", { status: 404 });
   }
+  const file = path.join(dir, "thumb.webp");
 
   try {
     const stat = fs.statSync(file);

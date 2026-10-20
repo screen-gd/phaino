@@ -220,6 +220,11 @@ export function AppShell({
               else hideCapsule();
             }
           }}
+          onWheel={(e) => {
+            // A plain mouse wheel only sends deltaY; turn it into a sideways scroll.
+            if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+            e.currentTarget.scrollLeft += e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+          }}
           className="hidden min-w-0 flex-1 overflow-x-auto [scrollbar-width:none] [mask-image:linear-gradient(to_right,#000_calc(100%-32px),transparent)] md:block [&::-webkit-scrollbar]:hidden"
         >
           <div className="relative w-max min-w-full">

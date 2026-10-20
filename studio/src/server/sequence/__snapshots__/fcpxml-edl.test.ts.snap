@@ -7,8 +7,10 @@ FCM: NON-DROP FRAME
 001  AX      V    C        00:00:00:00 00:00:02:00 01:00:00:00 01:00:02:00
 * FROM CLIP NAME: Orbit.mp4
 * SOURCE FILE: 01_orbit.mp4
+001  AX      V    D    012   01:00:01:12 01:00:02:00 01:00:01:12 01:00:02:00
+* TRANSITION: CROSS DISSOLVE
 
-002  AX      V    C        00:00:00:04 00:00:01:04 01:00:02:00 01:00:03:00
+002  AX      V    C        00:00:00:04 00:00:01:04 01:00:01:12 01:00:02:12
 * FROM CLIP NAME: Dive & Drop.mp4
 * SOURCE FILE: 02_dive_drop.mp4
 "
@@ -19,7 +21,7 @@ exports[`buildFcpxml > emits FCPXML 1.10 with assets and an asset-clip spine 1`]
 <!DOCTYPE fcpxml>
 <fcpxml version="1.10">
   <resources>
-    <format id="r1" name="FFVideoFormat1080p24" frameDuration="1/24s" width="1920" height="1080" colorSpace="1-1-1 (Rec. 709)"/>
+    <format id="r1" name="FFVideoFormat1920x1080p24" frameDuration="1/24s" width="1920" height="1080" colorSpace="1-1-1 (Rec. 709)"/>
     <asset id="r2" name="Orbit.mp4" start="0s" duration="60/24s" hasVideo="1" format="r1" videoSources="1">
       <media-rep kind="original-media" src="file:///C:/data/exports/x/media/01_orbit.mp4"/>
     </asset>
@@ -30,10 +32,12 @@ exports[`buildFcpxml > emits FCPXML 1.10 with assets and an asset-clip spine 1`]
   <library>
     <event name="Phaino">
       <project name="phaino_sequence">
-        <sequence format="r1" duration="72/24s" tcStart="3600s" tcFormat="NDF">
+        <sequence format="r1" duration="60/24s" tcStart="3600s" tcFormat="NDF">
           <spine>
-          <asset-clip ref="r2" name="Orbit.mp4" offset="86400/24s" start="0s" duration="48/24s" format="r1" tcFormat="NDF"/>
-          <asset-clip ref="r3" name="Dive &amp; Drop.mp4" offset="86448/24s" start="4/24s" duration="24/24s" format="r1" tcFormat="NDF"/>
+          <asset-clip ref="r2" name="Orbit.mp4" offset="86400/24s" start="0s" duration="48/24s" format="r1" tcFormat="NDF">
+            <transition name="Cross Dissolve" offset="42/24s" duration="12/24s"/>
+          </asset-clip>
+          <asset-clip ref="r3" name="Dive &amp; Drop.mp4" offset="86436/24s" start="4/24s" duration="24/24s" format="r1" tcFormat="NDF"/>
           </spine>
         </sequence>
       </project>

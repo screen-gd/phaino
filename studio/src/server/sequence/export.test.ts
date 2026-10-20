@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { StudioEnv } from "@/server/env";
 import { openStore } from "@/server/jobs/store";
 import { subscribeJob } from "@/server/jobs/runner";
-import { emptySequence, type Sequence } from "./model";
+import { emptySequence, type Media, type Sequence } from "./model";
 import { startExport, type RunFfmpeg } from "./export";
 import type { SequenceStore } from "./store";
 
@@ -26,6 +26,22 @@ function env(): StudioEnv {
   };
 }
 
+function videoMedia(id: string, name: string, durationSec: number): Media {
+  return {
+    id,
+    path: `test/${name}`,
+    name,
+    kind: "video",
+    srcFps: 24,
+    width: 1920,
+    height: 1080,
+    durationSec,
+    hasAudio: true,
+  };
+}
+
+const CUT = { type: "cut" as const, frames: 0 };
+
 /**
  * Two clips: "a" 3s at 24fps (72 frames, full length),
  * "b" 2s (48 frames) trimmed 4-28 so its 12-frame head clamps to 4.
@@ -33,28 +49,29 @@ function env(): StudioEnv {
 function seq(): Sequence {
   return {
     ...emptySequence(),
+    media: [videoMedia("ma", "Orbit.mp4", 3), videoMedia("mb", "Dive.mp4", 2)],
     clips: [
       {
         id: "a",
-        path: "test/a.mp4",
-        name: "Orbit.mp4",
-        srcFps: 24,
-        width: 1920,
-        height: 1080,
-        durationSec: 3,
+        mediaId: "ma",
         in: 0,
         out: 48,
+        volume: 1,
+        muted: false,
+        fadeIn: 0,
+        fadeOut: 0,
+        transition: CUT,
       },
       {
         id: "b",
-        path: "test/b.mp4",
-        name: "Dive.mp4",
-        srcFps: 24,
-        width: 1920,
-        height: 1080,
-        durationSec: 2,
+        mediaId: "mb",
         in: 4,
         out: 28,
+        volume: 1,
+        muted: false,
+        fadeIn: 0,
+        fadeOut: 0,
+        transition: CUT,
       },
     ],
   };
@@ -64,8 +81,10 @@ function fakeSequences(sequence: Sequence): SequenceStore {
   return {
     getSequence: async () => sequence,
     updateSequence: async () => sequence,
+    importMedia: async () => sequence.media[0] as Media,
     appendClip: async () => sequence,
     removeClip: async () => sequence,
+    removeMedia: async () => sequence,
   };
 }
 
@@ -86,19 +105,47 @@ describe("startExport", () => {
     const jobs = openStore(path.join(e.dataDir, "phaino.db"));
     await expect(
       startExport(
-        { codec: "h264" },
+        { action: "render" },
         { env: e, jobs, sequences: fakeSequences(emptySequence()), runFfmpeg: fakeRunFfmpeg([]) },
       ),
     ).rejects.toThrow("empty");
   });
 
-  it("conforms media, renders the movie and writes fcpxml/edl/summary", async () => {
+  it("render: one ffmpeg pass, mp4 copied into outputs for the Library", async () => {
+    const e = env();
+    const jobs = openStore(path.join(e.dataDir, "phaino.db"));
+    const files: string[] = [];
+    const job = await startExport(
+      { action: "render" },
+      {
+        env: e,
+        jobs,
+        sequences: fakeSequences(seq()),
+        runFfmpeg: fakeRunFfmpeg(files),
+        now: () => "2026-10-19T00:00:00.000Z",
+      },
+    );
+    expect(job.params.action).toBe("render");
+    await vi.waitFor(() => {
+      expect(jobs.get(job.id)?.status).toBe("succeeded");
+    }, { timeout: 5000 });
+
+    const dir = path.join(e.dataDir, "exports", job.id);
+    expect(files).toHaveLength(1);
+    expect(files[0]).toBe(path.join(dir, "phaino_render.mp4"));
+    const libPath = `editor/render-${job.id}.mp4`;
+    expect(fs.existsSync(path.join(e.dataDir, "outputs", libPath))).toBe(true);
+    const finished = jobs.get(job.id)!;
+    expect(finished.outputs).toEqual(["phaino_render.mp4"]);
+  });
+
+  it("package: conforms media, renders the movie and writes fcpxml/edl/summary", async () => {
     const e = env();
     const jobs = openStore(path.join(e.dataDir, "phaino.db"));
     const files: string[] = [];
     const progresses: number[] = [];
     const job = await startExport(
-      { codec: "h264" },
+      { action: "package", codec: "h264" },
       {
         env: e,
         jobs,
@@ -141,10 +188,10 @@ describe("startExport", () => {
     expect(summary).toContain("head handle 4 of 12 frames");
     expect(summary).toContain("01:00:00:00");
     expect(summary).toContain("01:00:03:00");
+    expect(summary).toContain("Audio track and titles");
 
     // 3 ffmpeg invocations: 2 media + 1 sequence render
     expect(files).toHaveLength(3);
     expect(files[2]).toBe(path.join(dir, "phaino_sequence.mp4"));
   });
 });
-

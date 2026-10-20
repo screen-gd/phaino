@@ -305,28 +305,53 @@
     },
     {
       "id": "m8",
-      "title": "M8 Export",
+      "title": "M8 Editor",
       "tasks": [
         {
-          "id": "m8-conform",
-          "title": "Conform",
+          "id": "m8-model-v2",
+          "title": "Sequence v2 model: media, audio lane, titles, migration",
           "status": "done"
         },
         {
-          "id": "m8-fcpxml",
-          "title": "FCPXML",
+          "id": "m8-bin",
+          "title": "Media bin with uploads and imported media",
           "status": "done"
         },
         {
-          "id": "m8-edl",
-          "title": "EDL",
+          "id": "m8-split",
+          "title": "Split and duplicate at the playhead",
           "status": "done"
         },
         {
-          "id": "m8-ui",
-          "title": "Sequence UI on /export",
-          "status": "done",
-          "notes": "No browser check yet"
+          "id": "m8-transitions",
+          "title": "Cut, crossfade and dip transitions",
+          "status": "done"
+        },
+        {
+          "id": "m8-audio",
+          "title": "Audio lane with volume and fades",
+          "status": "done"
+        },
+        {
+          "id": "m8-titles",
+          "title": "Titles lane and drawtext overlays",
+          "status": "done"
+        },
+        {
+          "id": "m8-aspect",
+          "title": "Aspect and contain/cover fit",
+          "status": "done"
+        },
+        {
+          "id": "m8-render",
+          "title": "Render to Library and Publish, NLE package with dissolves",
+          "status": "done"
+        },
+        {
+          "id": "m8-browser",
+          "title": "Browser check of /editor",
+          "status": "todo",
+          "notes": "Player preview, shortcuts, upload flow"
         }
       ]
     },

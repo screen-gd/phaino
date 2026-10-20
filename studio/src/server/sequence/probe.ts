@@ -13,6 +13,7 @@ export type ProbeResult = {
   height: number;
   fps: number;
   durationSec: number;
+  hasAudio: boolean;
 };
 
 function parseRate(rate: unknown): number | undefined {
@@ -27,28 +28,45 @@ function parseSec(v: unknown): number | undefined {
   return Number.isFinite(n) && n > 0 ? n : undefined;
 }
 
-/** ffprobe one video file: size, fps and duration in seconds. */
-export async function probeVideo(absPath: string): Promise<ProbeResult> {
+type ProbeStream = {
+  codec_type?: string;
+  width?: number;
+  height?: number;
+  avg_frame_rate?: string;
+  r_frame_rate?: string;
+  nb_frames?: string;
+  duration?: string;
+};
+
+type ProbeOutput = {
+  streams?: ProbeStream[];
+  format?: { duration?: string };
+};
+
+/** Whether the file carries an audio stream. */
+export async function hasAudioStream(absPath: string): Promise<boolean> {
   const { stdout } = await execFileAsync(getEnv().ffprobePath, [
     "-v", "error",
-    "-select_streams", "v:0",
-    "-show_entries",
-    "stream=width,height,avg_frame_rate,r_frame_rate,nb_frames,duration:format=duration",
+    "-select_streams", "a:0",
+    "-show_entries", "stream=codec_type",
     "-of", "json",
     absPath,
   ]);
-  const parsed = JSON.parse(stdout) as {
-    streams?: {
-      width?: number;
-      height?: number;
-      avg_frame_rate?: string;
-      r_frame_rate?: string;
-      nb_frames?: string;
-      duration?: string;
-    }[];
-    format?: { duration?: string };
-  };
-  const stream = parsed.streams?.[0];
+  const parsed = JSON.parse(stdout) as ProbeOutput;
+  return (parsed.streams?.length ?? 0) > 0;
+}
+
+/** ffprobe one video file: size, fps, duration in seconds and audio presence. */
+export async function probeVideo(absPath: string): Promise<ProbeResult> {
+  const { stdout } = await execFileAsync(getEnv().ffprobePath, [
+    "-v", "error",
+    "-show_entries",
+    "stream=codec_type,width,height,avg_frame_rate,r_frame_rate,nb_frames,duration:format=duration",
+    "-of", "json",
+    absPath,
+  ]);
+  const parsed = JSON.parse(stdout) as ProbeOutput;
+  const stream = parsed.streams?.find((s) => s.codec_type === "video");
   if (!stream?.width || !stream.height) {
     throw new Error(`No video stream in ${path.basename(absPath)}`);
   }
@@ -62,7 +80,35 @@ export async function probeVideo(absPath: string): Promise<ProbeResult> {
   if (!durationSec) {
     throw new Error(`No duration in ${path.basename(absPath)}`);
   }
-  return { width: stream.width, height: stream.height, fps, durationSec };
+  return {
+    width: stream.width,
+    height: stream.height,
+    fps,
+    durationSec,
+    hasAudio: (parsed.streams ?? []).some((s) => s.codec_type === "audio"),
+  };
+}
+
+/** ffprobe an audio-only file: duration in seconds. */
+export async function probeAudio(absPath: string): Promise<{
+  durationSec: number;
+  hasAudio: true;
+}> {
+  const { stdout } = await execFileAsync(getEnv().ffprobePath, [
+    "-v", "error",
+    "-select_streams", "a:0",
+    "-show_entries", "stream=duration:format=duration",
+    "-of", "json",
+    absPath,
+  ]);
+  const parsed = JSON.parse(stdout) as ProbeOutput;
+  const durationSec =
+    parseSec(parsed.streams?.[0]?.duration) ??
+    parseSec(parsed.format?.duration);
+  if (!durationSec) {
+    throw new Error(`No audio stream in ${path.basename(absPath)}`);
+  }
+  return { durationSec, hasAudio: true };
 }
 
 /** A 480px-wide jpeg poster of the first frame. */

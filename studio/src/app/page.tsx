@@ -25,7 +25,7 @@ const TOOLS = [
   { href: "/avatars", name: "Avatars", kind: "Video", badge: "Soon", desc: "Lipsync", icon: "avatars" },
   { href: "/edit", name: "Edit", kind: "Image", badge: "Soon", desc: "Upscale and inpaint", icon: "edit" },
   { href: "/audio", name: "Audio", kind: "Audio", badge: "Soon", desc: "Music and sound effects", icon: "audio" },
-  { href: "/export", name: "Export", kind: null, badge: "Soon", desc: "FCPXML and EDL", icon: "export" },
+  { href: "/editor", name: "Editor", kind: null, badge: "New", desc: "Cut, titles and music", icon: "export" },
 ] as const satisfies readonly {
   href: string;
   name: string;

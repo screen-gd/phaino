@@ -17,3 +17,13 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+## Outfit
+
+Outfit (https://github.com/Outfitio/Outfit-Fonts, mirrored in
+google/fonts at `ofl/outfit`). `assets/fonts/Outfit.ttf` is the variable
+TTF, used for editor title overlays in rendered video.
+
+Licensed under the SIL Open Font License, Version 1.1. A copy of the
+license is available at https://openfontlicense.org and in the
+google/fonts repository (`ofl/outfit/OFL.txt`).

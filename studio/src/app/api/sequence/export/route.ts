@@ -6,12 +6,15 @@ import { socialErrorResponse } from "@/server/social/errors";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const exportSchema = z.object({ codec: z.enum(["h264", "prores"]) });
+const exportSchema = z.object({
+  action: z.enum(["render", "package"]).default("render"),
+  codec: z.enum(["h264", "prores"]).default("h264"),
+});
 
 export async function POST(request: Request) {
   try {
-    const { codec } = exportSchema.parse(await request.json());
-    const job = await startExport({ codec });
+    const { action, codec } = exportSchema.parse(await request.json());
+    const job = await startExport({ action, codec });
     return NextResponse.json({ job }, { status: 201 });
   } catch (err) {
     return socialErrorResponse(err);

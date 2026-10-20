@@ -1,34 +1,43 @@
 /** Pure strip geometry: layout, locate, seek math, trims, zoom and ruler ticks. */
+import { transitionFrames, type Clip, type Transition } from "@/server/sequence/model";
 
-export type StripClip = { id: string; in: number; out: number };
-
-export type StripEntry<T extends StripClip = StripClip> = {
+export type StripEntry<T extends { in: number; out: number } = Clip> = {
   clip: T;
   recordIn: number;
   recordOut: number;
+  /** Effective transition out of this clip, after clamping. */
+  transition: Transition;
 };
 
-export type StripLayout<T extends StripClip = StripClip> = {
+export type StripLayout<T extends { in: number; out: number } = Clip> = {
   clips: StripEntry<T>[];
   totalFrames: number;
 };
 
-/** Gapless record positions, same maths as the server's layout(). */
-export function layoutClips<T extends StripClip>(clips: T[]): StripLayout<T> {
+/** Record positions matching the server's layout(), transitions included. */
+export function layoutClips(clips: Clip[]): StripLayout<Clip> {
   let cursor = 0;
-  const entries = clips.map((clip) => {
-    const entry = { clip, recordIn: cursor, recordOut: cursor + (clip.out - clip.in) };
-    cursor += clip.out - clip.in;
+  const entries = clips.map((clip, i) => {
+    const len = clip.out - clip.in;
+    const next = clips[i + 1];
+    const trans = next
+      ? clip.transition.type === "crossfade"
+        ? { type: clip.transition.type, frames: transitionFrames(clip, next) }
+        : clip.transition
+      : clip.transition;
+    const entry = { clip, recordIn: cursor, recordOut: cursor + len, transition: trans };
+    cursor += len;
+    if (next && clip.transition.type === "crossfade") cursor -= trans.frames;
     return entry;
   });
-  return { clips: entries, totalFrames: cursor };
+  return { clips: entries, totalFrames: Math.max(0, cursor) };
 }
 
 /**
  * The entry containing `frame`. A cut boundary belongs to the next clip;
  * frame >= total clamps to the last entry.
  */
-export function locate<T extends StripClip>(
+export function locate<T extends { in: number; out: number }>(
   layout: StripLayout<T>,
   frame: number,
 ): { index: number; entry: StripEntry<T> } {
@@ -79,6 +88,19 @@ export function trimFromDrag({
   }
   const o = Math.min(Math.max(startIn + 1, snap(startOut + df)), total);
   return { in: startIn, out: o };
+}
+
+/** Drag a whole free clip by dxPx: the new record start, clamped >= 0. */
+export function moveFromDrag(
+  start: number,
+  dxPx: number,
+  pxPerSec: number,
+  fps: number,
+  shift: boolean,
+): number {
+  const df = Math.round((dxPx / pxPerSec) * fps);
+  const snap = (f: number) => (shift ? Math.round(f / fps) * fps : f);
+  return Math.max(0, snap(start + df));
 }
 
 /** Zoom so the whole sequence fits `widthPx`, clamped to [10, 200]. */

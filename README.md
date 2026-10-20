@@ -143,6 +143,12 @@ pnpm models:sync -- --update-ref   # pin main's sha first
 
 Sync reads only; it never queues a generation. A mode that fails a gate stays in the manifest with its reasons and is hidden from the app.
 
+## Editor
+
+`/editor` is a small timeline editor for generated and imported media. It has a video lane with trim, reorder, split (S), duplicate (Ctrl+D), cut/crossfade/dip transitions and per-clip volume, a music lane with fades, a titles lane, aspect (16:9, 9:16, 1:1, 4:5) and contain/cover fitting, a media bin with drag-drop uploads, and undo/redo.
+
+"Render video" produces an H.264/AAC MP4 (drawtext titles, mixed audio, `+faststart`), copies it into Library outputs and offers Publish. "Export for NLE" conforms media with handles, writes FCPXML and EDL (crossfades become dissolves), and embeds the rendered movie. The audio lane and titles are not in the FCPXML/EDL interchange files. Title text uses the bundled Outfit font (`studio/assets/fonts/Outfit.ttf`, OFL). The sequence document lives at `<PHAINO_DATA_DIR>/sequence.json` (v2; v1 files migrate on load) and uploads land in `<PHAINO_DATA_DIR>/uploads/editor/`.
+
 ## Marketing site
 
 Astro, TypeScript and Tailwind. `pnpm dev:website` runs it; it deploys from `website/`. The visual direction is in [website/docs/landing-design.md](website/docs/landing-design.md), and media slots are documented in [website/public/media/README.md](website/public/media/README.md).

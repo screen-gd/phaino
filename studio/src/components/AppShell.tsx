@@ -192,7 +192,7 @@ export function AppShell({
   }, []);
 
   return (
-    <div className="grid h-dvh grid-rows-[auto_minmax(0,1fr)]">
+    <div className="grid h-dvh grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)]">
       <header
         data-compact={compact}
         className={`group flex h-14 items-center gap-3 bg-bg px-3 ${GROW} data-[compact=true]:h-9`}
@@ -200,7 +200,7 @@ export function AppShell({
         <Link
           href="/"
           aria-label="Phaino home"
-          className={`mr-1 flex items-center gap-2 font-wordmark text-xl font-bold tracking-tight group-data-[compact=true]:text-base ${GROW}`}
+          className={`mr-1 flex shrink-0 items-center gap-2 font-wordmark text-xl font-bold tracking-tight group-data-[compact=true]:text-base ${GROW}`}
         >
           <PhainoMark className="h-5 w-5 text-ac transition-[height,width] duration-200 ease-out motion-reduce:transition-none group-data-[compact=true]:h-4 group-data-[compact=true]:w-4" />
           Phaino
@@ -220,7 +220,7 @@ export function AppShell({
               else hideCapsule();
             }
           }}
-          className="hidden flex-1 overflow-x-auto [mask-image:linear-gradient(to_right,#000_calc(100%-32px),transparent)] md:block"
+          className="hidden min-w-0 flex-1 overflow-x-auto [scrollbar-width:none] [mask-image:linear-gradient(to_right,#000_calc(100%-32px),transparent)] md:block [&::-webkit-scrollbar]:hidden"
         >
           <div className="relative w-max min-w-full">
             <span
@@ -344,7 +344,7 @@ export function AppShell({
             </NavigationMenu.Positioner>
           </NavigationMenu.Portal>
         </NavigationMenu.Root>
-        <div className="flex items-center gap-1.5">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5">
           <MobileNav menus={menus} />
           <CloudStatus />
           {stars != null && (

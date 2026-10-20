@@ -95,8 +95,8 @@
         },
         {
           "id": "ui-social",
-          "title": "Social posting with user-added connections",
-          "status": "done"
+          "title": "Social posting with user-added connections (moved to issue #4)",
+          "status": "blocked"
         },
         {
           "id": "ui-nav-menus",
@@ -224,8 +224,8 @@
         },
         {
           "id": "m5-social",
-          "title": "Test a real social connection",
-          "status": "todo"
+          "title": "Test a real social connection (moved to issue #4)",
+          "status": "blocked"
         }
       ]
     },
@@ -344,7 +344,7 @@
         },
         {
           "id": "m8-render",
-          "title": "Render to Library and Publish, NLE package with dissolves",
+          "title": "Render to Library, NLE package with dissolves",
           "status": "done"
         },
         {
@@ -473,12 +473,43 @@
       ]
     },
     {
+      "id": "m10",
+      "title": "M10 All open models, local only",
+      "tasks": [
+        {
+          "id": "m10-models",
+          "title": "Register every open-weights template model (~60), sync gates",
+          "status": "done"
+        },
+        {
+          "id": "m10-picker",
+          "title": "Model picker search + family groups",
+          "status": "done"
+        },
+        {
+          "id": "m10-modes",
+          "title": "Edit-only and i2v-only model handling",
+          "status": "done"
+        },
+        {
+          "id": "m10-social",
+          "title": "Remove social publishing (moved to issue #4)",
+          "status": "done"
+        },
+        {
+          "id": "m10-local",
+          "title": "Local-only: dev/start bind 127.0.0.1, hosted in issue #5",
+          "status": "done"
+        }
+      ]
+    },
+    {
       "id": "ops",
       "title": "Housekeeping",
       "tasks": [
         {
           "id": "ops-commit",
-          "title": "Commit the uncommitted UI, brand and social work",
+          "title": "Commit the uncommitted UI and brand work",
           "status": "done",
           "notes": "Committed on studio/phaino-app"
         }

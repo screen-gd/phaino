@@ -42,6 +42,90 @@ export const MODEL_FAMILIES: readonly ModelFamily[] = [
   })),
 ];
 
+/**
+ * Picker group for a registry model id ("flux2-dev" -> "FLUX").
+ * Order matters: featured families first, then the rest. The group order in
+ * the picker follows this list, not the alphabet.
+ */
+const FAMILY_PREFIXES: readonly (readonly [string, string])[] = [
+  ["ltx", "LTX"],
+  ["wan", "Wan"],
+  ["minimax", "MiniMax"],
+  ["fasth3", "MiniMax"],
+  ["flux", "FLUX"],
+  ["qwen", "Qwen"],
+  ["hunyuan", "Hunyuan"],
+  ["kandinsky", "Kandinsky"],
+  ["z-image", "Z-Image"],
+  ["hidream", "HiDream"],
+  ["ernie", "ERNIE"],
+  ["mage", "Mage"],
+  ["lens", "Lens"],
+  ["capybara", "Capybara"],
+  ["sd", "SD"],
+  ["krea", "Krea"],
+  ["longcat", "LongCat"],
+  ["ming", "Ming"],
+  ["joyai", "JoyAI"],
+  ["firered", "FireRed"],
+  ["chronoedit", "ChronoEdit"],
+  ["bernini", "Bernini"],
+  ["ideogram", "Ideogram"],
+  ["boogu", "Boogu"],
+  ["anima", "Anima"],
+  ["netayume", "NetaYume"],
+  ["newbie", "NewBie"],
+  ["pixeldit", "PixelDiT"],
+  ["ovis", "Ovis"],
+  ["omnigen", "OmniGen"],
+  ["moss", "MOSS"],
+  ["chroma", "Chroma"],
+  ["causal", "Causal Forcing"],
+  ["humo", "HuMo"],
+];
+
+const GROUP_ORDER: readonly string[] = [
+  ...new Set(FAMILY_PREFIXES.map(([, family]) => family)),
+];
+
+export function modelFamily(modelId: string): string {
+  for (const [prefix, family] of FAMILY_PREFIXES) {
+    if (modelId.startsWith(prefix)) return family;
+  }
+  return "Other";
+}
+
+/**
+ * Order grouped picker rows: families in FAMILY_PREFIXES order ("Other" with
+ * the rest), registry order inside a family, and single-model families folded
+ * into a trailing "More" group so one-row headers don't pile up.
+ */
+export function groupPickerRows<T extends { group?: string }>(
+  items: readonly T[],
+): T[] {
+  const byFamily = new Map<string, T[]>();
+  for (const item of items) {
+    const g = item.group ?? "Other";
+    const rows = byFamily.get(g) ?? [];
+    rows.push(item);
+    byFamily.set(g, rows);
+  }
+  const rank = (name: string) => {
+    const i = GROUP_ORDER.indexOf(name);
+    return i >= 0 ? i : GROUP_ORDER.length;
+  };
+  const ordered = [...byFamily.entries()].sort(
+    (a, b) => rank(a[0]) - rank(b[0]),
+  );
+  const out: T[] = [];
+  const more: T[] = [];
+  for (const [, rows] of ordered) {
+    if (rows.length > 1) out.push(...rows);
+    else more.push({ ...rows[0], group: "More" });
+  }
+  return [...out, ...more];
+}
+
 /** Does a preset belong to the family? Registry ids match aliases too. */
 export function matchesFamily(preset: PresetLike, familyId: string): boolean {
   if (familyId === "camera") return preset.category === "camera";

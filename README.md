@@ -1,6 +1,6 @@
 # Phaino
 
-Phaino is an open-source AI video and image studio on Comfy Cloud. Pick a preset, add a prompt and a first frame, and every shot runs through a real ComfyUI workflow you can open, edit and fork.
+Phaino is an open-source AI video and image studio that runs locally on your machine, with generations through Comfy Cloud (or your own Comfy API v2 endpoint). Pick a preset, add a prompt and a first frame, and every shot runs through a real ComfyUI workflow you can open, edit and fork. The studio listens on `127.0.0.1` only. Social publishing and a hosted version are future work: [issue #4](https://github.com/screen-gd/phaino/issues/4) and [issue #5](https://github.com/screen-gd/phaino/issues/5).
 
 ## What's in it
 
@@ -16,15 +16,14 @@ Phaino is an open-source AI video and image studio on Comfy Cloud. Pick a preset
   | flux2-klein, flux2-klein-fast | Image | FLUX.2 Klein |
   | qwen-image | Image | Qwen Image |
 
-  The Image and Video pickers list **models**, not presets. Each model's modes (text to video, image to video, first and last frame, text to image, edit) come from the registry in `studio/src/server/models/registry.ts`; template-backed modes are synced from the official Comfy templates into `models/cache` by `pnpm models:sync` (see "Add a model" below). Registered models: LTX 2.5, Wan 2.2, HunyuanVideo 1.5, MiniMax H3, Kandinsky 5, FLUX 3 Klein (+Fast), FLUX.2 Klein (+Fast), Qwen Image, Qwen Image 2.1, Z-Image Turbo and HiDream I1 Fast.
+  The Image and Video pickers list **models**, not presets, with search and family groups (FLUX, Qwen, Wan, LTX, ...). Each model's modes (text to video, image to video, first and last frame, text to image, edit) come from the registry in `studio/src/server/models/registry.ts`, which covers every open-weights model Comfy ships an official template for: FLUX.1/2/3 (Dev, Schnell, Krea, Kontext, Klein), Qwen Image (1, 2.1, 2511, 2512), Z-Image, HiDream (I1, O1, E1.1), SDXL, SD 3.5, Chroma, Anima, Mage-Flow, Ideogram 4, ERNIE, OmniGen2, Kandinsky 5, Wan 2.1/2.2 (+VACE, Alpha), LTXV/LTX 2/2.3, HunyuanVideo, MiniMax H3, FastH3, HuMo, Capybara and more. Template-backed modes are synced into `models/cache` by `pnpm models:sync` (see "Add a model" below); a mode that fails the gates stays hidden. Models that only edit or only take a first frame ask for that input and won't generate without it.
 
   Partner-model presets (Kling 3.0, Seedance 2.5, Nano Banana 2) ship in `presets/` but are hidden unless `PHAINO_PARTNER_MODELS=on`.
 
-- **Library**: every generated output, shareable to social.
+- **Library**: every generated output, downloadable or ready to edit.
 - **Controls**: per-model Advanced params (negative prompt, steps, CFG) behind a sliders chip, plus a credit estimate next to Generate (median of your last runs at 0.266 credits/s).
 - **Animate**: image results get an Animate action that starts an LTX 2.5 image-to-video job from that image.
 - **Header**: GitHub stars and your Comfy credit balance, when connected.
-- **Social posting**: user-added connections (managed services or direct API keys) publish outputs to YouTube, Instagram, X, LinkedIn, TikTok, Threads and Bluesky.
 - **Tracker**: `/tracker` shows what's done and what's next (data in `tracker/tasks.json`).
 
 ## Repository layout
@@ -88,10 +87,6 @@ All variables live in `studio/.env.local` (copy `studio/.env.example`). The old 
 | `FFMPEG_PATH` | ffmpeg binary for sequence export (default `ffmpeg` on PATH) |
 | `FFPROBE_PATH` | ffprobe binary for sequence export (default `ffprobe` on PATH) |
 
-## Social posting
-
-Open the studio's Settings, scroll to Social accounts and choose "Add connection". Supported providers: Zernio, Post for Me and PostFast (managed services that own the platform connections), plus direct X, Bluesky, YouTube, LinkedIn, Threads and Instagram accounts. TikTok works through the managed services only. Connection credentials are stored locally in `studio/.data`. Once connected, share generated shots from Library or a finished run.
-
 ## Scripts
 
 | Command | What it does |
@@ -147,7 +142,7 @@ Sync reads only; it never queues a generation. A mode that fails a gate stays in
 
 `/editor` is a small timeline editor for generated and imported media. It has a video lane with trim, reorder, split (S), duplicate (Ctrl+D), cut/crossfade/dip transitions and per-clip volume, a music lane with fades, a titles lane, aspect (16:9, 9:16, 1:1, 4:5) and contain/cover fitting, a media bin with drag-drop uploads, and undo/redo.
 
-"Render video" produces an H.264/AAC MP4 (drawtext titles, mixed audio, `+faststart`), copies it into Library outputs and offers Publish. "Export for NLE" conforms media with handles, writes FCPXML and EDL (crossfades become dissolves), and embeds the rendered movie. The audio lane and titles are not in the FCPXML/EDL interchange files. Title text uses the bundled Outfit font (`studio/assets/fonts/Outfit.ttf`, OFL). The sequence document lives at `<PHAINO_DATA_DIR>/sequence.json` (v2; v1 files migrate on load) and uploads land in `<PHAINO_DATA_DIR>/uploads/editor/`.
+"Render video" produces an H.264/AAC MP4 (drawtext titles, mixed audio, `+faststart`), and copies it into Library. "Export for NLE" conforms media with handles, writes FCPXML and EDL (crossfades become dissolves), and embeds the rendered movie. The audio lane and titles are not in the FCPXML/EDL interchange files. Title text uses the bundled Outfit font (`studio/assets/fonts/Outfit.ttf`, OFL). The sequence document lives at `<PHAINO_DATA_DIR>/sequence.json` (v2; v1 files migrate on load) and uploads land in `<PHAINO_DATA_DIR>/uploads/editor/`.
 
 ## Edit Video
 
@@ -165,7 +160,7 @@ Brand assets and the guidelines board live in [brand/phaino](brand/phaino/board/
 
 ## Roadmap
 
-The camera moves, image and video tools, job runner, library and social posting are built. Next up: workflow viewer and forking (M4), the first real run on Comfy Cloud (M5), and export to FCPXML/EDL (M8). The live list is at `/tracker`; the data is in [tracker/tasks.json](tracker/tasks.json).
+The camera moves, image and video tools, job runner, library and editor are built. Social publishing moved to [issue #4](https://github.com/screen-gd/phaino/issues/4); a hosted version is tracked in [issue #5](https://github.com/screen-gd/phaino/issues/5). The live list is at `/tracker`; the data is in [tracker/tasks.json](tracker/tasks.json).
 
 ## License
 

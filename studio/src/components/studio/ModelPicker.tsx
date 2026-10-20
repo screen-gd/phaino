@@ -12,6 +12,8 @@ export type PickerRow = {
   thumbUrl: string;
   isFork?: boolean;
   model?: { label?: string };
+  /** Family heading this row sits under, e.g. "FLUX". */
+  group?: string;
 };
 import {
   Popover,
@@ -37,11 +39,20 @@ function ModelList({
   if (presets.length === 0) return null;
   return (
     <ul className="grid gap-1">
-      {presets.map((p) => {
+      {presets.map((p, i) => {
         const idx = rows.indexOf(p);
         const selected = p.id === selectedId;
+        const header =
+          p.group && (i === 0 || presets[i - 1].group !== p.group)
+            ? p.group
+            : null;
         return (
           <li key={p.id}>
+            {header && (
+              <p className="px-2.5 pt-2 pb-1 text-[10px] font-bold tracking-widest text-t3 uppercase first:pt-1">
+                {header}
+              </p>
+            )}
             <button
               type="button"
               role="option"

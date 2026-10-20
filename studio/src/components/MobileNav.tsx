@@ -55,14 +55,7 @@ function RowLink({
               {row.badge}
             </Badge>
           )}
-          {row.license && (
-            <Badge
-              size="sm"
-              variant={row.license === "partner" ? "default" : "secondary"}
-            >
-              {row.license === "partner" ? "Partner" : "Open"}
-            </Badge>
-          )}
+
         </span>
         <span className="block truncate text-caption text-t3">
           {row.description}

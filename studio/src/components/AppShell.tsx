@@ -39,7 +39,7 @@ type Capsule = {
   instant: boolean;
 };
 
-/** One dropdown row: icon tile + title + description (+ badge/license). */
+/** One dropdown row: icon tile + title + description (+ badge). */
 function MenuRowLink({ row }: { row: MenuRow }) {
   return (
     <li>
@@ -62,14 +62,6 @@ function MenuRowLink({ row }: { row: MenuRow }) {
         <span className="min-w-0">
           <b className="flex items-center gap-1.5 text-body font-semibold text-t1">
             {row.title}
-            {row.license && (
-              <Badge
-                size="sm"
-                variant={row.license === "partner" ? "default" : "secondary"}
-              >
-                {row.license === "partner" ? "Partner" : "Open"}
-              </Badge>
-            )}
           </b>
           <span className="block truncate text-caption text-t3">
             {row.description}
@@ -154,7 +146,9 @@ export function AppShell({
   const sentinelRef = useRef<HTMLDivElement>(null);
   const itemEls = useRef(new Map<string, HTMLElement>());
   const lastHover = useRef<HTMLElement | null>(null);
-  const [compact, setCompact] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  // Slim on every page except Explore, where it stays scroll-driven.
+  const compact = pathname !== "/" || scrolled;
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [capsule, setCapsule] = useState<Capsule>({
     x: 0,
@@ -169,7 +163,7 @@ export function AppShell({
     const sentinel = sentinelRef.current;
     if (!root || !sentinel) return;
     const observer = new IntersectionObserver(
-      ([entry]) => setCompact(!entry.isIntersecting),
+      ([entry]) => setScrolled(!entry.isIntersecting),
       { root },
     );
     observer.observe(sentinel);
@@ -372,11 +366,11 @@ export function AppShell({
             className={
               isActive(pathname, "/settings")
                 ? "text-ac"
-                : "text-t3 hover:text-t1"
+                : "text-t2 hover:text-t1"
             }
             render={<Link href="/settings" />}
           >
-            <Icon d={SECTION_ICONS.settings} />
+            <Icon d={SECTION_ICONS.settings} className="h-[18px] w-[18px]" />
           </Button>
         </div>
       </header>

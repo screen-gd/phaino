@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-19",
+  "updated": "2026-10-21",
   "milestones": [
     {
       "id": "m1",
@@ -57,6 +57,12 @@
       "id": "ui",
       "title": "Studio UI and brand",
       "tasks": [
+        {
+          "id": "explore-media-showcase",
+          "title": "Explore video carousel, banner navigation and credited Comfy creations",
+          "status": "done",
+          "notes": "Restored Orbit banner copy and buttons. Added carousel fade and official Comfy image examples. Combined the marketing footer CTA, oversized phaino wordmark and GitHub/X links with the feature and model directory. Removed upcoming features and footer showcase links; restored scroll-driven wordmark and arrow with reduced-motion support."
+        },
         {
           "id": "ui-explore",
           "title": "Explore home in Higgsfield layout",
@@ -117,6 +123,30 @@
           "id": "ui-readme",
           "title": "README rewrite for Phaino",
           "status": "done"
+        },
+        {
+          "id": "ui-tool-pages",
+          "title": "Higgsfield-style tool pages: model picker, param chips, image prompt bar",
+          "status": "done",
+          "notes": "No browser check yet"
+        },
+        {
+          "id": "ui-404",
+          "title": "Brand 404",
+          "status": "done",
+          "notes": "not-found.tsx: full-bleed dither, Outfit 404, Explore/workflows CTAs."
+        },
+        {
+          "id": "ui-oss-examples",
+          "title": "More OSS model examples on Explore",
+          "status": "done",
+          "notes": "6 new cards from Comfy-Org/workflow_templates (MIT): 3 LTX 2.5 videos, 2 Qwen images, FLUX.2 Klein."
+        },
+        {
+          "id": "ui-rune-icons",
+          "title": "Rune Icons duotone icon set",
+          "status": "done",
+          "notes": "runeicons@0.1.0 vendored (Apache-2.0); lucide-react removed; 40 icons mapped."
         }
       ]
     },
@@ -144,6 +174,12 @@
           "id": "m3-nokey",
           "title": "Clear \"not connected\" error without a key",
           "status": "done"
+        },
+        {
+          "id": "m3-byok",
+          "title": "Comfy API key in Settings (BYOK, Comfy only)",
+          "status": "done",
+          "notes": "Settings > Comfy Cloud card: key save with probe, masked display, remove, custom endpoint"
         }
       ]
     },
@@ -154,17 +190,20 @@
         {
           "id": "m4-viewer",
           "title": "Workflow viewer",
-          "status": "todo"
+          "status": "done",
+          "notes": "SVG graph at /workflows/[id]: pan/zoom/fit, subgraphs, controls highlight, inspector."
         },
         {
           "id": "m4-fork",
           "title": "Fork",
-          "status": "todo"
+          "status": "done",
+          "notes": "POST /api/forks, PATCH/DELETE /api/forks/[id], PUT workflow replace; forks in .data/forks."
         },
         {
           "id": "m4-download",
           "title": "Download",
-          "status": "todo"
+          "status": "done",
+          "notes": "GET /api/presets/[id]/workflow?format=ui|api as attachments."
         }
       ]
     },
@@ -228,17 +267,20 @@
         {
           "id": "m7-kling3",
           "title": "Kling 3.0 preset",
-          "status": "done"
+          "status": "done",
+          "notes": "Hidden by default (open weights only)"
         },
         {
           "id": "m7-seedance25",
           "title": "Seedance 2.5 preset",
-          "status": "done"
+          "status": "done",
+          "notes": "Hidden by default (open weights only)"
         },
         {
           "id": "m7-nanobanana2",
           "title": "Nano Banana 2 preset",
-          "status": "done"
+          "status": "done",
+          "notes": "Hidden by default (open weights only)"
         },
         {
           "id": "m7-controls",
@@ -265,17 +307,23 @@
         {
           "id": "m8-conform",
           "title": "Conform",
-          "status": "todo"
+          "status": "done"
         },
         {
           "id": "m8-fcpxml",
           "title": "FCPXML",
-          "status": "todo"
+          "status": "done"
         },
         {
           "id": "m8-edl",
           "title": "EDL",
-          "status": "todo"
+          "status": "done"
+        },
+        {
+          "id": "m8-ui",
+          "title": "Sequence UI on /export",
+          "status": "done",
+          "notes": "No browser check yet"
         }
       ]
     },

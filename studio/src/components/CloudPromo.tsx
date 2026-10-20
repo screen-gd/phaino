@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useComfyHealth } from "@/lib/useComfyHealth";
 
 const CHECKLIST = [
-  "Open models on Comfy Cloud",
-  "Partner models with Comfy credits",
+  "Open weights on Comfy Cloud",
+  "LTX 2.5, Wan 2.2, FLUX.2 Klein, Qwen",
   "Every shot opens as a workflow",
 ];
 

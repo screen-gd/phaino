@@ -21,3 +21,5 @@ next-env.d.ts
 !studio/src/app/api/sequence/outputs/**
 !studio/src/app/api/uploads
 !studio/src/app/api/uploads/**
+examples/Higgsfield/
+cutaway-studio-mockup.html

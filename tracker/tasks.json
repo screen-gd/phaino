@@ -500,6 +500,11 @@
           "id": "m10-local",
           "title": "Local-only: dev/start bind 127.0.0.1, hosted in issue #5",
           "status": "done"
+        },
+        {
+          "id": "m10-media",
+          "title": "Replace unlicensed and hotlinked media with MIT Comfy template outputs",
+          "status": "done"
         }
       ]
     },

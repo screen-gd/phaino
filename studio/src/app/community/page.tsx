@@ -1,5 +1,5 @@
 import { CommunityGrid } from "@/components/CommunityGrid";
-import { COMFY_SHOWCASE_URL, EXPLORE_MEDIA } from "@/lib/explore-media";
+import { EXPLORE_MEDIA } from "@/lib/explore-media";
 
 export default function CommunityPage() {
   return (
@@ -7,7 +7,7 @@ export default function CommunityPage() {
       <h1 className="font-display text-h3 font-extrabold uppercase text-ac">Made with Comfy</h1>
       <p className="mt-2 mb-6 max-w-2xl text-body text-t3">
         Examples from the open models in the studio, via{" "}
-        <a href={COMFY_SHOWCASE_URL} target="_blank" rel="noreferrer" className="text-t2 underline underline-offset-4">Comfy</a>.
+        <a href="https://github.com/Comfy-Org/workflow_templates" target="_blank" rel="noreferrer" className="text-t2 underline underline-offset-4">Comfy</a>.
       </p>
       <CommunityGrid items={EXPLORE_MEDIA} />
     </div>

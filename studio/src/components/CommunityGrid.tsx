@@ -3,7 +3,11 @@ import type { MediaItem } from "@/lib/explore-media";
 
 const MODEL_LABELS: Record<string, string> = {
   "ltx-2.5": "LTX 2.5",
+  ltx23: "LTX 2.3",
   "wan-2.2": "Wan 2.2",
+  "minimax-h3": "MiniMax H3",
+  hunyuan15: "HunyuanVideo 1.5",
+  fasth3: "FastH3",
   "flux2-klein-4b": "FLUX.2 Klein",
   "flux2-klein-4b-distilled": "FLUX.2 Klein Fast",
   "qwen-image-2512": "Qwen Image",

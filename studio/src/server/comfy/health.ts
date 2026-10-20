@@ -47,7 +47,7 @@ export function classifyProbe(outcome: ProbeOutcome): {
     case "not_configured": {
       return {
         status: "not_configured",
-        message: `Set ${outcome.envVar} in studio/.env.local`,
+        message: "Add your Comfy API key in Settings",
       };
     }
   }
@@ -81,8 +81,20 @@ export async function probeComfy(env: StudioEnv = getEnv()): Promise<ComfyHealth
       ...classifyProbe({ kind: "not_configured", envVar: "COMFY_API_KEY" }),
     };
   }
+  return probeEndpoint(target.baseUrl, target.apiKey, target.kind, target.host);
+}
 
-  const low = new ComfyLow(target.baseUrl, env.comfyApiKey, {
+/**
+ * Probe a candidate key/base URL before saving it from Settings.
+ * Same probe as the health check, against the given endpoint.
+ */
+export async function probeEndpoint(
+  baseUrl: string,
+  apiKey: string | undefined,
+  kind: "cloud" | "custom" = "custom",
+  host = new URL(baseUrl).host,
+): Promise<ComfyHealth> {
+  const low = new ComfyLow(baseUrl, apiKey, {
     clientInfo: `phaino/${pkg.version}`,
   });
 
@@ -92,16 +104,16 @@ export async function probeComfy(env: StudioEnv = getEnv()): Promise<ComfyHealth
     const latencyMs = Math.round(performance.now() - started);
     // A HEAD reply carries no body, so no error envelope to read a code from.
     return {
-      target: target.kind,
-      host: target.host,
+      target: kind,
+      host,
       latencyMs,
       ...classifyProbe({ kind: "response", status: response.status }),
     };
   } catch (error) {
     const latencyMs = Math.round(performance.now() - started);
     return {
-      target: target.kind,
-      host: target.host,
+      target: kind,
+      host,
       latencyMs,
       ...classifyProbe({ kind: "thrown", error }),
     };

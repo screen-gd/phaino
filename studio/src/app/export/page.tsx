@@ -1,10 +1,7 @@
-import { EmptyPage } from "@/components/EmptyPage";
+import { SequenceEditor } from "@/components/sequence/SequenceEditor";
+
+export const dynamic = "force-dynamic";
 
 export default function ExportPage() {
-  return (
-    <EmptyPage
-      title="Export"
-      body="Conform and timeline export land in a later milestone."
-    />
-  );
+  return <SequenceEditor />;
 }

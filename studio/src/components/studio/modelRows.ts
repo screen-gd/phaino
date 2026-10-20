@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import type { ModeKey } from "@/lib/modes";
+import { groupPickerRows, modelFamily } from "@/lib/model-families";
 import type { StudioModel, StudioPreset } from "@/components/toolStudioData";
 import type { PickerRow } from "./ModelPicker";
 
@@ -30,13 +31,16 @@ export function useModelMaps(
       }
     }
     const claimed = new Set(modelOf.keys());
-    const pickerRows: PickerRow[] = models.map((m) => ({
-      id: m.defaultPresetId,
-      name: m.label,
-      description: m.modeLabels,
-      thumbUrl: m.thumbUrl,
-      model: { label: m.label },
-    }));
+    const pickerRows: PickerRow[] = groupPickerRows(
+      models.map((m) => ({
+        id: m.defaultPresetId,
+        name: m.label,
+        description: m.modeLabels,
+        thumbUrl: m.thumbUrl,
+        model: { label: m.label },
+        group: modelFamily(m.id),
+      })),
+    );
     for (const p of presets) {
       if (!claimed.has(p.id)) {
         pickerRows.push({

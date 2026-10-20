@@ -1,0 +1,227 @@
+{
+  "id": "flux2-klein-fast",
+  "name": "FLUX.2 Klein Fast",
+  "description": "Text to image with the distilled FLUX.2 Klein 4B.",
+  "category": "image",
+  "order": 2,
+  "engine": "workflow",
+  "model": {
+    "id": "flux2-klein-4b-distilled",
+    "label": "FLUX.2 Klein Fast",
+    "license": "open"
+  },
+  "source": {
+    "template": "image_flux2_klein_text_to_image",
+    "modes": {
+      "9": 4,
+      "75": 4,
+      "77": 0,
+      "78": 0
+    }
+  },
+  "inputs": [],
+  "params": [
+    {
+      "type": "text",
+      "key": "prompt",
+      "label": "Prompt",
+      "default": "",
+      "placeholder": "Describe the image",
+      "template": "{prompt}{style}",
+      "bind": {
+        "node": "76",
+        "field": "value"
+      }
+    },
+    {
+      "type": "choice",
+      "key": "style",
+      "label": "Style",
+      "default": "",
+      "options": [
+        {
+          "value": "",
+          "label": "None"
+        },
+        {
+          "value": ", cinematic film still, anamorphic lens, shallow depth of field",
+          "label": "Cinematic"
+        },
+        {
+          "value": ", 35mm analog film photo, natural grain, soft halation",
+          "label": "Analog film"
+        },
+        {
+          "value": ", black and white film noir, hard key light, deep shadows",
+          "label": "Noir"
+        },
+        {
+          "value": ", editorial fashion photography, clean studio light",
+          "label": "Editorial"
+        },
+        {
+          "value": ", concept art, painterly, atmospheric perspective",
+          "label": "Concept art"
+        }
+      ]
+    },
+    {
+      "type": "seed",
+      "key": "seed",
+      "label": "Seed",
+      "bind": {
+        "node": "77:86",
+        "field": "noise_seed"
+      }
+    },
+    {
+      "type": "choice",
+      "key": "aspect",
+      "label": "Aspect",
+      "default": "1:1",
+      "options": [
+        {
+          "value": "1:1",
+          "label": "1:1",
+          "set": [
+            {
+              "node": "77:84",
+              "field": "value",
+              "value": 1024
+            },
+            {
+              "node": "77:85",
+              "field": "value",
+              "value": 1024
+            }
+          ]
+        },
+        {
+          "value": "16:9",
+          "label": "16:9",
+          "set": [
+            {
+              "node": "77:84",
+              "field": "value",
+              "value": 1360
+            },
+            {
+              "node": "77:85",
+              "field": "value",
+              "value": 768
+            }
+          ]
+        },
+        {
+          "value": "9:16",
+          "label": "9:16",
+          "set": [
+            {
+              "node": "77:84",
+              "field": "value",
+              "value": 768
+            },
+            {
+              "node": "77:85",
+              "field": "value",
+              "value": 1360
+            }
+          ]
+        },
+        {
+          "value": "4:3",
+          "label": "4:3",
+          "set": [
+            {
+              "node": "77:84",
+              "field": "value",
+              "value": 1152
+            },
+            {
+              "node": "77:85",
+              "field": "value",
+              "value": 864
+            }
+          ]
+        },
+        {
+          "value": "3:4",
+          "label": "3:4",
+          "set": [
+            {
+              "node": "77:84",
+              "field": "value",
+              "value": 864
+            },
+            {
+              "node": "77:85",
+              "field": "value",
+              "value": 1152
+            }
+          ]
+        },
+        {
+          "value": "2.39:1",
+          "label": "2.39:1",
+          "set": [
+            {
+              "node": "77:84",
+              "field": "value",
+              "value": 1536
+            },
+            {
+              "node": "77:85",
+              "field": "value",
+              "value": 640
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "int",
+      "key": "count",
+      "label": "Count",
+      "default": 1,
+      "min": 1,
+      "max": 4,
+      "bind": {
+        "node": "77:83",
+        "field": "batch_size"
+      }
+    },
+    {
+      "type": "int",
+      "key": "steps",
+      "label": "Steps",
+      "default": 4,
+      "min": 1,
+      "max": 12,
+      "advanced": true,
+      "bind": {
+        "node": "77:93",
+        "field": "steps"
+      }
+    },
+    {
+      "type": "float",
+      "key": "cfg",
+      "label": "CFG",
+      "default": 1,
+      "min": 1,
+      "max": 4,
+      "step": 0.1,
+      "advanced": true,
+      "bind": {
+        "node": "77:90",
+        "field": "cfg"
+      }
+    }
+  ],
+  "outputs": [
+    {
+      "node": "78",
+      "kind": "image"
+    }
+  ]
+}

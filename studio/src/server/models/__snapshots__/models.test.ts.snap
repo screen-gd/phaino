@@ -1,0 +1,148 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`binding detection snapshots > flux3-klein-t2i binds 1`] = `
+{
+  "inputs": [],
+  "outputs": [
+    {
+      "kind": "image",
+      "node": "9",
+    },
+  ],
+  "params": [
+    {
+      "binds": [
+        "18:17.value",
+      ],
+      "key": "prompt",
+    },
+    {
+      "binds": [
+        "18:5.text",
+      ],
+      "key": "negative",
+    },
+    {
+      "binds": [
+        "18:7.seed",
+      ],
+      "key": "seed",
+    },
+    {
+      "binds": [
+        "19.aspect_ratio",
+      ],
+      "key": "aspect",
+    },
+    {
+      "binds": [
+        "18:7.steps",
+      ],
+      "key": "steps",
+    },
+    {
+      "binds": [
+        "18:7.cfg",
+      ],
+      "key": "cfg",
+    },
+  ],
+}
+`;
+
+exports[`binding detection snapshots > hunyuan15-i2v binds 1`] = `
+{
+  "inputs": [
+    "image:First frame@80.image",
+  ],
+  "outputs": [
+    {
+      "kind": "video",
+      "node": "102",
+    },
+  ],
+  "params": [
+    {
+      "binds": [
+        "44.text",
+      ],
+      "key": "prompt",
+    },
+    {
+      "binds": [
+        "93.text",
+      ],
+      "key": "negative",
+    },
+    {
+      "binds": [
+        "127.noise_seed",
+      ],
+      "key": "seed",
+    },
+    {
+      "binds": [],
+      "key": "size",
+    },
+    {
+      "binds": [],
+      "key": "duration",
+    },
+    {
+      "binds": [
+        "126.steps",
+      ],
+      "key": "steps",
+    },
+    {
+      "binds": [
+        "129.cfg",
+      ],
+      "key": "cfg",
+    },
+  ],
+}
+`;
+
+exports[`binding detection snapshots > wan22-t2v binds 1`] = `
+{
+  "inputs": [],
+  "outputs": [
+    {
+      "kind": "video",
+      "node": "80",
+    },
+  ],
+  "params": [
+    {
+      "binds": [
+        "128:89.text",
+      ],
+      "key": "prompt",
+    },
+    {
+      "binds": [
+        "128:72.text",
+      ],
+      "key": "negative",
+    },
+    {
+      "binds": [
+        "128:81.noise_seed",
+        "128:78.noise_seed",
+      ],
+      "key": "seed",
+    },
+    {
+      "binds": [],
+      "key": "size",
+    },
+    {
+      "binds": [
+        "128:126.value",
+      ],
+      "key": "duration",
+    },
+  ],
+}
+`;

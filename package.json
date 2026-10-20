@@ -1,14 +1,20 @@
 {
-  "name": "cutaway",
+  "name": "phaino",
   "version": "0.1.0",
   "private": true,
-  "description": "Open-source AI studio for images and video, built on ComfyUI. The studio app lives at the repo root; the marketing site is in website/.",
+  "description": "Open-source AI studio for images and video, built on ComfyUI. The studio app lives in studio/; the marketing site lives in website/.",
   "license": "MIT",
   "packageManager": "pnpm@12.11.2",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "website:dev": "pnpm --filter cutaway-website dev",
-    "website:build": "pnpm --filter cutaway-website build",
-    "website:preview": "pnpm --filter cutaway-website preview"
+    "dev:studio": "pnpm --filter phaino-studio dev",
+    "dev:website": "pnpm --filter phaino-website dev",
+    "preview:website": "pnpm --filter phaino-website preview",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test"
   }
 }

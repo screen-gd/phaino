@@ -3,11 +3,11 @@ import { stat } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { NextResponse } from "next/server";
-import { SocialError } from "@opencoredev/social-sdk";
+import { ApiError } from "@/server/errors";
 import { getEnv } from "@/server/env";
 import { layout, mediaFor } from "@/server/sequence/model";
 import { getSequenceStore, resolveMediaPath } from "@/server/sequence/store";
-import { socialErrorResponse } from "@/server/social/errors";
+import { apiError } from "@/server/errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,7 +29,7 @@ async function getMedia(id: string) {
   const seq = await getSequenceStore().getSequence();
   const m = mediaFor(seq, id);
   if (!m) {
-    throw new SocialError({
+    throw new ApiError({
       code: "not_found",
       operation: "sequence.media",
       message: "Media not found",
@@ -74,7 +74,7 @@ export async function GET(
     try {
       size = (await stat(resolved.absPath)).size;
     } catch {
-      throw new SocialError({
+      throw new ApiError({
         code: "not_found",
         operation: "sequence.media",
         message: "Media file not found",
@@ -122,7 +122,7 @@ export async function GET(
       },
     });
   } catch (err) {
-    return socialErrorResponse(err);
+    return apiError(err);
   }
 }
 
@@ -137,6 +137,6 @@ export async function DELETE(
     const sequence = await store.removeMedia(id);
     return NextResponse.json({ sequence, layout: layout(sequence) });
   } catch (err) {
-    return socialErrorResponse(err);
+    return apiError(err);
   }
 }

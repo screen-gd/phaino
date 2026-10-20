@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { EmptyPage } from "@/components/EmptyPage";
-import { PublishDialog } from "@/components/PublishDialog";
 import { AddToSequence } from "@/components/sequence/AddToSequence";
 import { EditVideoButton } from "@/components/edit/EditVideoButton";
-import { Button } from "@/components/ui/button";
 import { getEnv } from "@/server/env";
-import { listOutputs, type OutputItem } from "@/server/social/media";
+import { listOutputs, type OutputItem } from "@/server/outputs";
 
 export const dynamic = "force-dynamic";
 
@@ -13,17 +11,12 @@ function previewUrl(item: OutputItem): string {
   return `/api/outputs/${item.relPath.split("/").map(encodeURIComponent).join("/")}`;
 }
 
-/** Generated outputs from .data/outputs, each shareable through PublishDialog. */
+/** Generated outputs from .data/outputs. */
 export default async function LibraryPage() {
   const items = await listOutputs(getEnv().dataDir);
 
   if (items.length === 0) {
-    return (
-      <EmptyPage
-        title="Library"
-        body="Generated shots appear here. Share them to YouTube, Instagram, X and more."
-      />
-    );
+    return <EmptyPage title="Library" body="Generated shots appear here." />;
   }
 
   return (
@@ -66,12 +59,6 @@ export default async function LibraryPage() {
                   Animate
                 </Link>
               )}
-              <div className="absolute right-2 bottom-2 z-10">
-                <PublishDialog
-                  output={{ path: item.relPath, kind: item.kind, previewUrl: url }}
-                  trigger={<Button size="xs">Share</Button>}
-                />
-              </div>
             </div>
           );
         })}

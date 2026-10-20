@@ -1,22 +1,34 @@
 import "server-only";
 
 import { NextResponse } from "next/server";
-import { SocialError, type SocialErrorCode } from "@opencoredev/social-sdk";
 import { ZodError } from "zod";
 
-const STATUS: Partial<Record<SocialErrorCode, number>> = {
+/** App-level error thrown by the server layer and mapped to HTTP responses. */
+export class ApiError extends Error {
+  readonly code: string;
+  readonly operation?: string;
+  readonly issues?: unknown[];
+
+  constructor(opts: {
+    code: string;
+    message: string;
+    operation?: string;
+    issues?: unknown[];
+  }) {
+    super(opts.message);
+    this.code = opts.code;
+    this.operation = opts.operation;
+    this.issues = opts.issues;
+  }
+}
+
+const STATUS: Record<string, number> = {
   not_found: 404,
   idempotency_conflict: 409,
-  invalid_config: 502,
-  upstream_failure: 502,
-  ambiguous_outcome: 502,
-  rate_limited: 502,
-  timeout: 502,
-  media_error: 502,
 };
 
-/** Map errors thrown by the social server layer to short HTTP responses. */
-export function socialErrorResponse(err: unknown): NextResponse {
+/** Map errors thrown by the server layer to short HTTP responses. */
+export function apiError(err: unknown): NextResponse {
   if (err instanceof ZodError) {
     return NextResponse.json(
       {
@@ -30,7 +42,7 @@ export function socialErrorResponse(err: unknown): NextResponse {
       { status: 400 },
     );
   }
-  if (err instanceof SocialError) {
+  if (err instanceof ApiError) {
     return NextResponse.json(
       { error: err.message, code: err.code, issues: err.issues },
       { status: STATUS[err.code] ?? 400 },

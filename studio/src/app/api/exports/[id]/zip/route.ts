@@ -2,11 +2,11 @@ import { createReadStream, existsSync } from "node:fs";
 import { readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
-import { SocialError } from "@opencoredev/social-sdk";
+import { ApiError } from "@/server/errors";
 import yazl from "yazl";
 import { getEnv } from "@/server/env";
 import { getStore } from "@/server/jobs/store";
-import { socialErrorResponse } from "@/server/social/errors";
+import { apiError } from "@/server/errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +20,7 @@ export async function GET(
     const { id } = await params;
     const job = getStore().get(id);
     if (!job || job.category !== "export") {
-      throw new SocialError({
+      throw new ApiError({
         code: "not_found",
         operation: "exports.zip",
         message: "Export not found",
@@ -28,7 +28,7 @@ export async function GET(
     }
     const dir = path.join(getEnv().dataDir, "exports", id);
     if (!existsSync(dir)) {
-      throw new SocialError({
+      throw new ApiError({
         code: "not_found",
         operation: "exports.zip",
         message: "Export not found",
@@ -58,6 +58,6 @@ export async function GET(
       },
     });
   } catch (err) {
-    return socialErrorResponse(err);
+    return apiError(err);
   }
 }

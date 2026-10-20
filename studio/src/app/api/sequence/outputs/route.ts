@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import path from "node:path";
 import { getEnv } from "@/server/env";
-import { listOutputs } from "@/server/social/media";
-import { socialErrorResponse } from "@/server/social/errors";
+import { listOutputs } from "@/server/outputs";
+import { apiError } from "@/server/errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,6 +20,6 @@ export async function GET() {
       }));
     return NextResponse.json({ items });
   } catch (err) {
-    return socialErrorResponse(err);
+    return apiError(err);
   }
 }

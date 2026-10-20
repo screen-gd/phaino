@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { startExport } from "@/server/sequence/export";
-import { socialErrorResponse } from "@/server/social/errors";
+import { apiError } from "@/server/errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,6 +17,6 @@ export async function POST(request: Request) {
     const job = await startExport({ action, codec });
     return NextResponse.json({ job }, { status: 201 });
   } catch (err) {
-    return socialErrorResponse(err);
+    return apiError(err);
   }
 }

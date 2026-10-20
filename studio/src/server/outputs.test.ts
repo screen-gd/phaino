@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { resolveOutput } from "./media";
+import { resolveOutput } from "./outputs";
 
 const dataDir = "C:\\data";
 

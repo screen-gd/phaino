@@ -2,9 +2,9 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
-import { SocialError } from "@opencoredev/social-sdk";
+import { ApiError } from "@/server/errors";
 import { getEnv } from "@/server/env";
-import { socialErrorResponse } from "@/server/social/errors";
+import { apiError } from "@/server/errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,7 +19,7 @@ export async function GET(
   try {
     const { id } = await params;
     if (!POSTER_ID.test(id)) {
-      throw new SocialError({
+      throw new ApiError({
         code: "not_found",
         operation: "sequence.poster",
         message: "Poster not found",
@@ -30,7 +30,7 @@ export async function GET(
     try {
       size = (await stat(absPath)).size;
     } catch {
-      throw new SocialError({
+      throw new ApiError({
         code: "not_found",
         operation: "sequence.poster",
         message: "Poster not found",
@@ -47,6 +47,6 @@ export async function GET(
       },
     });
   } catch (err) {
-    return socialErrorResponse(err);
+    return apiError(err);
   }
 }

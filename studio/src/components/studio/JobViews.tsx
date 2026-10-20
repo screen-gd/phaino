@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { Icon, SECTION_ICONS } from "../icons";
 import type { StudioJob, StudioPreset } from "@/components/toolStudioData";
-import { PublishDialog } from "@/components/PublishDialog";
 import { AddToSequence } from "@/components/sequence/AddToSequence";
 import { EditVideoButton } from "@/components/edit/EditVideoButton";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +26,7 @@ export function isVideoPath(rel: string) {
   return /\.(mp4|mov)$/i.test(rel);
 }
 
-/** The active run: status, progress, cancel, then result + share. */
+/** The active run: status, progress, cancel, then result actions. */
 export function CurrentJob({
   job,
   presetName,
@@ -93,18 +92,6 @@ export function CurrentJob({
             />
           )}
           <div className="mt-2.5 flex items-center gap-2">
-            <PublishDialog
-              output={{
-                path: output,
-                kind: outputKind,
-                previewUrl: `/api/outputs/${output}`,
-              }}
-              trigger={
-                <Button variant="outline" size="xs">
-                  Share
-                </Button>
-              }
-            />
             {outputKind === "video" && (
               <>
                 <AddToSequence path={output} />

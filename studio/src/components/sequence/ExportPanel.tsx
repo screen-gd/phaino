@@ -6,7 +6,6 @@ import type { JobRecord } from "@/server/jobs/store";
 import type { Sequence } from "@/server/sequence/model";
 import type { Fps } from "@/server/sequence/timecode";
 import { Button } from "@/components/ui/button";
-import { PublishDialog } from "@/components/PublishDialog";
 
 type Codec = "h264" | "prores";
 type Action = "render" | "package";
@@ -277,21 +276,6 @@ export function ExportPanel({
                       >
                         Library
                       </Link>
-                      <PublishDialog
-                        output={{
-                          path: libraryPath,
-                          kind: "video",
-                          previewUrl: `/api/outputs/${libraryPath}`,
-                        }}
-                        trigger={
-                          <button
-                            type="button"
-                            className="inline-flex h-7 flex-1 items-center justify-center rounded-md border border-line px-2 text-[12px] text-t2 hover:bg-s3 hover:text-t1"
-                          >
-                            Publish
-                          </button>
-                        }
-                      />
                     </div>
                   </div>
                 ) : (

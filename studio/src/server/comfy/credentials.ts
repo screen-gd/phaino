@@ -7,7 +7,7 @@ import { z } from "zod";
 import { getEnv, type StudioEnv } from "@/server/env";
 import type { ComfyHealth } from "@/lib/health";
 import { probeEndpoint } from "./health";
-import { QueuedJsonFile } from "@/server/social/store";
+import { QueuedJsonFile } from "@/server/jsonFile";
 
 export const credentialsSchema = z.object({
   apiKey: z.string().min(1),
@@ -18,7 +18,7 @@ export type ComfyCredentials = z.infer<typeof credentialsSchema>;
 
 type FileData = { credentials: ComfyCredentials | null };
 
-/** "••••" + the last 4 characters, like the social connection masking. */
+/** "••••" + the last 4 characters, for display masking. */
 export function maskKey(key: string): string {
   return key.length >= 8 ? `\u2022\u2022\u2022\u2022${key.slice(-4)}` : "\u2022\u2022\u2022\u2022";
 }

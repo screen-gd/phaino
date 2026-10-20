@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getEnv } from "@/server/env";
-import { socialErrorResponse } from "@/server/social/errors";
+import { apiError } from "@/server/errors";
 import { saveUpload } from "@/server/uploads";
 
 export const runtime = "nodejs";
@@ -18,6 +18,6 @@ export async function POST(request: Request) {
     );
     return NextResponse.json(saved, { status: 201 });
   } catch (err) {
-    return socialErrorResponse(err);
+    return apiError(err);
   }
 }

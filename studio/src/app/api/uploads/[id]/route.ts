@@ -1,5 +1,5 @@
 import { getEnv } from "@/server/env";
-import { socialErrorResponse } from "@/server/social/errors";
+import { apiError } from "@/server/errors";
 import { openUpload } from "@/server/uploads";
 
 export const runtime = "nodejs";
@@ -20,6 +20,6 @@ export async function GET(
       },
     });
   } catch (err) {
-    return socialErrorResponse(err);
+    return apiError(err);
   }
 }

@@ -2,7 +2,7 @@ import "server-only";
 
 import { copyFile, mkdir } from "node:fs/promises";
 import path from "node:path";
-import { SocialError } from "@opencoredev/social-sdk";
+import { ApiError } from "@/server/errors";
 import type { StudioEnv } from "@/server/env";
 import { modelById, modePresetId } from "@/server/models/registry";
 import { getPreset } from "@/server/presets/load";
@@ -10,8 +10,8 @@ import { openSequenceStore, type SequenceStore } from "@/server/sequence/store";
 import { resolveUpload, uploadsDir } from "@/server/uploads";
 import type { JobRecord } from "@/server/jobs/store";
 
-function invalid(message: string): SocialError {
-  return new SocialError({ code: "invalid_input", operation: "edits", message });
+function invalid(message: string): ApiError {
+  return new ApiError({ code: "invalid_input", operation: "edits", message });
 }
 
 export type ExtendDeps = {

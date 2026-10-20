@@ -81,7 +81,7 @@ export const presetSchema = z
     id: slug,
     name: z.string(),
     description: z.string(),
-    category: z.enum(["camera", "image", "video"]),
+    category: z.enum(["camera", "image", "video", "edit"]),
     order: z.number().int(),
     chip: z.string().optional(),
     engine: z.literal("workflow"),
@@ -98,7 +98,7 @@ export const presetSchema = z
     inputs: z.array(
       z.object({
         key: paramKey,
-        type: z.literal("image"),
+        type: z.enum(["image", "video"]),
         label: z.string(),
         required: z.boolean(),
         bind,

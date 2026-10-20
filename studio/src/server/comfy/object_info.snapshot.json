@@ -3,7 +3,7 @@
     "comfyuiVersion": "0.42.1",
     "frontendVersion": "1.55.18",
     "templatesRef": "46e060ea88eb07adecf07197ec384c54a70e030c",
-    "generatedAt": "2026-10-20T15:22:01.627Z"
+    "generatedAt": "2026-10-20T17:59:22.638Z"
   },
   "nodes": {
     "BasicGuider": {
@@ -196,6 +196,156 @@
         "stack images"
       ],
       "essentials_category": "Image Tools",
+      "has_intermediate_output": false
+    },
+    "BerniniConditioning": {
+      "input": {
+        "required": {
+          "positive": [
+            "CONDITIONING",
+            {}
+          ],
+          "negative": [
+            "CONDITIONING",
+            {}
+          ],
+          "vae": [
+            "VAE",
+            {}
+          ],
+          "width": [
+            "INT",
+            {
+              "default": 832,
+              "min": 16,
+              "max": 8192,
+              "step": 16
+            }
+          ],
+          "height": [
+            "INT",
+            {
+              "default": 480,
+              "min": 16,
+              "max": 8192,
+              "step": 16
+            }
+          ],
+          "length": [
+            "INT",
+            {
+              "default": 81,
+              "min": 1,
+              "max": 8192,
+              "step": 4
+            }
+          ],
+          "batch_size": [
+            "INT",
+            {
+              "default": 1,
+              "min": 1,
+              "max": 4096
+            }
+          ]
+        },
+        "optional": {
+          "source_video": [
+            "IMAGE",
+            {
+              "tooltip": "Source video to edit or restyle (v2v, rv2v). Resized to width/height and trimmed to length."
+            }
+          ],
+          "reference_video": [
+            "IMAGE",
+            {
+              "tooltip": "Video to insert into the source video (ads2v)."
+            }
+          ],
+          "reference_images": [
+            "COMFY_AUTOGROW_V3",
+            {
+              "template": {
+                "input": {
+                  "required": {
+                    "reference_image": [
+                      "IMAGE",
+                      {
+                        "tooltip": "Reference image injected as an in-context token (r2v, rv2v)."
+                      }
+                    ]
+                  }
+                },
+                "prefix": "reference_image_",
+                "min": 0,
+                "max": 8
+              }
+            }
+          ],
+          "ref_max_size": [
+            "INT",
+            {
+              "tooltip": "Max size for the long edge of reference_video and reference_images. Resized with preserved aspect ratio and snapped to 16px.",
+              "default": 848,
+              "min": 16,
+              "max": 8192,
+              "step": 16
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "positive",
+          "negative",
+          "vae",
+          "width",
+          "height",
+          "length",
+          "batch_size"
+        ],
+        "optional": [
+          "source_video",
+          "reference_video",
+          "reference_images",
+          "ref_max_size"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "CONDITIONING",
+        "CONDITIONING",
+        "LATENT"
+      ],
+      "output_is_list": [
+        false,
+        false,
+        false
+      ],
+      "output_name": [
+        "positive",
+        "negative",
+        "latent"
+      ],
+      "output_tooltips": [
+        null,
+        null,
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "BerniniConditioning",
+      "display_name": "Bernini Conditioning",
+      "description": "Conditioning node for Bernini in-context video/image conditioning. It can be used for the following tasks: t2v (text-to-video), v2v (video-to-video), rv2v (reference-guided video editing), r2v (reference-to-video), ads2v (insert image/video into video).Reference images injected as in-context tokens (r2v, rv2v) are encoded independently at their own native aspect ratio (long edge capped at ref_max_size)",
+      "python_module": "comfy_extras.nodes_bernini",
+      "category": "model/conditioning/bernini",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": null,
+      "essentials_category": null,
       "has_intermediate_output": false
     },
     "ByteDance2ReferenceNodeV2": {
@@ -1719,6 +1869,59 @@
       "has_intermediate_output": false,
       "search_aliases": []
     },
+    "CheckpointLoaderSimple": {
+      "input": {
+        "required": {
+          "ckpt_name": [
+            [],
+            {
+              "tooltip": "The name of the checkpoint (model) to load."
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "ckpt_name"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "MODEL",
+        "CLIP",
+        "VAE"
+      ],
+      "output_is_list": [
+        false,
+        false,
+        false
+      ],
+      "output_name": [
+        "MODEL",
+        "CLIP",
+        "VAE"
+      ],
+      "name": "CheckpointLoaderSimple",
+      "display_name": "Load Checkpoint",
+      "description": "Loads a diffusion model checkpoint, diffusion models are used to denoise latents.",
+      "python_module": "nodes",
+      "category": "model/loaders",
+      "output_node": false,
+      "has_intermediate_output": false,
+      "output_tooltips": [
+        "The model used for denoising latents.",
+        "The CLIP model used for encoding text prompts.",
+        "The VAE model used for encoding and decoding images to and from latent space."
+      ],
+      "search_aliases": [
+        "load model",
+        "checkpoint",
+        "model loader",
+        "load checkpoint",
+        "ckpt",
+        "model"
+      ]
+    },
     "ComfyMathExpression": {
       "input": {
         "required": {
@@ -2163,6 +2366,321 @@
         "images to video"
       ],
       "essentials_category": "Video Tools",
+      "has_intermediate_output": false
+    },
+    "CustomCombo": {
+      "input": {
+        "required": {
+          "choice": [
+            "COMBO",
+            {
+              "multiselect": false,
+              "options": []
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "choice"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "STRING",
+        "INT"
+      ],
+      "output_is_list": [
+        false,
+        false
+      ],
+      "output_name": [
+        "STRING",
+        "INDEX"
+      ],
+      "output_tooltips": [
+        null,
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "CustomCombo",
+      "display_name": "Custom Combo",
+      "description": "",
+      "python_module": "comfy_extras.nodes_logic",
+      "category": "utilities",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": true,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "DA3Inference": {
+      "input": {
+        "required": {
+          "da3_model": [
+            "DA3_MODEL",
+            {}
+          ],
+          "image": [
+            "IMAGE",
+            {}
+          ],
+          "resolution": [
+            "INT",
+            {
+              "tooltip": "Resolution the model runs at (longest side, multiple of 14).\nLower = faster / less VRAM.\nHigher = more detail.\nOutput is upsampled back to the original size.",
+              "default": 504,
+              "min": 140,
+              "max": 2520,
+              "step": 14
+            }
+          ],
+          "resize_method": [
+            "COMBO",
+            {
+              "tooltip": "upper_bound_resize: scale so the longest side = resolution (caps memory, default).\nlower_bound_resize: scale so the shortest side = resolution (preserves more detail on tall/wide images, uses more memory).",
+              "default": "upper_bound_resize",
+              "multiselect": false,
+              "options": [
+                "upper_bound_resize",
+                "lower_bound_resize"
+              ]
+            }
+          ],
+          "mode": [
+            "COMFY_DYNAMICCOMBO_V3",
+            {
+              "tooltip": "mono: single view image (works with any model variant).\nmultiview: all images processed together for geometric consistency + camera pose (for Small/Base models only).",
+              "options": [
+                {
+                  "key": "mono",
+                  "inputs": {
+                    "required": {}
+                  }
+                },
+                {
+                  "key": "multiview",
+                  "inputs": {
+                    "required": {
+                      "ref_view_strategy": [
+                        "COMBO",
+                        {
+                          "tooltip": "Which view acts as the geometric anchor.\n- saddle_balanced: the view most 'average' across all others (best general choice).\n- saddle_sim_range: the view most visually distinct from the others.\n- first / middle: fixed positional picks.",
+                          "default": "saddle_balanced",
+                          "multiselect": false,
+                          "options": [
+                            "saddle_balanced",
+                            "saddle_sim_range",
+                            "first",
+                            "middle"
+                          ]
+                        }
+                      ],
+                      "pose_method": [
+                        "COMBO",
+                        {
+                          "tooltip": "How the camera field-of-view is estimated (for Small/Base models only).\n- cam_dec: learned from image features.\n- ray_pose: derived geometrically from the model's 3D ray output.\nAffects perspective correctness of the 3D output. Try both if results look distorted.",
+                          "default": "cam_dec",
+                          "multiselect": false,
+                          "options": [
+                            "cam_dec",
+                            "ray_pose"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "da3_model",
+          "image",
+          "resolution",
+          "resize_method",
+          "mode"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "DA3_GEOMETRY"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "da3_geometry"
+      ],
+      "output_tooltips": [
+        "Dictionary of non-normalized tensors.\nAlways has the keys: depth, image, mode.\nOptional keys: sky (for Mono/Metric), confidence (for Small/Base), extrinsics + intrinsics (for multi-view)."
+      ],
+      "output_matchtypes": null,
+      "name": "DA3Inference",
+      "display_name": "Run Depth Anything 3",
+      "description": "Run Depth Anything 3 on an image. In multi-view mode each image is treated as a separate view of the same scene.",
+      "python_module": "comfy_extras.nodes_depth_anything_3",
+      "category": "image/geometry estimation",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "depth",
+        "geometry",
+        "da3",
+        "depth anything",
+        "monocular",
+        "pointmap",
+        "sky",
+        "3d",
+        "metric depth",
+        "disparity"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "DA3Render": {
+      "input": {
+        "required": {
+          "da3_geometry": [
+            "DA3_GEOMETRY",
+            {}
+          ],
+          "output": [
+            "COMFY_DYNAMICCOMBO_V3",
+            {
+              "tooltip": "- depth: normalised greyscale depth image.\n- depth_colored: depth mapped through the Turbo colormap.\n- sky_mask: sky probability in [0, 1] (for Mono/Metric models only).\n- confidence: normalised depth confidence (for Small/Base models only).",
+              "options": [
+                {
+                  "key": "depth",
+                  "inputs": {
+                    "required": {
+                      "normalization": [
+                        "COMBO",
+                        {
+                          "tooltip": "- v2_style: mean/std normalisation for perceptually balanced results (default).\n- min_max: stretches the full depth range to [0, 1] for maximum contrast.\n- raw: no scaling,preserves metric units for Metric model.",
+                          "default": "v2_style",
+                          "multiselect": false,
+                          "options": [
+                            "v2_style",
+                            "min_max",
+                            "raw"
+                          ]
+                        }
+                      ],
+                      "apply_sky_clip": [
+                        "BOOLEAN",
+                        {
+                          "tooltip": "Clip sky-region depth to the 99th percentile of foreground depth before normalisation. Requires a sky key in the da3_geometry input (for Mono/Metric models only).",
+                          "default": false
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "key": "depth_colored",
+                  "inputs": {
+                    "required": {
+                      "normalization": [
+                        "COMBO",
+                        {
+                          "tooltip": "- v2_style: mean/std normalisation for perceptually balanced results (default).\n- min_max: stretches the full depth range to [0, 1] for maximum contrast.\n- raw: no scaling,preserves metric units for Metric model.",
+                          "default": "v2_style",
+                          "multiselect": false,
+                          "options": [
+                            "v2_style",
+                            "min_max",
+                            "raw"
+                          ]
+                        }
+                      ],
+                      "apply_sky_clip": [
+                        "BOOLEAN",
+                        {
+                          "tooltip": "Clip sky-region depth to the 99th percentile of foreground depth before normalisation. Requires a sky key in the da3_geometry input (for Mono/Metric models only).",
+                          "default": false
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "key": "sky_mask",
+                  "inputs": {
+                    "required": {
+                      "colored": [
+                        "BOOLEAN",
+                        {
+                          "tooltip": "Apply the Turbo colormap to the sky mask.",
+                          "default": false
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "key": "confidence",
+                  "inputs": {
+                    "required": {
+                      "colored": [
+                        "BOOLEAN",
+                        {
+                          "tooltip": "Apply the Turbo colormap to the confidence map.",
+                          "default": false
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "da3_geometry",
+          "output"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "IMAGE"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "IMAGE"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "DA3Render",
+      "display_name": "Render Depth Anything 3",
+      "description": "Render a depth map, confidence map, or sky mask from Depth Anything 3 geometry data.",
+      "python_module": "comfy_extras.nodes_depth_anything_3",
+      "category": "image/geometry estimation",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": null,
+      "essentials_category": null,
       "has_intermediate_output": false
     },
     "DualCLIPLoader": {
@@ -2831,6 +3349,117 @@
       "essentials_category": null,
       "has_intermediate_output": false
     },
+    "FrameInterpolate": {
+      "input": {
+        "required": {
+          "interp_model": [
+            "INTERP_MODEL",
+            {}
+          ],
+          "images": [
+            "IMAGE",
+            {}
+          ],
+          "multiplier": [
+            "INT",
+            {
+              "default": 2,
+              "min": 2,
+              "max": 16
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "interp_model",
+          "images",
+          "multiplier"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "IMAGE"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "IMAGE"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "FrameInterpolate",
+      "display_name": "Run Frame Interpolation Model",
+      "description": "",
+      "python_module": "comfy_extras.nodes_frame_interpolation",
+      "category": "video",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "rife",
+        "film",
+        "frame interpolation",
+        "slow motion",
+        "interpolate frames",
+        "vfi"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "FrameInterpolationModelLoader": {
+      "input": {
+        "required": {
+          "model_name": [
+            "COMBO",
+            {
+              "tooltip": "Select a frame interpolation model to load. Models must be placed in the 'frame_interpolation' folder.",
+              "multiselect": false,
+              "options": []
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "model_name"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "INTERP_MODEL"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "INTERP_MODEL"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "FrameInterpolationModelLoader",
+      "display_name": "Load Frame Interpolation Model",
+      "description": "",
+      "python_module": "comfy_extras.nodes_frame_interpolation",
+      "category": "model/loaders",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
     "GeminiNanoBanana2V2": {
       "input": {
         "required": {
@@ -3346,6 +3975,136 @@
       "essentials_category": null,
       "has_intermediate_output": false
     },
+    "GetVideoComponents": {
+      "input": {
+        "required": {
+          "video": [
+            "VIDEO",
+            {
+              "tooltip": "The video to extract components from."
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "video"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "IMAGE",
+        "AUDIO",
+        "FLOAT",
+        "COMBO",
+        "COMBO"
+      ],
+      "output_is_list": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "output_name": [
+        "images",
+        "audio",
+        "fps",
+        "bit_depth",
+        "color_space"
+      ],
+      "output_tooltips": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "GetVideoComponents",
+      "display_name": "Get Video Components",
+      "description": "Extracts video frames, audio, frame rate, bit depth, and color space.",
+      "python_module": "comfy_extras.nodes_video",
+      "category": "video",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "extract frames",
+        "split video",
+        "video to images",
+        "demux"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "GrowMask": {
+      "input": {
+        "required": {
+          "mask": [
+            "MASK",
+            {}
+          ],
+          "expand": [
+            "INT",
+            {
+              "default": 0,
+              "min": -16384,
+              "max": 16384,
+              "step": 1
+            }
+          ],
+          "tapered_corners": [
+            "BOOLEAN",
+            {
+              "advanced": true,
+              "default": true
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "mask",
+          "expand",
+          "tapered_corners"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "MASK"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "MASK"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "GrowMask",
+      "display_name": "Grow Mask",
+      "description": "",
+      "python_module": "comfy_extras.nodes_mask",
+      "category": "image/mask",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "expand mask",
+        "shrink mask"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
     "HunyuanVideo15ImageToVideo": {
       "input": {
         "required": {
@@ -3523,6 +4282,249 @@
       "essentials_category": "Image Tools",
       "has_intermediate_output": false
     },
+    "ImageCompositeMasked": {
+      "input": {
+        "required": {
+          "destination": [
+            "IMAGE",
+            {}
+          ],
+          "source": [
+            "IMAGE",
+            {}
+          ],
+          "x": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0,
+              "max": 16384,
+              "step": 1
+            }
+          ],
+          "y": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0,
+              "max": 16384,
+              "step": 1
+            }
+          ],
+          "resize_source": [
+            "BOOLEAN",
+            {
+              "default": false
+            }
+          ]
+        },
+        "optional": {
+          "mask": [
+            "MASK",
+            {}
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "destination",
+          "source",
+          "x",
+          "y",
+          "resize_source"
+        ],
+        "optional": [
+          "mask"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "IMAGE"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "IMAGE"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "ImageCompositeMasked",
+      "display_name": "Image Composite Masked",
+      "description": "",
+      "python_module": "comfy_extras.nodes_mask",
+      "category": "image/compositing",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "overlay",
+        "layer",
+        "paste image",
+        "images composition"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "ImageFromBatch": {
+      "input": {
+        "required": {
+          "image": [
+            "IMAGE",
+            {}
+          ],
+          "batch_index": [
+            "INT",
+            {
+              "default": 0,
+              "min": -16384,
+              "max": 16384
+            }
+          ],
+          "length": [
+            "INT",
+            {
+              "default": 1,
+              "min": 1,
+              "max": 4096
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "image",
+          "batch_index",
+          "length"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "IMAGE"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "IMAGE"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "ImageFromBatch",
+      "display_name": "Get Image from Batch",
+      "description": "",
+      "python_module": "comfy_extras.nodes_images",
+      "category": "image/batch",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "select image",
+        "pick from batch",
+        "extract image"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "ImagePadForOutpaint": {
+      "input": {
+        "required": {
+          "image": [
+            "IMAGE"
+          ],
+          "left": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0,
+              "max": 16384,
+              "step": 8
+            }
+          ],
+          "top": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0,
+              "max": 16384,
+              "step": 8
+            }
+          ],
+          "right": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0,
+              "max": 16384,
+              "step": 8
+            }
+          ],
+          "bottom": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0,
+              "max": 16384,
+              "step": 8
+            }
+          ],
+          "feathering": [
+            "INT",
+            {
+              "default": 40,
+              "min": 0,
+              "max": 16384,
+              "step": 1,
+              "advanced": true
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "image",
+          "left",
+          "top",
+          "right",
+          "bottom",
+          "feathering"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "IMAGE",
+        "MASK"
+      ],
+      "output_is_list": [
+        false,
+        false
+      ],
+      "output_name": [
+        "IMAGE",
+        "MASK"
+      ],
+      "name": "ImagePadForOutpaint",
+      "display_name": "Pad Image for Outpainting",
+      "description": "",
+      "python_module": "nodes",
+      "category": "image/transform",
+      "output_node": false,
+      "has_intermediate_output": false,
+      "search_aliases": [
+        "extend canvas",
+        "expand image"
+      ]
+    },
     "ImageScale": {
       "input": {
         "required": {
@@ -3675,6 +4677,168 @@
       "api_node": false,
       "price_badge": null,
       "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "ImageToMask": {
+      "input": {
+        "required": {
+          "image": [
+            "IMAGE",
+            {}
+          ],
+          "channel": [
+            "COMBO",
+            {
+              "multiselect": false,
+              "options": [
+                "red",
+                "green",
+                "blue",
+                "alpha"
+              ]
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "image",
+          "channel"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "MASK"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "MASK"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "ImageToMask",
+      "display_name": "Convert Image to Mask",
+      "description": "",
+      "python_module": "comfy_extras.nodes_mask",
+      "category": "image/mask",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "extract channel",
+        "channel to mask"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "ImageUpscaleWithModel": {
+      "input": {
+        "required": {
+          "upscale_model": [
+            "UPSCALE_MODEL",
+            {}
+          ],
+          "image": [
+            "IMAGE",
+            {}
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "upscale_model",
+          "image"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "IMAGE"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "IMAGE"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "ImageUpscaleWithModel",
+      "display_name": "Upscale Image (using Model)",
+      "description": "",
+      "python_module": "comfy_extras.nodes_upscale_model",
+      "category": "image/upscaling",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "upscale",
+        "upscaler",
+        "upsc",
+        "enlarge image",
+        "super resolution",
+        "hires",
+        "superres",
+        "increase resolution"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "InvertMask": {
+      "input": {
+        "required": {
+          "mask": [
+            "MASK",
+            {}
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "mask"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "MASK"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "MASK"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "InvertMask",
+      "display_name": "Invert Mask",
+      "description": "",
+      "python_module": "comfy_extras.nodes_mask",
+      "category": "image/mask",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "reverse mask",
+        "flip mask"
+      ],
       "essentials_category": null,
       "has_intermediate_output": false
     },
@@ -5674,6 +6838,66 @@
       "essentials_category": null,
       "has_intermediate_output": false
     },
+    "LoadDA3Model": {
+      "input": {
+        "required": {
+          "model_name": [
+            "COMBO",
+            {
+              "multiselect": false,
+              "options": []
+            }
+          ],
+          "weight_dtype": [
+            "COMBO",
+            {
+              "default": "default",
+              "multiselect": false,
+              "options": [
+                "default",
+                "fp16",
+                "bf16",
+                "fp32"
+              ]
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "model_name",
+          "weight_dtype"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "DA3_MODEL"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "DA3_MODEL"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "LoadDA3Model",
+      "display_name": "Load Depth Anything 3",
+      "description": "",
+      "python_module": "comfy_extras.nodes_depth_anything_3",
+      "category": "model/loaders",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
     "LoadImage": {
       "input": {
         "required": {
@@ -5722,6 +6946,142 @@
         "image loader"
       ],
       "essentials_category": "Basics"
+    },
+    "LoadVideo": {
+      "input": {
+        "required": {
+          "file": [
+            "COMBO",
+            {
+              "multiselect": false,
+              "options": [],
+              "video_upload": true
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "file"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "VIDEO"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "VIDEO"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "LoadVideo",
+      "display_name": "Load Video",
+      "description": "",
+      "python_module": "comfy_extras.nodes_video",
+      "category": "video",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "import video",
+        "open video",
+        "video file"
+      ],
+      "essentials_category": "Basics",
+      "has_intermediate_output": true
+    },
+    "LoraLoader": {
+      "input": {
+        "required": {
+          "model": [
+            "MODEL",
+            {
+              "tooltip": "The diffusion model the LoRA will be applied to."
+            }
+          ],
+          "clip": [
+            "CLIP",
+            {
+              "tooltip": "The CLIP model the LoRA will be applied to."
+            }
+          ],
+          "lora_name": [
+            [],
+            {
+              "tooltip": "The name of the LoRA."
+            }
+          ],
+          "strength_model": [
+            "FLOAT",
+            {
+              "default": 1,
+              "min": -100,
+              "max": 100,
+              "step": 0.01,
+              "tooltip": "How strongly to modify the diffusion model. This value can be negative."
+            }
+          ],
+          "strength_clip": [
+            "FLOAT",
+            {
+              "default": 1,
+              "min": -100,
+              "max": 100,
+              "step": 0.01,
+              "tooltip": "How strongly to modify the CLIP model. This value can be negative."
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "model",
+          "clip",
+          "lora_name",
+          "strength_model",
+          "strength_clip"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "MODEL",
+        "CLIP"
+      ],
+      "output_is_list": [
+        false,
+        false
+      ],
+      "output_name": [
+        "MODEL",
+        "CLIP"
+      ],
+      "name": "LoraLoader",
+      "display_name": "Load LoRA (Model and CLIP)",
+      "description": "This LoRA loader is used to modify both diffusion and CLIP models, altering the way in which latents are denoised such as applying styles. Multiple LoRA nodes can be linked together.",
+      "python_module": "nodes",
+      "category": "model/loaders",
+      "output_node": false,
+      "has_intermediate_output": false,
+      "output_tooltips": [
+        "The modified diffusion model.",
+        "The modified CLIP model."
+      ],
+      "search_aliases": [
+        "lora",
+        "load lora",
+        "apply lora",
+        "lora loader",
+        "lora model"
+      ],
+      "essentials_category": "Image Generation"
     },
     "LoraLoaderModelOnly": {
       "input": {
@@ -5825,6 +7185,51 @@
       "search_aliases": [
         "custom noise schedule",
         "define sigmas"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "MaskToImage": {
+      "input": {
+        "required": {
+          "mask": [
+            "MASK",
+            {}
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "mask"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "IMAGE"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "IMAGE"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "MaskToImage",
+      "display_name": "Convert Mask to Image",
+      "description": "",
+      "python_module": "comfy_extras.nodes_mask",
+      "category": "image/mask",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "convert mask"
       ],
       "essentials_category": null,
       "has_intermediate_output": false
@@ -6138,6 +7543,54 @@
         "print value",
         "show text"
       ]
+    },
+    "PreviewImage": {
+      "input": {
+        "required": {
+          "images": [
+            "IMAGE"
+          ]
+        },
+        "hidden": {
+          "prompt": "PROMPT",
+          "extra_pnginfo": "EXTRA_PNGINFO"
+        }
+      },
+      "input_order": {
+        "required": [
+          "images"
+        ],
+        "hidden": [
+          "prompt",
+          "extra_pnginfo"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "IMAGE"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "images"
+      ],
+      "name": "PreviewImage",
+      "display_name": "Preview Image",
+      "description": "Preview the images without saving them to the ComfyUI output directory.",
+      "python_module": "nodes",
+      "category": "image",
+      "output_node": true,
+      "has_intermediate_output": false,
+      "search_aliases": [
+        "preview",
+        "preview image",
+        "show image",
+        "view image",
+        "display image",
+        "image viewer"
+      ],
+      "essentials_category": "Basics"
     },
     "PrimitiveBoolean": {
       "input": {
@@ -6634,6 +8087,166 @@
       "essentials_category": null,
       "has_intermediate_output": false
     },
+    "RegexExtract": {
+      "input": {
+        "required": {
+          "string": [
+            "STRING",
+            {
+              "multiline": true
+            }
+          ],
+          "regex_pattern": [
+            "STRING",
+            {
+              "multiline": true
+            }
+          ],
+          "mode": [
+            "COMBO",
+            {
+              "multiselect": false,
+              "options": [
+                "First Match",
+                "All Matches",
+                "First Group",
+                "All Groups"
+              ]
+            }
+          ],
+          "case_insensitive": [
+            "BOOLEAN",
+            {
+              "advanced": true,
+              "default": true
+            }
+          ],
+          "multiline": [
+            "BOOLEAN",
+            {
+              "advanced": true,
+              "default": false
+            }
+          ],
+          "dotall": [
+            "BOOLEAN",
+            {
+              "advanced": true,
+              "default": false
+            }
+          ],
+          "group_index": [
+            "INT",
+            {
+              "advanced": true,
+              "default": 1,
+              "min": 0,
+              "max": 100
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "string",
+          "regex_pattern",
+          "mode",
+          "case_insensitive",
+          "multiline",
+          "dotall",
+          "group_index"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "STRING"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "STRING"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "RegexExtract",
+      "display_name": "Extract Text",
+      "description": "",
+      "python_module": "comfy_extras.nodes_string",
+      "category": "text",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "regex extract",
+        "regex",
+        "pattern extract",
+        "text parser",
+        "parse text"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "RepeatImageBatch": {
+      "input": {
+        "required": {
+          "image": [
+            "IMAGE",
+            {}
+          ],
+          "amount": [
+            "INT",
+            {
+              "default": 1,
+              "min": 1,
+              "max": 4096
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "image",
+          "amount"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "IMAGE"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "IMAGE"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "RepeatImageBatch",
+      "display_name": "Repeat Image Batch",
+      "description": "",
+      "python_module": "comfy_extras.nodes_images",
+      "category": "image/batch",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "duplicate image",
+        "clone image"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
     "ReplaceVideoLatentFrames": {
       "input": {
         "required": {
@@ -7060,6 +8673,248 @@
       "description": "Calculate width and height from aspect ratio and megapixel target. Useful for setting up Empty Latent Image dimensions.",
       "python_module": "comfy_extras.nodes_resolution",
       "category": "utilities",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "SAM3_Detect": {
+      "input": {
+        "required": {
+          "model": [
+            "MODEL",
+            {
+              "display_name": "model"
+            }
+          ],
+          "image": [
+            "IMAGE",
+            {
+              "display_name": "image"
+            }
+          ],
+          "threshold": [
+            "FLOAT",
+            {
+              "display_name": "threshold",
+              "default": 0.5,
+              "min": 0,
+              "max": 1,
+              "step": 0.01
+            }
+          ],
+          "refine_iterations": [
+            "INT",
+            {
+              "display_name": "refine_iterations",
+              "tooltip": "SAM decoder refinement passes (0=use raw detector masks)",
+              "default": 2,
+              "min": 0,
+              "max": 5
+            }
+          ],
+          "individual_masks": [
+            "BOOLEAN",
+            {
+              "display_name": "individual_masks",
+              "tooltip": "Output per-object masks instead of union",
+              "default": false
+            }
+          ]
+        },
+        "optional": {
+          "conditioning": [
+            "CONDITIONING",
+            {
+              "display_name": "conditioning",
+              "tooltip": "Text conditioning from CLIPTextEncode"
+            }
+          ],
+          "bboxes": [
+            "BOUNDING_BOX",
+            {
+              "display_name": "bboxes",
+              "tooltip": "Bounding boxes to segment within",
+              "default": {
+                "x": 0,
+                "y": 0,
+                "width": 512,
+                "height": 512
+              },
+              "socketless": true,
+              "forceInput": true
+            }
+          ],
+          "positive_coords": [
+            "STRING",
+            {
+              "display_name": "positive_coords",
+              "tooltip": "Positive point prompts as JSON [{\"x\": int, \"y\": int}, ...] (pixel coords)",
+              "forceInput": true,
+              "multiline": false
+            }
+          ],
+          "negative_coords": [
+            "STRING",
+            {
+              "display_name": "negative_coords",
+              "tooltip": "Negative point prompts as JSON [{\"x\": int, \"y\": int}, ...] (pixel coords)",
+              "forceInput": true,
+              "multiline": false
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "model",
+          "image",
+          "threshold",
+          "refine_iterations",
+          "individual_masks"
+        ],
+        "optional": [
+          "conditioning",
+          "bboxes",
+          "positive_coords",
+          "negative_coords"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "MASK",
+        "BOUNDING_BOX"
+      ],
+      "output_is_list": [
+        false,
+        false
+      ],
+      "output_name": [
+        "masks",
+        "bboxes"
+      ],
+      "output_tooltips": [
+        null,
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "SAM3_Detect",
+      "display_name": "SAM3 Detect",
+      "description": "",
+      "python_module": "comfy_extras.nodes_sam3",
+      "category": "image/detection",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "sam3",
+        "segment anything",
+        "open vocabulary",
+        "text detection",
+        "segment"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "SamplerCustom": {
+      "input": {
+        "required": {
+          "model": [
+            "MODEL",
+            {}
+          ],
+          "add_noise": [
+            "BOOLEAN",
+            {
+              "advanced": true,
+              "default": true
+            }
+          ],
+          "noise_seed": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0,
+              "max": 18446744073709552000,
+              "control_after_generate": true
+            }
+          ],
+          "cfg": [
+            "FLOAT",
+            {
+              "default": 8,
+              "min": 0,
+              "max": 100,
+              "step": 0.1,
+              "round": 0.01
+            }
+          ],
+          "positive": [
+            "CONDITIONING",
+            {}
+          ],
+          "negative": [
+            "CONDITIONING",
+            {}
+          ],
+          "sampler": [
+            "SAMPLER",
+            {}
+          ],
+          "sigmas": [
+            "SIGMAS",
+            {}
+          ],
+          "latent_image": [
+            "LATENT",
+            {}
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "model",
+          "add_noise",
+          "noise_seed",
+          "cfg",
+          "positive",
+          "negative",
+          "sampler",
+          "sigmas",
+          "latent_image"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "LATENT",
+        "LATENT"
+      ],
+      "output_is_list": [
+        false,
+        false
+      ],
+      "output_name": [
+        "output",
+        "denoised_output"
+      ],
+      "output_tooltips": [
+        null,
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "SamplerCustom",
+      "display_name": null,
+      "description": "",
+      "python_module": "comfy_extras.nodes_custom_sampler",
+      "category": "model/sampling/custom",
       "output_node": false,
       "deprecated": false,
       "experimental": false,
@@ -8028,6 +9883,539 @@
       "essentials_category": "Basics",
       "has_intermediate_output": false
     },
+    "SeedVR2Conditioning": {
+      "input": {
+        "required": {
+          "model": [
+            "MODEL",
+            {
+              "tooltip": "The SeedVR2 model."
+            }
+          ],
+          "vae_conditioning": [
+            "LATENT",
+            {
+              "display_name": "latent"
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "model",
+          "vae_conditioning"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "CONDITIONING",
+        "CONDITIONING"
+      ],
+      "output_is_list": [
+        false,
+        false
+      ],
+      "output_name": [
+        "positive",
+        "negative"
+      ],
+      "output_tooltips": [
+        "The positive conditioning for sampling.",
+        "The negative conditioning for sampling."
+      ],
+      "output_matchtypes": null,
+      "name": "SeedVR2Conditioning",
+      "display_name": "Apply SeedVR2 Conditioning",
+      "description": "Build SeedVR2 positive/negative conditioning from a VAE latent.",
+      "python_module": "comfy_extras.nodes_seedvr",
+      "category": "model/conditioning",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "seedvr2",
+        "upscale",
+        "conditioning"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "SeedVR2PostProcessing": {
+      "input": {
+        "required": {
+          "images": [
+            "IMAGE",
+            {
+              "tooltip": "The generated image to process."
+            }
+          ],
+          "original_resized_images": [
+            "IMAGE",
+            {
+              "tooltip": "The original resized image before pre-processing, used as reference."
+            }
+          ],
+          "color_correction_method": [
+            "COMBO",
+            {
+              "tooltip": "Method to match the generated image colors to the original image. lab: transfer color in CIELAB space, preserving detail (most faithful). wavelet: transfer low-frequency color, keeping upscaled high-frequency detail. adain: match per-channel mean/std (fastest, global tint). none: skip color transfer (geometry alignment only).",
+              "default": "lab",
+              "multiselect": false,
+              "options": [
+                "lab",
+                "wavelet",
+                "adain",
+                "none"
+              ]
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "images",
+          "original_resized_images",
+          "color_correction_method"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "IMAGE"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "images"
+      ],
+      "output_tooltips": [
+        "The aligned, color-corrected image."
+      ],
+      "output_matchtypes": null,
+      "name": "SeedVR2PostProcessing",
+      "display_name": "Post-Process SeedVR2 Output",
+      "description": "Align the generated image with the original resized image and apply color correction.",
+      "python_module": "comfy_extras.nodes_seedvr",
+      "category": "image/post-processors",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "seedvr2",
+        "upscale",
+        "color correction",
+        "color match",
+        "postprocess"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "SeedVR2Preprocess": {
+      "input": {
+        "required": {
+          "resized_images": [
+            "IMAGE",
+            {
+              "tooltip": "The resized image to process."
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "resized_images"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "IMAGE"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "images"
+      ],
+      "output_tooltips": [
+        "The padded image for VAE encoding."
+      ],
+      "output_matchtypes": null,
+      "name": "SeedVR2Preprocess",
+      "display_name": "Pre-Process SeedVR2 Input",
+      "description": "Pad a resized image for SeedVR2 model. Alpha channel is dropped. The node Post-Process SeedVR2 Output re-applies it from the original resized image.",
+      "python_module": "comfy_extras.nodes_seedvr",
+      "category": "image/pre-processors",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "seedvr2",
+        "upscale",
+        "video upscale",
+        "pad",
+        "preprocess"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "SeedVR2TemporalChunk": {
+      "input": {
+        "required": {
+          "latent": [
+            "LATENT",
+            {
+              "tooltip": "The VAE-encoded SeedVR2 latent to split."
+            }
+          ],
+          "temporal_overlap": [
+            "INT",
+            {
+              "tooltip": "Latent frames shared between adjacent chunks and crossfaded at merge; 0 = no overlap.",
+              "default": 0,
+              "min": 0,
+              "max": 16384
+            }
+          ],
+          "chunking_mode": [
+            "COMFY_DYNAMICCOMBO_V3",
+            {
+              "tooltip": "manual = use frames_per_chunk exactly; auto = predict the largest chunk that fits free VRAM.",
+              "options": [
+                {
+                  "key": "auto",
+                  "inputs": {
+                    "required": {}
+                  }
+                },
+                {
+                  "key": "manual",
+                  "inputs": {
+                    "required": {
+                      "frames_per_chunk": [
+                        "INT",
+                        {
+                          "tooltip": "Pixel frames per temporal chunk (4n+1: 1, 5, 9, 13, ...).",
+                          "default": 21,
+                          "min": 1,
+                          "max": 16384,
+                          "step": 4
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "latent",
+          "temporal_overlap",
+          "chunking_mode"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "LATENT",
+        "INT"
+      ],
+      "output_is_list": [
+        true,
+        false
+      ],
+      "output_name": [
+        "latents",
+        "temporal_overlap"
+      ],
+      "output_tooltips": [
+        "The temporal chunks in sequence order.",
+        "The effective latent-frame overlap between adjacent chunks, for Merge SeedVR2 Latents."
+      ],
+      "output_matchtypes": null,
+      "name": "SeedVR2TemporalChunk",
+      "display_name": "Split SeedVR2 Latent",
+      "description": "Split a SeedVR2 video latent into overlapping temporal chunks small enough to sample one at a time within VRAM, wiring latents outputs to both Apply SeedVR2 Conditioning and the sampler latent input before recombining with Merge SeedVR2 Latents.",
+      "python_module": "comfy_extras.nodes_seedvr",
+      "category": "model/latent/seedvr",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "seedvr2",
+        "split",
+        "chunk",
+        "temporal",
+        "video upscale",
+        "rebatch"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "SeedVR2TemporalMerge": {
+      "input": {
+        "required": {
+          "latents": [
+            "LATENT",
+            {
+              "tooltip": "The sampled temporal chunks in sequence order."
+            }
+          ],
+          "temporal_overlap": [
+            "INT",
+            {
+              "tooltip": "The temporal_overlap output of Split SeedVR2 Latent. 0 = plain concatenation.",
+              "default": 0,
+              "forceInput": true,
+              "min": 0,
+              "max": 16384
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "latents",
+          "temporal_overlap"
+        ]
+      },
+      "is_input_list": true,
+      "output": [
+        "LATENT"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "latent"
+      ],
+      "output_tooltips": [
+        "The recombined full-length latent."
+      ],
+      "output_matchtypes": null,
+      "name": "SeedVR2TemporalMerge",
+      "display_name": "Merge SeedVR2 Latents",
+      "description": "Recombine sampled SeedVR2 latent temporal chunks into one latent, crossfading each overlap with a Hann window sized by the temporal_overlap wired from Split SeedVR2 Latent.",
+      "python_module": "comfy_extras.nodes_seedvr",
+      "category": "model/latent/seedvr",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "seedvr2",
+        "merge",
+        "temporal",
+        "hann",
+        "crossfade"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "SplitSigmas": {
+      "input": {
+        "required": {
+          "sigmas": [
+            "SIGMAS",
+            {}
+          ],
+          "step": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0,
+              "max": 10000
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "sigmas",
+          "step"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "SIGMAS",
+        "SIGMAS"
+      ],
+      "output_is_list": [
+        false,
+        false
+      ],
+      "output_name": [
+        "high_sigmas",
+        "low_sigmas"
+      ],
+      "output_tooltips": [
+        null,
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "SplitSigmas",
+      "display_name": null,
+      "description": "",
+      "python_module": "comfy_extras.nodes_custom_sampler",
+      "category": "model/sampling/sigmas",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "StringConcatenate": {
+      "input": {
+        "required": {
+          "string_a": [
+            "STRING",
+            {
+              "multiline": true
+            }
+          ],
+          "string_b": [
+            "STRING",
+            {
+              "multiline": true
+            }
+          ],
+          "delimiter": [
+            "STRING",
+            {
+              "default": "",
+              "multiline": false
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "string_a",
+          "string_b",
+          "delimiter"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "STRING"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "STRING"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "StringConcatenate",
+      "display_name": "Concatenate Text",
+      "description": "",
+      "python_module": "comfy_extras.nodes_string",
+      "category": "text",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "concatenate",
+        "text concat",
+        "join text",
+        "merge text",
+        "combine strings",
+        "string concat",
+        "append text",
+        "combine text"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "StringReplace": {
+      "input": {
+        "required": {
+          "string": [
+            "STRING",
+            {
+              "multiline": true
+            }
+          ],
+          "find": [
+            "STRING",
+            {
+              "multiline": true
+            }
+          ],
+          "replace": [
+            "STRING",
+            {
+              "multiline": true
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "string",
+          "find",
+          "replace"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "STRING"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "STRING"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "StringReplace",
+      "display_name": "Replace Text",
+      "description": "",
+      "python_module": "comfy_extras.nodes_string",
+      "category": "text",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "replace",
+        "find and replace",
+        "substitute",
+        "swap text"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
     "TextEncodeQwenImage21": {
       "input": {
         "required": {
@@ -8661,6 +11049,58 @@
       "essentials_category": null,
       "has_intermediate_output": false
     },
+    "TrimVideoLatent": {
+      "input": {
+        "required": {
+          "samples": [
+            "LATENT",
+            {}
+          ],
+          "trim_amount": [
+            "INT",
+            {
+              "default": 0,
+              "min": 0,
+              "max": 99999
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "samples",
+          "trim_amount"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "LATENT"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "LATENT"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "TrimVideoLatent",
+      "display_name": "Trim Video Latent",
+      "description": "",
+      "python_module": "comfy_extras.nodes_wan",
+      "category": "model/latent",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
     "UNETLoader": {
       "input": {
         "required": {
@@ -8704,6 +11144,52 @@
       "output_node": false,
       "has_intermediate_output": false,
       "search_aliases": []
+    },
+    "UpscaleModelLoader": {
+      "input": {
+        "required": {
+          "model_name": [
+            "COMBO",
+            {
+              "multiselect": false,
+              "options": []
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "model_name"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "UPSCALE_MODEL"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "UPSCALE_MODEL"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "UpscaleModelLoader",
+      "display_name": "Load Upscale Model",
+      "description": "",
+      "python_module": "comfy_extras.nodes_upscale_model",
+      "category": "model/loaders",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
     },
     "VAEDecode": {
       "input": {
@@ -8927,6 +11413,88 @@
         "image to latent"
       ]
     },
+    "VAEEncodeTiled": {
+      "input": {
+        "required": {
+          "pixels": [
+            "IMAGE"
+          ],
+          "vae": [
+            "VAE"
+          ],
+          "tile_size": [
+            "INT",
+            {
+              "default": 512,
+              "min": 64,
+              "max": 4096,
+              "step": 64,
+              "advanced": true
+            }
+          ],
+          "overlap": [
+            "INT",
+            {
+              "default": 64,
+              "min": 0,
+              "max": 4096,
+              "step": 32,
+              "advanced": true
+            }
+          ],
+          "temporal_size": [
+            "INT",
+            {
+              "default": 64,
+              "min": 8,
+              "max": 4096,
+              "step": 4,
+              "tooltip": "Only used for video VAEs: Amount of frames to encode at a time.",
+              "advanced": true
+            }
+          ],
+          "temporal_overlap": [
+            "INT",
+            {
+              "default": 8,
+              "min": 4,
+              "max": 4096,
+              "step": 4,
+              "tooltip": "Only used for video VAEs: Amount of frames to overlap.",
+              "advanced": true
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "pixels",
+          "vae",
+          "tile_size",
+          "overlap",
+          "temporal_size",
+          "temporal_overlap"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "LATENT"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "LATENT"
+      ],
+      "name": "VAEEncodeTiled",
+      "display_name": "VAE Encode (Tiled)",
+      "description": "",
+      "python_module": "nodes",
+      "category": "model/latent",
+      "output_node": false,
+      "has_intermediate_output": false,
+      "search_aliases": []
+    },
     "VAELoader": {
       "input": {
         "required": {
@@ -8960,6 +11528,83 @@
       "output_node": false,
       "has_intermediate_output": false,
       "search_aliases": []
+    },
+    "Video Slice": {
+      "input": {
+        "required": {
+          "video": [
+            "VIDEO",
+            {}
+          ],
+          "start_time": [
+            "FLOAT",
+            {
+              "tooltip": "Start time in seconds",
+              "default": 0,
+              "min": -100000,
+              "max": 100000,
+              "step": 0.001
+            }
+          ],
+          "duration": [
+            "FLOAT",
+            {
+              "tooltip": "Duration in seconds, or 0 for unlimited duration",
+              "default": 0,
+              "min": 0,
+              "step": 0.001
+            }
+          ],
+          "strict_duration": [
+            "BOOLEAN",
+            {
+              "tooltip": "If True, when the specified duration is not possible, an error will be raised.",
+              "default": false
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "video",
+          "start_time",
+          "duration",
+          "strict_duration"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "VIDEO"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "VIDEO"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "Video Slice",
+      "display_name": "Trim Video",
+      "description": "",
+      "python_module": "comfy_extras.nodes_video",
+      "category": "video",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "trim video duration",
+        "skip first frames",
+        "frame load cap",
+        "start time"
+      ],
+      "essentials_category": "Video Tools",
+      "has_intermediate_output": false
     },
     "WanFirstLastFrameToVideo": {
       "input": {
@@ -9203,6 +11848,142 @@
       "api_node": false,
       "price_badge": null,
       "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "WanVaceToVideo": {
+      "input": {
+        "required": {
+          "positive": [
+            "CONDITIONING",
+            {}
+          ],
+          "negative": [
+            "CONDITIONING",
+            {}
+          ],
+          "vae": [
+            "VAE",
+            {}
+          ],
+          "width": [
+            "INT",
+            {
+              "default": 832,
+              "min": 16,
+              "max": 16384,
+              "step": 16
+            }
+          ],
+          "height": [
+            "INT",
+            {
+              "default": 480,
+              "min": 16,
+              "max": 16384,
+              "step": 16
+            }
+          ],
+          "length": [
+            "INT",
+            {
+              "default": 81,
+              "min": 1,
+              "max": 16384,
+              "step": 4
+            }
+          ],
+          "batch_size": [
+            "INT",
+            {
+              "default": 1,
+              "min": 1,
+              "max": 4096
+            }
+          ],
+          "strength": [
+            "FLOAT",
+            {
+              "default": 1,
+              "min": 0,
+              "max": 1000,
+              "step": 0.01
+            }
+          ]
+        },
+        "optional": {
+          "control_video": [
+            "IMAGE",
+            {}
+          ],
+          "control_masks": [
+            "MASK",
+            {}
+          ],
+          "reference_image": [
+            "IMAGE",
+            {}
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "positive",
+          "negative",
+          "vae",
+          "width",
+          "height",
+          "length",
+          "batch_size",
+          "strength"
+        ],
+        "optional": [
+          "control_video",
+          "control_masks",
+          "reference_image"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "CONDITIONING",
+        "CONDITIONING",
+        "LATENT",
+        "INT"
+      ],
+      "output_is_list": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "output_name": [
+        "positive",
+        "negative",
+        "latent",
+        "trim_latent"
+      ],
+      "output_tooltips": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "WanVaceToVideo",
+      "display_name": null,
+      "description": "",
+      "python_module": "comfy_extras.nodes_wan",
+      "category": "model/conditioning/wan/vace",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "video conditioning",
+        "video control"
+      ],
       "essentials_category": null,
       "has_intermediate_output": false
     }

@@ -5,7 +5,7 @@ import path from "node:path";
 import { getEnv, type StudioEnv } from "@/server/env";
 import type { Preset } from "../presets/schema";
 import { loadObjectInfo } from "../presets/validate";
-import { detectPreset } from "./bindings";
+import { detectPreset, detectToolPreset } from "./bindings";
 import {
   MODEL_REGISTRY,
   modeForPresetId,
@@ -13,6 +13,7 @@ import {
   type ModelEntry,
   type ModelMode,
 } from "./registry";
+import { EDIT_TOOLS, toolForPresetId } from "./tools";
 
 export type ModeManifestEntry = {
   template: string;
@@ -29,6 +30,7 @@ export type ModeManifestEntry = {
 export type ModelsManifest = {
   ref: string;
   modes: Record<string, ModeManifestEntry>;
+  tools?: Record<string, ModeManifestEntry>;
 };
 
 /** models/ sits next to presets/ at the repo root. */
@@ -96,6 +98,76 @@ function buildSynthetic(id: string, env: StudioEnv): Preset | null {
   } catch {
     return null;
   }
+}
+
+/** A tool's detected preset plus its runtime-derived binds. */
+export type ResolvedTool = {
+  preset: Preset;
+  frames?: { node: string; field: string; cap: number }[];
+  size?: {
+    width: { node: string; field: string; value: number };
+    height: { node: string; field: string; value: number };
+  };
+  inputFps?: number;
+  padsNode?: string;
+};
+
+const toolCache = new Map<string, ResolvedTool | null>();
+
+/** Detect the synthetic preset for an `edit-*` tool id; null when gated out. */
+export function syntheticToolPreset(
+  id: string,
+  env: StudioEnv = getEnv(),
+): ResolvedTool | null {
+  const key = `${env.presetsDir}:${id}`;
+  const cached = toolCache.get(key);
+  if (cached !== undefined) return cached;
+
+  const set = (v: ResolvedTool | null) => {
+    toolCache.set(key, v);
+    return v;
+  };
+
+  const tool = toolForPresetId(id);
+  const entry = tool ? loadModelsManifest(env)?.tools?.[id] : undefined;
+  if (!tool || !entry || entry.gate !== "pass") return set(null);
+  const files = cacheFiles(entry.template, env);
+  if (!fs.existsSync(files.apiFile) || !fs.existsSync(files.uiFile)) {
+    return set(null);
+  }
+  try {
+    const api = JSON.parse(fs.readFileSync(files.apiFile, "utf8"));
+    const ui = JSON.parse(fs.readFileSync(files.uiFile, "utf8"));
+    const detected = detectToolPreset(tool, api, ui, loadObjectInfo());
+    return set(
+      detected.preset && detected.problems.length === 0
+        ? {
+            preset: detected.preset,
+            ...(detected.frames ? { frames: detected.frames } : {}),
+            ...(detected.size ? { size: detected.size } : {}),
+            ...(detected.inputFps ? { inputFps: detected.inputFps } : {}),
+            ...(detected.padsNode ? { padsNode: detected.padsNode } : {}),
+          }
+        : null,
+    );
+  } catch {
+    return set(null);
+  }
+}
+
+/** Every edit tool the manifest gates pass: template-backed and app (extend). */
+export function listTools(env: StudioEnv = getEnv()): {
+  tool: (typeof EDIT_TOOLS)[number];
+  presetId: string | null;
+}[] {
+  return EDIT_TOOLS.map((tool) => {
+    if (!tool.template) return { tool, presetId: null };
+    const id = `edit-${tool.id}`;
+    return {
+      tool,
+      presetId: syntheticToolPreset(id, env) ? id : null,
+    };
+  });
 }
 
 export type ListedModel = {

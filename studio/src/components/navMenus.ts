@@ -45,13 +45,6 @@ export function buildNavMenus(
           badge: "Soon",
         },
         {
-          title: "Edit",
-          href: "/edit",
-          description: "Upscale and inpaint",
-          icon: "edit",
-          badge: "Soon",
-        },
-        {
           title: "Workflows",
           href: "/workflows",
           description: "Open any image as a workflow",
@@ -97,6 +90,13 @@ export function buildNavMenus(
           description: "Lipsync",
           icon: "avatars",
           badge: "Soon",
+        },
+        {
+          title: "Edit Video",
+          href: "/edit",
+          description: "Upscale, reframe, relight",
+          icon: "edit",
+          badge: "New",
         },
         {
           title: "Editor",

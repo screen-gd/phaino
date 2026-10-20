@@ -46,9 +46,14 @@ describe("POST /api/uploads/from-output", () => {
     expect(res.status).toBe(400);
   });
 
-  it("rejects non-image outputs", async () => {
+  it("copies a video output into uploads (Edit Video)", async () => {
     const res = await call("clip.mp4");
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(201);
+    const body = (await res.json()) as { uploadId: string; previewUrl: string };
+    expect(body.uploadId).toMatch(/^[0-9a-f-]{36}\.mp4$/);
+    const resolved = resolveUpload(dir, body.uploadId);
+    expect(resolved.mimeType).toBe("video/mp4");
+    expect(readFileSync(resolved.absPath)).toEqual(Buffer.from([0, 0, 0]));
   });
 
   it("copies an image output into uploads and returns the upload shape", async () => {

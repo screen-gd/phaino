@@ -194,4 +194,109 @@ describe("startExport", () => {
     expect(files).toHaveLength(3);
     expect(files[2]).toBe(path.join(dir, "phaino_sequence.mp4"));
   });
+
+  it("package: a still on V1 loops in conform, music stays render-only", async () => {
+    const e = env();
+    const jobs = openStore(path.join(e.dataDir, "phaino.db"));
+    const still: Media = {
+      id: "mi",
+      path: "test/Cover.png",
+      name: "Cover.png",
+      kind: "image",
+      srcFps: 0,
+      width: 1600,
+      height: 1200,
+      durationSec: 60,
+      hasAudio: false,
+    };
+    const music: Media = {
+      id: "mm",
+      path: "uploads/editor/track.mp3",
+      name: "track.mp3",
+      kind: "audio",
+      srcFps: 0,
+      width: 0,
+      height: 0,
+      durationSec: 10,
+      hasAudio: true,
+    };
+    const withStill: Sequence = {
+      ...emptySequence(),
+      media: [videoMedia("ma", "Orbit.mp4", 3), still, music],
+      clips: [
+        {
+          id: "a",
+          mediaId: "ma",
+          in: 0,
+          out: 48,
+          volume: 1,
+          muted: false,
+          fadeIn: 0,
+          fadeOut: 0,
+          transition: CUT,
+        },
+        {
+          id: "s",
+          mediaId: "mi",
+          in: 0,
+          out: 72,
+          volume: 1,
+          muted: false,
+          fadeIn: 0,
+          fadeOut: 0,
+          transition: CUT,
+        },
+      ],
+      audio: [
+        {
+          id: "au",
+          mediaId: "mm",
+          start: 0,
+          in: 0,
+          out: 96,
+          volume: 0.8,
+          fadeIn: 0,
+          fadeOut: 0,
+        },
+      ],
+    };
+    const calls: string[][] = [];
+    const job = await startExport(
+      { action: "package", codec: "h264" },
+      {
+        env: e,
+        jobs,
+        sequences: fakeSequences(withStill),
+        runFfmpeg: async (args, onFrame) => {
+          calls.push(args);
+          const out = args[args.length - 1];
+          fs.mkdirSync(path.dirname(out), { recursive: true });
+          fs.writeFileSync(out, "media");
+          onFrame?.(10);
+        },
+        now: () => "2026-10-19T00:00:00.000Z",
+      },
+    );
+    await vi.waitFor(
+      () => expect(jobs.get(job.id)?.status).toBe("succeeded"),
+      { timeout: 5000 },
+    );
+
+    // 3 conform runs (video + still) + 1 render = music has no conform file.
+    // Still conform loops the single frame; no audio mapping.
+    const stillCall = calls.find(
+      (c) => c.includes("-loop") && c.includes("-t"),
+    );
+    expect(stillCall, "still conform must loop the image").toBeTruthy();
+    expect(stillCall).toContain("-an");
+
+    const dir = path.join(e.dataDir, "exports", job.id);
+    const finished = jobs.get(job.id)!;
+    expect(finished.outputs).toContain("media/02_cover.mp4");
+    // Music media produces no conform file and no EDL/FCPXML entry.
+    expect(finished.outputs?.some((o) => o.includes("track"))).toBe(false);
+    const edl = fs.readFileSync(path.join(dir, "phaino_sequence.edl"), "utf8");
+    expect(edl).not.toContain("track.mp3");
+    expect(edl).toContain("Cover.png");
+  });
 });

@@ -341,6 +341,7 @@ async function runExport(
         endFrame: clip.out + h.tail,
         codec,
         hasAudio: resolved.hasAudio,
+        still: media.kind === "image",
       }),
       progress,
     );

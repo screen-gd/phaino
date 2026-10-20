@@ -6,6 +6,7 @@ import {
   cacheFiles,
   loadModelsManifest,
   syntheticPreset,
+  syntheticToolPreset,
 } from "../models/resolve";
 import {
   MODEL_REGISTRY,
@@ -13,6 +14,7 @@ import {
   modePresetId,
   type ModelMode,
 } from "../models/registry";
+import { EDIT_TOOLS, toolForPresetId } from "../models/tools";
 import { presetSchema, type Preset } from "./schema";
 
 export const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -115,6 +117,11 @@ export function listPresets(env: StudioEnv = getEnv()): ListedPreset[] {
       }
     }
   }
+  for (const tool of EDIT_TOOLS) {
+    if (!tool.template) continue;
+    const t = syntheticToolPreset(`edit-${tool.id}`, env);
+    if (t) synthetic.push({ ...t.preset, origin: "model" });
+  }
   const all = [
     ...listDir(env.presetsDir, "builtin"),
     ...synthetic,
@@ -140,14 +147,21 @@ export function getPreset(id: string, env: StudioEnv = getEnv()): LoadedPreset |
   if (!SLUG.test(id)) return null;
   const presetFileBuiltin = path.join(presetDir(env, id), "preset.json");
   if (!fs.existsSync(presetFileBuiltin) && !fs.existsSync(path.join(forkDir(env, id), "preset.json"))) {
-    // Maybe a template-backed model mode: models/cache holds its graphs.
-    const hit = modeForPresetId(id);
-    if (!hit) return null;
-    const preset = syntheticPreset(id, env);
-    if (!preset) return null;
+    // A template-backed entry (model mode or edit tool): models/cache holds
+    // its graphs.
     const manifest = loadModelsManifest(env);
-    const entry = manifest?.modes?.[id];
+    const hit = modeForPresetId(id);
+    const tool = toolForPresetId(id);
+    const entry = hit
+      ? manifest?.modes?.[id]
+      : tool
+        ? manifest?.tools?.[id]
+        : undefined;
     if (!entry) return null;
+    const preset = hit
+      ? (syntheticPreset(id, env) ?? null)
+      : (syntheticToolPreset(id, env)?.preset ?? null);
+    if (!preset) return null;
     const files = cacheFiles(entry.template, env);
     return {
       preset: { ...preset, origin: "model" },
@@ -194,9 +208,19 @@ export function resolveThumbPath(id: string, env: StudioEnv = getEnv()): string 
     const file = path.join(dir, "thumb.webp");
     return fs.existsSync(file) ? file : null;
   }
+  const manifest = loadModelsManifest(env);
   const hit = modeForPresetId(id);
-  if (!hit || !syntheticPreset(id, env)) return null;
-  const entry = loadModelsManifest(env)?.modes?.[id];
+  if (hit) {
+    if (!syntheticPreset(id, env)) return null;
+    const entry = manifest?.modes?.[id];
+    if (!entry) return null;
+    const file = cacheFiles(entry.template, env).thumbFile;
+    return fs.existsSync(file) ? file : null;
+  }
+  const tool = toolForPresetId(id);
+  if (!tool) return null;
+  if (!syntheticToolPreset(id, env)) return null;
+  const entry = manifest?.tools?.[id];
   if (!entry) return null;
   const file = cacheFiles(entry.template, env).thumbFile;
   return fs.existsSync(file) ? file : null;

@@ -5,6 +5,7 @@ import { Icon, SECTION_ICONS } from "../icons";
 import type { StudioJob, StudioPreset } from "@/components/toolStudioData";
 import { PublishDialog } from "@/components/PublishDialog";
 import { AddToSequence } from "@/components/sequence/AddToSequence";
+import { EditVideoButton } from "@/components/edit/EditVideoButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -104,7 +105,12 @@ export function CurrentJob({
                 </Button>
               }
             />
-            {outputKind === "video" && <AddToSequence path={output} />}
+            {outputKind === "video" && (
+              <>
+                <AddToSequence path={output} />
+                <EditVideoButton path={output} />
+              </>
+            )}
             {outputKind === "image" && (
               <Button
                 variant="outline"
@@ -195,11 +201,10 @@ export function RecentGrid({
               </span>
             </button>
             {r.status === "succeeded" && isVid && out && (
-              <AddToSequence
-                path={out}
-                iconOnly
-                className="absolute top-1.5 right-1.5 opacity-0 transition-opacity group-hover:opacity-100"
-              />
+              <span className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                <EditVideoButton path={out} iconOnly />
+                <AddToSequence path={out} iconOnly />
+              </span>
             )}
             {r.status === "succeeded" && !isVid && out && (
               <Link

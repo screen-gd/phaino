@@ -4,6 +4,7 @@ import { getEnv } from "@/server/env";
 import { getPreset, resolvePresetDir } from "@/server/presets/load";
 import { cacheFiles, loadModelsManifest } from "@/server/models/resolve";
 import { modeForPresetId } from "@/server/models/registry";
+import { toolForPresetId } from "@/server/models/tools";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,8 +27,11 @@ export async function GET(
   let file: string;
   if (dir) {
     file = path.join(dir, format === "api" ? "workflow_api.json" : "workflow.json");
-  } else if (modeForPresetId(id) && getPreset(id, env)) {
-    const entry = loadModelsManifest(env)?.modes?.[id];
+  } else if ((modeForPresetId(id) || toolForPresetId(id)) && getPreset(id, env)) {
+    const manifest = loadModelsManifest(env);
+    const entry = modeForPresetId(id)
+      ? manifest?.modes?.[id]
+      : manifest?.tools?.[id];
     if (!entry) return new Response("Not found", { status: 404 });
     const files = cacheFiles(entry.template, env);
     file = format === "api" ? files.apiFile : files.uiFile;

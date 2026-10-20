@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { SocialError } from "@opencoredev/social-sdk";
 import { getEnv } from "@/server/env";
 import { socialErrorResponse } from "@/server/social/errors";
 import { resolveOutput } from "@/server/social/media";
@@ -11,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 const bodySchema = z.object({ path: z.string().min(1) });
 
-/** Copy an existing generated image into uploads/, for "Animate this image". */
+/** Copy an existing generated output into uploads/ (Animate, Edit Video). */
 export async function POST(request: Request) {
   try {
     const parsed = bodySchema.safeParse(await request.json());
@@ -20,13 +19,6 @@ export async function POST(request: Request) {
     }
     const env = getEnv();
     const resolved = resolveOutput(env.dataDir, parsed.data.path);
-    if (resolved.kind !== "image") {
-      throw new SocialError({
-        code: "invalid_input",
-        operation: "uploads",
-        message: "Only image outputs can be animated",
-      });
-    }
     const saved = await saveUploadFromPath(env.dataDir, resolved.absPath, () =>
       crypto.randomUUID(),
     );

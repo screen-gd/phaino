@@ -11,11 +11,18 @@ const UPLOAD_TYPES = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
+  ".mp4": "video/mp4",
+  ".mov": "video/quicktime",
+  ".webm": "video/webm",
 } as const;
 
 export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+export const MAX_VIDEO_UPLOAD_BYTES = 500 * 1024 * 1024;
 
-const UPLOAD_ID = /^[0-9a-f-]{36}\.(png|jpe?g|webp)$/;
+const UPLOAD_ID = /^[0-9a-f-]{36}\.(png|jpe?g|webp|mp4|mov|webm)$/;
+
+const isVideoExt = (ext: string) =>
+  ext === ".mp4" || ext === ".mov" || ext === ".webm";
 
 function invalid(message: string): SocialError {
   return new SocialError({ code: "invalid_input", operation: "uploads", message });
@@ -35,8 +42,13 @@ export async function saveUpload(
   const ext = (Object.keys(UPLOAD_TYPES) as (keyof typeof UPLOAD_TYPES)[]).find(
     (e) => UPLOAD_TYPES[e] === mime,
   );
-  if (!ext) throw invalid("Only png, jpg and webp images are accepted");
-  if (file.size > MAX_UPLOAD_BYTES) throw invalid("File exceeds the 25 MB limit");
+  if (!ext) {
+    throw invalid("Only png, jpg, webp images and mp4, mov, webm videos are accepted");
+  }
+  const maxBytes = isVideoExt(ext) ? MAX_VIDEO_UPLOAD_BYTES : MAX_UPLOAD_BYTES;
+  if (file.size > maxBytes) {
+    throw invalid(`File exceeds the ${isVideoExt(ext) ? "500 MB" : "25 MB"} limit`);
+  }
   const id = `${newId()}${ext}`;
   const dir = uploadsDir(dataDir);
   await mkdir(dir, { recursive: true });
@@ -44,7 +56,7 @@ export async function saveUpload(
   return { uploadId: id, previewUrl: `/api/uploads/${id}` };
 }
 
-/** Copy an existing image file into ${dataDir}/uploads, same contract as saveUpload. */
+/** Copy an existing media file into ${dataDir}/uploads, same contract as saveUpload. */
 export async function saveUploadFromPath(
   dataDir: string,
   absPath: string,
@@ -52,11 +64,12 @@ export async function saveUploadFromPath(
 ): Promise<{ uploadId: string; previewUrl: string }> {
   const ext = path.extname(absPath).toLowerCase();
   if (!(ext in UPLOAD_TYPES)) {
-    throw invalid("Only png, jpg and webp images are accepted");
+    throw invalid("Only png, jpg, webp images and mp4, mov, webm videos are accepted");
   }
   const info = await stat(absPath);
-  if (!info.isFile() || info.size > MAX_UPLOAD_BYTES) {
-    throw invalid("File exceeds the 25 MB limit");
+  const maxBytes = isVideoExt(ext) ? MAX_VIDEO_UPLOAD_BYTES : MAX_UPLOAD_BYTES;
+  if (!info.isFile() || info.size > maxBytes) {
+    throw invalid(`File exceeds the ${isVideoExt(ext) ? "500 MB" : "25 MB"} limit`);
   }
   const id = `${newId()}${ext}`;
   const dir = uploadsDir(dataDir);

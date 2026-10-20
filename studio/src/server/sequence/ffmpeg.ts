@@ -42,6 +42,8 @@ export type MediaCommand = {
   endFrame: number;
   codec: ExportCodec;
   hasAudio: boolean;
+  /** Still image: loop the single frame for the whole media range. */
+  still?: boolean;
 };
 
 /**
@@ -61,6 +63,8 @@ export function buildMediaCommand(c: MediaCommand): string[] {
     "-hide_banner",
     "-nostats",
     "-progress", "pipe:1",
+    // A still's demuxer yields one frame; loop it so trim has frames to cut.
+    ...(c.still ? ["-loop", "1", "-t", String(c.endFrame / c.fps)] : []),
     "-i", c.src,
     "-filter_complex",
     c.hasAudio ? `${video};${audio}` : video,

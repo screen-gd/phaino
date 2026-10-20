@@ -241,7 +241,8 @@
         {
           "id": "m6-animate",
           "title": "Animate image to video",
-          "status": "todo"
+          "status": "done",
+          "notes": "Animate on image results and Library; copies the output into uploads via /api/uploads/from-output"
         }
       ]
     },
@@ -285,12 +286,14 @@
         {
           "id": "m7-controls",
           "title": "Per-model controls in tool pages",
-          "status": "todo"
+          "status": "done",
+          "notes": "Advanced params (negative, steps, cfg) behind an Advanced chip; float param type added"
         },
         {
           "id": "m7-credits",
           "title": "Credit cost shown before Generate",
-          "status": "todo"
+          "status": "done",
+          "notes": "Estimate from median of last 5 runs at 0.266 credits/s; needs a real run to confirm"
         },
         {
           "id": "m7-testrun",
@@ -340,27 +343,32 @@
         {
           "id": "explore-cards",
           "title": "Input and output preset cards",
-          "status": "todo"
+          "status": "done",
+          "notes": "Input to output icon pill on preset cards"
         },
         {
           "id": "explore-model-sections",
           "title": "Per-model sections with View all",
-          "status": "todo"
+          "status": "done",
+          "notes": "One section per model family; /workflows ?model= pill filter"
         },
         {
           "id": "explore-grid",
           "title": "Mixed-height community grid",
-          "status": "todo"
+          "status": "done",
+          "notes": "CommunityGrid masonry on Explore and /community"
         },
         {
           "id": "explore-node-preview",
           "title": "Workflow node preview on hover",
-          "status": "todo"
+          "status": "done",
+          "notes": "miniGraph SVG overlay on preset card hover"
         },
         {
           "id": "explore-header-meta",
           "title": "GitHub stars and credit balance in header",
-          "status": "todo"
+          "status": "done",
+          "notes": "GitHub stars + Comfy credit balance in header; balance needs a real key to confirm"
         }
       ]
     },
@@ -371,7 +379,8 @@
         {
           "id": "ops-commit",
           "title": "Commit the uncommitted UI, brand and social work",
-          "status": "todo"
+          "status": "done",
+          "notes": "Committed on studio/phaino-app"
         }
       ]
     }

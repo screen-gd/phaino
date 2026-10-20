@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { AppShell } from "@/components/AppShell";
 import { buildNavMenus } from "@/components/navMenus";
 import { getEnv } from "@/server/env";
+import { getGitHubStars } from "@/server/github";
 import { listPresets } from "@/server/presets/load";
 
 export const metadata: Metadata = {
@@ -16,12 +17,13 @@ export const metadata: Metadata = {
     "Open-source AI video and image studio on Comfy Cloud. Every shot opens as a ComfyUI workflow.",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
   const menus = buildNavMenus(listPresets());
+  const stars = await getGitHubStars();
   return (
     <html lang="en" className="dark">
       <body>
-        <AppShell menus={menus}>{children}</AppShell>
+        <AppShell menus={menus} stars={stars}>{children}</AppShell>
       </body>
     </html>
   );

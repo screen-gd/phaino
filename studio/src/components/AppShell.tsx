@@ -14,6 +14,7 @@ import {
 import { CloudStatus } from "./CloudStatus";
 import { MobileNav } from "./MobileNav";
 import { GitHubIcon, Icon, SECTION_ICONS } from "./icons";
+import { formatStars } from "@/lib/stars";
 import { PhainoMark } from "./Logo";
 import type { MenuRow, NavMenus, TwoColumnMenu } from "./navMenus";
 import { SECTIONS } from "./sections";
@@ -137,9 +138,11 @@ function menuContent(href: string, menus: NavMenus): ReactNode {
 export function AppShell({
   children,
   menus,
+  stars,
 }: {
   children: ReactNode;
   menus: NavMenus;
+  stars?: number | null;
 }) {
   const pathname = usePathname();
   const mainRef = useRef<HTMLElement>(null);
@@ -344,11 +347,25 @@ export function AppShell({
         <div className="flex items-center gap-1.5">
           <MobileNav menus={menus} />
           <CloudStatus />
+          {stars != null && (
+            <a
+              href="https://github.com/screen-gd/phaino"
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`${stars} stars on GitHub`}
+              className="hidden items-center gap-1.5 rounded-full border border-line px-2.5 py-1.5 text-t3 hover:text-t1 md:flex"
+            >
+              <GitHubIcon className="h-4 w-4" />
+              <span className="font-mono text-caption">
+                {formatStars(stars)}
+              </span>
+            </a>
+          )}
           <Button
             variant="ghost"
             size="icon-sm"
             aria-label="GitHub"
-            className="text-t3 hover:text-t1"
+            className={`text-t3 hover:text-t1 ${stars != null ? "md:hidden" : ""}`}
             render={
               <a
                 href="https://github.com/screen-gd/phaino"

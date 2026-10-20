@@ -19,6 +19,9 @@ Phaino is an open-source AI video and image studio on Comfy Cloud. Pick a preset
   Partner-model presets (Kling 3.0, Seedance 2.5, Nano Banana 2) ship in `presets/` but are hidden unless `PHAINO_PARTNER_MODELS=on`.
 
 - **Library**: every generated output, shareable to social.
+- **Controls**: per-model Advanced params (negative prompt, steps, CFG) behind a sliders chip, plus a credit estimate next to Generate (median of your last runs at 0.266 credits/s).
+- **Animate**: image results get an Animate action that starts an LTX 2.5 image-to-video job from that image.
+- **Header**: GitHub stars and your Comfy credit balance, when connected.
 - **Social posting**: user-added connections (managed services or direct API keys) publish outputs to YouTube, Instagram, X, LinkedIn, TikTok, Threads and Bluesky.
 - **Tracker**: `/tracker` shows what's done and what's next (data in `tracker/tasks.json`).
 

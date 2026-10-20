@@ -4,12 +4,17 @@ import Link from "next/link";
 import { useState } from "react";
 import { Icon, SECTION_ICONS } from "../icons";
 import { CurrentJob, RecentGrid } from "./JobViews";
+import { EstimateCaption } from "./CreditEstimate";
 import { ModelPicker } from "./ModelPicker";
-import { ParamChip } from "./ParamControls";
+import { AdvancedDisclosure, ParamChip } from "./ParamControls";
 import { UploadCard } from "./UploadCard";
 import { filterPresets } from "./studioUtils";
 import { useStudio } from "./useStudio";
-import type { StudioJob, StudioPreset } from "@/components/toolStudioData";
+import type {
+  StudioJob,
+  StudioParam,
+  StudioPreset,
+} from "@/components/toolStudioData";
 import { Button } from "@/components/ui/button";
 import { useComfyHealth } from "@/lib/useComfyHealth";
 
@@ -48,9 +53,14 @@ export function VideoStudio({
   const presetName = (id: string) =>
     presets.find((p) => p.id === id)?.name ?? id;
 
-  const textParams = preset?.params.filter((p) => p.type === "text") ?? [];
+  const textParams =
+    preset?.params.filter(
+      (p): p is Extract<StudioParam, { type: "text" }> =>
+        p.type === "text" && !p.advanced,
+    ) ?? [];
   const chipParams =
-    preset?.params.filter((p) => p.type !== "text") ?? [];
+    preset?.params.filter((p) => p.type !== "text" && !p.advanced) ?? [];
+  const advancedParams = preset?.params.filter((p) => p.advanced) ?? [];
   const browseFiltered = filterPresets(presets, browseQuery);
 
   const hasRuns = s.job != null || s.recent.length > 0;
@@ -208,6 +218,14 @@ export function VideoStudio({
             ))}
           </div>
         )}
+
+        <AdvancedDisclosure
+          params={advancedParams}
+          values={s.values}
+          randomSeed={s.randomSeed}
+          onChange={(key, v) => s.setValue(key, v)}
+          onRandomSeed={s.setRandomSeed}
+        />
         </div>
 
         <div className="flex flex-col gap-1.5 border-t border-line p-2">
@@ -220,6 +238,11 @@ export function VideoStudio({
             </p>
           )}
           {s.error && <p className="text-xs text-destructive">{s.error}</p>}
+          {preset && (
+            <div className="flex justify-end">
+              <EstimateCaption stats={preset.estimate} partner={preset.partner} />
+            </div>
+          )}
           <Button
             className="h-12 w-full rounded-xl text-[15px] font-semibold"
             loading={s.submitting}

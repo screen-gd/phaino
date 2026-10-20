@@ -14,6 +14,10 @@ dist/
 studio/.data/
 *.tsbuildinfo
 next-env.d.ts
-# src/app/api/outputs is a route dir, not generated media
+# These are route dirs, not generated media (that lives in studio/.data)
 !studio/src/app/api/outputs
 !studio/src/app/api/outputs/**
+!studio/src/app/api/sequence/outputs
+!studio/src/app/api/sequence/outputs/**
+!studio/src/app/api/uploads
+!studio/src/app/api/uploads/**

@@ -26,6 +26,9 @@ export function useStudio(category: string, presets: StudioPreset[]) {
   );
   const preset = presets.find((p) => p.id === presetId) ?? presets[0];
 
+  const fromPath = searchParams.get("from");
+  const fromApplied = useRef<string | null>(null);
+
   const [uploads, setUploads] = useState<Record<string, Uploaded>>({});
   const [values, setValues] = useState<
     Record<string, string | number | boolean>
@@ -56,6 +59,37 @@ export function useStudio(category: string, presets: StudioPreset[]) {
       .catch(() => {});
     return () => esRef.current?.close();
   }, [category]);
+
+  // ?from=<output path> pre-fills the first required image input with a copy
+  // of an existing output (used by "Animate" on image results).
+  useEffect(() => {
+    if (!fromPath || !preset || fromApplied.current === preset.id) return;
+    const target = preset.inputs.find((i) => i.required && !uploads[i.key]);
+    if (!target) {
+      fromApplied.current = preset.id;
+      return;
+    }
+    fromApplied.current = preset.id;
+    void fetch("/api/uploads/from-output", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path: fromPath }),
+    })
+      .then((r) => (r.ok ? (r.json() as Promise<{ uploadId: string; previewUrl: string }>) : null))
+      .then((data) => {
+        if (!data) {
+          setError("Couldn't load that image.");
+          return;
+        }
+        setUploads((prev) =>
+          prev[target.key]
+            ? prev
+            : { ...prev, [target.key]: { ...data, name: fromPath.split("/").pop() ?? "output" } },
+        );
+      })
+      .catch(() => setError("Couldn't load that image."));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fromPath, preset?.id]);
 
   const subscribe = useCallback(
     (id: string) => {

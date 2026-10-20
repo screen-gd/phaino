@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { Icon, SECTION_ICONS } from "../icons";
 import { CurrentJob, RecentGrid } from "./JobViews";
+import { EstimateCaption } from "./CreditEstimate";
 import { ModelPicker } from "./ModelPicker";
-import { ParamChip } from "./ParamControls";
+import { AdvancedChip, ParamChip } from "./ParamControls";
 import { UploadCard } from "./UploadCard";
 import { useStudio } from "./useStudio";
 import type { StudioParam, StudioPreset } from "@/components/toolStudioData";
@@ -39,10 +40,11 @@ export function ImageStudio({ presets }: { presets: StudioPreset[] }) {
   const promptParam = promptParamOf(preset);
   const extraText =
     preset?.params.filter(
-      (p) => p.type === "text" && p.key !== promptParam?.key,
+      (p) => p.type === "text" && p.key !== promptParam?.key && !p.advanced,
     ) ?? [];
   const chipParams =
-    preset?.params.filter((p) => p.type !== "text") ?? [];
+    preset?.params.filter((p) => p.type !== "text" && !p.advanced) ?? [];
+  const advancedParams = preset?.params.filter((p) => p.advanced) ?? [];
   const presetName = (id: string) =>
     presets.find((p) => p.id === id)?.name ?? id;
 
@@ -251,6 +253,13 @@ export function ImageStudio({ presets }: { presets: StudioPreset[] }) {
                     side="top"
                   />
                 ))}
+                <AdvancedChip
+                  params={advancedParams}
+                  values={s.values}
+                  randomSeed={s.randomSeed}
+                  onChange={(key, v) => s.setValue(key, v)}
+                  onRandomSeed={s.setRandomSeed}
+                />
               </div>
             </div>
             <Button
@@ -267,6 +276,11 @@ export function ImageStudio({ presets }: { presets: StudioPreset[] }) {
           {s.error && (
             <p className="truncate text-xs text-destructive">{s.error}</p>
           )}
+          <span className="ml-auto">
+            {preset && (
+              <EstimateCaption stats={preset.estimate} partner={preset.partner} />
+            )}
+          </span>
         </div>
       </div>
     </div>

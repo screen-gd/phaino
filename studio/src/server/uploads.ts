@@ -1,7 +1,7 @@
 import "server-only";
 
 import { createReadStream } from "node:fs";
-import { mkdir, stat, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { SocialError } from "@opencoredev/social-sdk";
 import { Readable } from "node:stream";
@@ -41,6 +41,27 @@ export async function saveUpload(
   const dir = uploadsDir(dataDir);
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, id), Buffer.from(await file.arrayBuffer()));
+  return { uploadId: id, previewUrl: `/api/uploads/${id}` };
+}
+
+/** Copy an existing image file into ${dataDir}/uploads, same contract as saveUpload. */
+export async function saveUploadFromPath(
+  dataDir: string,
+  absPath: string,
+  newId: () => string,
+): Promise<{ uploadId: string; previewUrl: string }> {
+  const ext = path.extname(absPath).toLowerCase();
+  if (!(ext in UPLOAD_TYPES)) {
+    throw invalid("Only png, jpg and webp images are accepted");
+  }
+  const info = await stat(absPath);
+  if (!info.isFile() || info.size > MAX_UPLOAD_BYTES) {
+    throw invalid("File exceeds the 25 MB limit");
+  }
+  const id = `${newId()}${ext}`;
+  const dir = uploadsDir(dataDir);
+  await mkdir(dir, { recursive: true });
+  await copyFile(absPath, path.join(dir, id));
   return { uploadId: id, previewUrl: `/api/uploads/${id}` };
 }
 

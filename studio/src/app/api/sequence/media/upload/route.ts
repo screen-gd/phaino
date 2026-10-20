@@ -1,7 +1,7 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
-import { SocialError } from "@opencoredev/social-sdk";
+import { ApiError } from "@/server/errors";
 import { getEnv } from "@/server/env";
 import {
   getSequenceStore,
@@ -9,7 +9,7 @@ import {
   UPLOAD_MAX_BYTES,
 } from "@/server/sequence/store";
 import { layout } from "@/server/sequence/model";
-import { socialErrorResponse } from "@/server/social/errors";
+import { apiError } from "@/server/errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,14 +24,14 @@ export async function POST(request: Request) {
     }
     const ext = path.extname(file.name).toLowerCase();
     if (!UPLOAD_EXTS.includes(ext)) {
-      throw new SocialError({
+      throw new ApiError({
         code: "invalid_input",
         operation: "sequence.media.upload",
         message: `Unsupported file type "${ext || "?"}"`,
       });
     }
     if (file.size > UPLOAD_MAX_BYTES) {
-      throw new SocialError({
+      throw new ApiError({
         code: "invalid_input",
         operation: "sequence.media.upload",
         message: "File is larger than 500 MB",
@@ -53,6 +53,6 @@ export async function POST(request: Request) {
       { status: 201 },
     );
   } catch (err) {
-    return socialErrorResponse(err);
+    return apiError(err);
   }
 }

@@ -4,7 +4,7 @@ import { getEnv } from "@/server/env";
 import { extendVideo } from "@/server/edits/extend";
 import { runFfmpeg } from "@/server/edits/prepare";
 import { getRunner } from "@/server/jobs/runner";
-import { socialErrorResponse } from "@/server/social/errors";
+import { apiError } from "@/server/errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,6 +26,6 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ job }, { status: 201 });
   } catch (err) {
-    return socialErrorResponse(err);
+    return apiError(err);
   }
 }

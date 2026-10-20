@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { socialErrorResponse } from "@/server/social/errors";
+import { apiError } from "@/server/errors";
 import {
   JobInputError,
   NotConnected,
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     if (err instanceof JobInputError) {
       return NextResponse.json({ error: err.message }, { status: 400 });
     }
-    return socialErrorResponse(err);
+    return apiError(err);
   }
 }
 

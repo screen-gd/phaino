@@ -7,7 +7,7 @@ import {
   titleSchema,
 } from "@/server/sequence/model";
 import { getSequenceStore } from "@/server/sequence/store";
-import { socialErrorResponse } from "@/server/social/errors";
+import { apiError } from "@/server/errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,6 +36,6 @@ export async function PUT(request: Request) {
     const sequence = await store.updateSequence(body);
     return NextResponse.json({ sequence, layout: layout(sequence) });
   } catch (err) {
-    return socialErrorResponse(err);
+    return apiError(err);
   }
 }

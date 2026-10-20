@@ -1,10 +1,10 @@
 import "server-only";
 
 import path from "node:path";
-import { SocialError } from "@opencoredev/social-sdk";
+import { ApiError } from "@/server/errors";
 import { getEnv, type StudioEnv } from "@/server/env";
-import { resolveOutput } from "@/server/social/media";
-import { QueuedJsonFile } from "@/server/social/store";
+import { resolveOutput } from "@/server/outputs";
+import { QueuedJsonFile } from "@/server/jsonFile";
 import {
   CUT,
   emptySequence,
@@ -22,8 +22,8 @@ import {
 import { makePoster, probeAudio, probeVideo } from "./probe";
 import { snapFps, snapResolution, secondsToFrames, type Fps } from "./timecode";
 
-function bad(message: string): SocialError {
-  return new SocialError({
+function bad(message: string): ApiError {
+  return new ApiError({
     code: "invalid_input",
     operation: "sequence",
     message,

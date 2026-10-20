@@ -4,7 +4,7 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { copyFile, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { SocialError } from "@opencoredev/social-sdk";
+import { ApiError } from "@/server/errors";
 import { getEnv, type StudioEnv } from "@/server/env";
 import { emitJob } from "@/server/jobs/runner";
 import { getStore, type JobRecord, type JobStore } from "@/server/jobs/store";
@@ -35,8 +35,8 @@ export type RunFfmpeg = (
   onFrame?: (done: number) => void,
 ) => Promise<void>;
 
-function bad(message: string): SocialError {
-  return new SocialError({
+function bad(message: string): ApiError {
+  return new ApiError({
     code: "invalid_input",
     operation: "sequence.export",
     message,
@@ -275,7 +275,7 @@ async function runExport(
       upd({ progress: Math.min(1, done / Math.max(1, lay.totalFrames)) });
     });
     if (store.get(jobId)?.status === "cancelled") return;
-    // Library copy: every file under outputs/ is listed and publishable.
+    // Library copy: every file under outputs/ is listed in the Library.
     const libRel = path.join("editor", `render-${jobId}.mp4`).replace(/\\/g, "/");
     const libAbs = path.join(env.dataDir, "outputs", libRel);
     await mkdir(path.dirname(libAbs), { recursive: true });

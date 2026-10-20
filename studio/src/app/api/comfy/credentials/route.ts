@@ -7,7 +7,7 @@ import {
   maskKey,
   saveCredentialsWithProbe,
 } from "@/server/comfy/credentials";
-import { socialErrorResponse } from "@/server/social/errors";
+import { apiError } from "@/server/errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -64,7 +64,7 @@ export async function PUT(request: Request) {
     }
     return NextResponse.json(shape());
   } catch (err) {
-    return socialErrorResponse(err);
+    return apiError(err);
   }
 }
 
@@ -73,6 +73,6 @@ export async function DELETE() {
     await clearComfyCredentials();
     return NextResponse.json(shape());
   } catch (err) {
-    return socialErrorResponse(err);
+    return apiError(err);
   }
 }

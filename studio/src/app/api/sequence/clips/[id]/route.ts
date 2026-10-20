@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { layout } from "@/server/sequence/model";
 import { getSequenceStore } from "@/server/sequence/store";
-import { socialErrorResponse } from "@/server/social/errors";
+import { apiError } from "@/server/errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,6 +16,6 @@ export async function DELETE(
     const sequence = await store.removeClip(id);
     return NextResponse.json({ sequence, layout: layout(sequence) });
   } catch (err) {
-    return socialErrorResponse(err);
+    return apiError(err);
   }
 }

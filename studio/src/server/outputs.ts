@@ -1,11 +1,8 @@
 import "server-only";
 
-import { createReadStream } from "node:fs";
 import { readdir, stat } from "node:fs/promises";
-import { createHash } from "node:crypto";
 import path from "node:path";
-import { Readable } from "node:stream";
-import { SocialError, type MediaAttachment } from "@opencoredev/social-sdk";
+import { ApiError } from "./errors";
 
 const OUTPUT_TYPES = {
   ".mp4": { kind: "video", mimeType: "video/mp4" },
@@ -24,8 +21,8 @@ export type ResolvedOutput = {
   readonly mimeType: string;
 };
 
-function invalid(message: string): SocialError {
-  return new SocialError({ code: "invalid_input", operation: "outputs.resolve", message });
+function invalid(message: string): ApiError {
+  return new ApiError({ code: "invalid_input", operation: "outputs.resolve", message });
 }
 
 /**
@@ -51,37 +48,6 @@ export function resolveOutput(dataDir: string, relPath: string): ResolvedOutput 
     throw invalid("Unsupported file type");
   }
   return { absPath: abs, ...type };
-}
-
-/** A replayable stream attachment with a sha256 fingerprint for one local output file. */
-export async function toAttachment(dataDir: string, relPath: string): Promise<MediaAttachment> {
-  const resolved = resolveOutput(dataDir, relPath);
-  let size: number;
-  try {
-    size = (await stat(resolved.absPath)).size;
-  } catch {
-    throw new SocialError({
-      code: "not_found",
-      operation: "outputs.resolve",
-      message: "Output file not found",
-    });
-  }
-  const hash = createHash("sha256");
-  for await (const chunk of createReadStream(resolved.absPath)) {
-    hash.update(chunk);
-  }
-  return {
-    kind: resolved.kind,
-    source: {
-      kind: "stream",
-      open: () =>
-        Readable.toWeb(createReadStream(resolved.absPath)) as ReadableStream<Uint8Array>,
-      fingerprint: hash.digest("hex"),
-    },
-    mimeType: resolved.mimeType,
-    filename: path.basename(resolved.absPath),
-    byteSize: size,
-  };
 }
 
 export type OutputItem = {

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getEnv } from "@/server/env";
 import { joinInEditor } from "@/server/edits/extend";
-import { socialErrorResponse } from "@/server/social/errors";
+import { apiError } from "@/server/errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,6 +19,6 @@ export async function POST(request: Request) {
     await joinInEditor(getEnv(), body);
     return NextResponse.json({ ok: true });
   } catch (err) {
-    return socialErrorResponse(err);
+    return apiError(err);
   }
 }

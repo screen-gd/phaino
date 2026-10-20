@@ -3,7 +3,7 @@ import "server-only";
 import { createReadStream } from "node:fs";
 import { copyFile, mkdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { SocialError } from "@opencoredev/social-sdk";
+import { ApiError } from "@/server/errors";
 import { Readable } from "node:stream";
 
 const UPLOAD_TYPES = {
@@ -24,8 +24,8 @@ const UPLOAD_ID = /^[0-9a-f-]{36}\.(png|jpe?g|webp|mp4|mov|webm)$/;
 const isVideoExt = (ext: string) =>
   ext === ".mp4" || ext === ".mov" || ext === ".webm";
 
-function invalid(message: string): SocialError {
-  return new SocialError({ code: "invalid_input", operation: "uploads", message });
+function invalid(message: string): ApiError {
+  return new ApiError({ code: "invalid_input", operation: "uploads", message });
 }
 
 export function uploadsDir(dataDir: string) {
@@ -95,14 +95,14 @@ export function resolveUpload(
   return { absPath: abs, mimeType: UPLOAD_TYPES[path.extname(abs) as keyof typeof UPLOAD_TYPES] };
 }
 
-/** Stream an upload for preview, or 404-shaped SocialError when missing. */
+/** Stream an upload for preview, or 404-shaped ApiError when missing. */
 export async function openUpload(dataDir: string, uploadId: string) {
   const resolved = resolveUpload(dataDir, uploadId);
   let size: number;
   try {
     size = (await stat(resolved.absPath)).size;
   } catch {
-    throw new SocialError({
+    throw new ApiError({
       code: "not_found",
       operation: "uploads.read",
       message: "Upload not found",

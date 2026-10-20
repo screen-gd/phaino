@@ -198,9 +198,6 @@ importers:
       '@fontsource/outfit':
         specifier: 5.3.0
         version: 5.3.0
-      '@opencoredev/social-sdk':
-        specifier: 0.5.0
-        version: 0.5.0
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1217,11 +1214,6 @@ packages:
   '@nolyfill/is-core-module@1.0.39':
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
-
-  '@opencoredev/social-sdk@0.5.0':
-    resolution: {integrity: sha512-M+l6t/FRBH81NYPDtDQs8LqFjbIXsINZJhdsrirYq478z0lZHQobYOTAxuTcdxOYp7NVh6kgtn1Wcteal5I1Mg==}
-    engines: {node: '>=22.12'}
-    hasBin: true
 
   '@oslojs/encoding@1.1.0':
     resolution: {integrity: sha512-70wQhgYmndg4GCPxPPxPGevRKqTIJ2Nh4OkiMWmDAVYsTQ+Ta7Sq+rPevXyXGdzr30/qZBnyOalCszoMxlyldQ==}
@@ -4752,8 +4744,6 @@ snapshots:
       fastq: 1.20.3
 
   '@nolyfill/is-core-module@1.0.39': {}
-
-  '@opencoredev/social-sdk@0.5.0': {}
 
   '@oslojs/encoding@1.1.0': {}
 

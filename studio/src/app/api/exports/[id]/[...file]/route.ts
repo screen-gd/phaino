@@ -2,10 +2,10 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
-import { SocialError } from "@opencoredev/social-sdk";
+import { ApiError } from "@/server/errors";
 import { getEnv } from "@/server/env";
 import { getStore } from "@/server/jobs/store";
-import { socialErrorResponse } from "@/server/social/errors";
+import { apiError } from "@/server/errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,8 +18,8 @@ const MIME: Record<string, string> = {
   ".txt": "text/plain",
 };
 
-function notFound(): SocialError {
-  return new SocialError({
+function notFound(): ApiError {
+  return new ApiError({
     code: "not_found",
     operation: "exports.read",
     message: "Export file not found",
@@ -61,6 +61,6 @@ export async function GET(
       },
     });
   } catch (err) {
-    return socialErrorResponse(err);
+    return apiError(err);
   }
 }

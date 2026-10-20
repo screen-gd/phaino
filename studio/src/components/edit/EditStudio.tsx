@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Icon, type IconName } from "../icons";
-import { PublishDialog } from "@/components/PublishDialog";
 import { AddToSequence } from "@/components/sequence/AddToSequence";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -140,18 +139,6 @@ function EditJobCard({
             <Button variant="ghost" size="xs" render={<Link href="/library" />}>
               Library
             </Button>
-            <PublishDialog
-              output={{
-                path: output,
-                kind: isVideo ? "video" : "image",
-                previewUrl: `/api/outputs/${output}`,
-              }}
-              trigger={
-                <Button variant="outline" size="xs">
-                  Publish
-                </Button>
-              }
-            />
             {toolId === "extend" && sourceUploadId && (
               <Button
                 variant="outline"

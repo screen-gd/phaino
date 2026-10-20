@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ComfyHealth } from "@/lib/health";
 import { Icon, SECTION_ICONS } from "@/components/icons";
-import { SocialConnections } from "@/components/SocialConnections";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { refreshComfyHealth } from "@/lib/useComfyHealth";
@@ -204,8 +204,6 @@ export function SettingsView() {
           </p>
         </div>
       </div>
-
-      <SocialConnections />
     </div>
   );
 }

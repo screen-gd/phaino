@@ -10,8 +10,16 @@ import {
   PopoverPopup,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectItem,
+  SelectPopup,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 
 const KIND_ICON: Record<ParamKind, keyof typeof SECTION_ICONS> = {
   duration: "clock",
@@ -119,6 +127,36 @@ export function ParamChip({
         </div>
       );
     }
+    if (param.type === "float") {
+      const current = Number(value ?? param.default);
+      return (
+        <div className="grid w-[300px] gap-3 p-3.5">
+          <div className="flex items-center justify-between gap-2">
+            <h5 className="text-caption text-t3">
+              Choose {param.label.toLowerCase()}
+            </h5>
+            <Input
+              type="number"
+              min={param.min}
+              max={param.max}
+              step={param.step}
+              value={current}
+              onChange={(e) => onChange(Number(e.target.value))}
+              className="h-8 w-20"
+            />
+          </div>
+          <Slider
+            min={param.min}
+            max={param.max}
+            step={param.step}
+            value={current}
+            onValueChange={(v) =>
+              onChange(Array.isArray(v) ? Number(v[0]) : Number(v))
+            }
+          />
+        </div>
+      );
+    }
     if (param.type === "seed") {
       return (
         <div className="grid w-[260px] gap-3 p-3.5">
@@ -173,6 +211,189 @@ export function ParamChip({
         className="rounded-xl border-line bg-s2 p-0 shadow-xl shadow-black/50"
       >
         {popover}
+      </PopoverPopup>
+    </Popover>
+  );
+}
+
+type AdvancedProps = {
+  params: StudioParam[];
+  values: Record<string, string | number | boolean>;
+  randomSeed: boolean;
+  onChange: (key: string, v: string | number | boolean) => void;
+  onRandomSeed?: (on: boolean) => void;
+};
+
+function AdvancedField({ param, value, randomSeed, onChange, onRandomSeed }: {
+  param: StudioParam;
+  value: string | number | boolean | undefined;
+  randomSeed: boolean;
+  onChange: (v: string | number | boolean) => void;
+  onRandomSeed?: (on: boolean) => void;
+}) {
+  return (
+    <label className="grid gap-1.5">
+      <span className="flex items-center justify-between text-caption text-t3">
+        {param.label}
+        {param.type === "int" && (
+          <span className="font-mono text-t1">{Number(value ?? param.default)}</span>
+        )}
+        {param.type === "float" && (
+          <Input
+            type="number"
+            min={param.min}
+            max={param.max}
+            step={param.step}
+            value={Number(value ?? param.default)}
+            onChange={(e) => onChange(Number(e.target.value))}
+            className="h-8 w-20"
+          />
+        )}
+      </span>
+      {param.type === "choice" ? (
+        <Select
+          value={String(value ?? param.default)}
+          onValueChange={(v) => {
+            const opt = param.options.find((o) => String(o.value) === String(v));
+            onChange(opt ? opt.value : String(v));
+          }}
+        >
+          <SelectTrigger className="h-9 w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectPopup>
+            {param.options.map((o) => (
+              <SelectItem key={String(o.value)} value={String(o.value)}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectPopup>
+        </Select>
+      ) : param.type === "int" ? (
+        <Slider
+          min={param.min}
+          max={param.max}
+          step={1}
+          value={Number(value ?? param.default)}
+          onValueChange={(v) => onChange(Array.isArray(v) ? Number(v[0]) : Number(v))}
+        />
+      ) : param.type === "float" ? (
+        <Slider
+          min={param.min}
+          max={param.max}
+          step={param.step}
+          value={Number(value ?? param.default)}
+          onValueChange={(v) => onChange(Array.isArray(v) ? Number(v[0]) : Number(v))}
+        />
+      ) : param.type === "seed" ? (
+        <div className="grid gap-2">
+          <span className="flex items-center justify-between text-caption text-t2">
+            Random
+            <Switch
+              checked={randomSeed}
+              onCheckedChange={(v) => onRandomSeed?.(v === true)}
+            />
+          </span>
+          <Input
+            type="number"
+            disabled={randomSeed}
+            value={randomSeed ? "" : Number(value ?? 0)}
+            placeholder="Random"
+            onChange={(e) => onChange(Number(e.target.value))}
+          />
+        </div>
+      ) : (
+        <Textarea
+          value={String(value ?? param.default)}
+          placeholder={param.placeholder}
+          rows={3}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      )}
+    </label>
+  );
+}
+
+/** Rows of advanced controls, for the collapsed panel and the popover. */
+export function AdvancedRows({
+  params,
+  values,
+  randomSeed,
+  onChange,
+  onRandomSeed,
+}: AdvancedProps) {
+  return (
+    <div className="grid gap-3">
+      {params.map((param) => (
+        <AdvancedField
+          key={param.key}
+          param={param}
+          value={param.type === "seed"
+            ? randomSeed
+              ? "random"
+              : Number(values[param.key] ?? 0)
+            : values[param.key]}
+          randomSeed={randomSeed}
+          onChange={(v) => onChange(param.key, v)}
+          onRandomSeed={onRandomSeed}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Collapsed "Advanced" block at the bottom of the Video/Camera form. */
+export function AdvancedDisclosure(props: AdvancedProps) {
+  const [open, setOpen] = useState(false);
+  if (props.params.length === 0) return null;
+  return (
+    <div className="rounded-lg bg-s2">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="flex h-10 w-full items-center justify-between px-3 text-body font-medium text-t1"
+      >
+        <span className="flex items-center gap-1.5">
+          <Icon d={SECTION_ICONS.sliders} className="h-4 w-4 text-t3" />
+          Advanced
+        </span>
+        <Icon
+          d={SECTION_ICONS.chevronDown}
+          className={`h-3.5 w-3.5 text-t3 transition-transform ${open ? "" : "-rotate-90"}`}
+        />
+      </button>
+      {open && <div className="px-3 pb-3"><AdvancedRows {...props} /></div>}
+    </div>
+  );
+}
+
+/** An "Advanced" chip in the Image prompt bar. */
+export function AdvancedChip(props: AdvancedProps) {
+  if (props.params.length === 0) return null;
+  return (
+    <Popover>
+      <PopoverTrigger
+        render={
+          <button
+            type="button"
+            aria-label="Advanced options"
+            className="h-8 shrink-0 rounded-lg bg-white/5 text-sm font-medium text-t1 hover:bg-white/10"
+          />
+        }
+      >
+        <span className="flex h-full items-center justify-center gap-1.5 px-2.5">
+          <Icon d={SECTION_ICONS.sliders} className="h-3.5 w-3.5 text-t3" />
+          <span className="truncate">Advanced</span>
+        </span>
+      </PopoverTrigger>
+      <PopoverPopup
+        side="top"
+        align="center"
+        sideOffset={8}
+        className="w-[300px] rounded-xl border-line bg-s2 p-3.5 shadow-xl shadow-black/50"
+      >
+        <AdvancedRows {...props} />
       </PopoverPopup>
     </Popover>
   );

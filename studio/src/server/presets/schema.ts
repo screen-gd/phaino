@@ -17,6 +17,7 @@ const textParam = z.object({
   default: z.string(),
   placeholder: z.string().optional(),
   template: z.string().optional(),
+  advanced: z.boolean().optional(),
   bind,
 });
 
@@ -46,6 +47,7 @@ const choiceParam = z.object({
       }),
     )
     .min(1),
+  advanced: z.boolean().optional(),
   bind: bind.optional(),
 });
 
@@ -56,6 +58,19 @@ const intParam = z.object({
   default: z.number().int(),
   min: z.number().int(),
   max: z.number().int(),
+  advanced: z.boolean().optional(),
+  bind,
+});
+
+const floatParam = z.object({
+  type: z.literal("float"),
+  key: paramKey,
+  label: z.string(),
+  default: z.number(),
+  min: z.number(),
+  max: z.number(),
+  step: z.number().positive(),
+  advanced: z.boolean().optional(),
   bind,
 });
 
@@ -88,7 +103,13 @@ export const presetSchema = z
       }),
     ),
     params: z.array(
-      z.discriminatedUnion("type", [textParam, seedParam, choiceParam, intParam]),
+      z.discriminatedUnion("type", [
+        textParam,
+        seedParam,
+        choiceParam,
+        intParam,
+        floatParam,
+      ]),
     ),
     outputs: z
       .array(z.object({ node: z.string(), kind: z.enum(["video", "image"]) }))
@@ -118,7 +139,7 @@ export const presetSchema = z
           });
         }
       }
-      if (param.type === "int") {
+      if (param.type === "int" || param.type === "float") {
         if (param.default < param.min || param.default > param.max) {
           ctx.addIssue({
             code: "custom",

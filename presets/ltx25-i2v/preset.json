@@ -94,6 +94,17 @@
         "node": "403",
         "field": "aspect_ratio"
       }
+    },
+    {
+      "type": "text",
+      "key": "negative",
+      "label": "Negative prompt",
+      "advanced": true,
+      "default": "pc game, console game, video game, cartoon, childish, ugly",
+      "bind": {
+        "node": "398:373",
+        "field": "text"
+      }
     }
   ],
   "outputs": [

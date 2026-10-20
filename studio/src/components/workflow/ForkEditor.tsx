@@ -25,13 +25,14 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 type ForkParam = {
-  type: "text" | "seed" | "choice" | "int";
+  type: "text" | "seed" | "choice" | "int" | "float";
   key: string;
   label: string;
   default?: string | number | boolean;
   options?: { value: string | number | boolean; label: string }[];
   min?: number;
   max?: number;
+  step?: number;
 };
 
 type ForkPreset = {
@@ -102,12 +103,13 @@ function DefaultsForm({ preset }: { preset: ForkPreset }) {
                   ))}
                 </SelectPopup>
               </Select>
-            ) : param.type === "int" || param.type === "seed" ? (
+            ) : param.type === "int" || param.type === "seed" || param.type === "float" ? (
               <Input
                 type="number"
                 value={String(values[param.key] ?? "")}
                 min={param.min}
                 max={param.max}
+                step={param.step}
                 onChange={(e) =>
                   setValues((v) => ({ ...v, [param.key]: Number(e.target.value) }))
                 }

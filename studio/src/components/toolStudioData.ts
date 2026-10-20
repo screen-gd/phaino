@@ -10,14 +10,16 @@ export type StudioParam =
       label: string;
       default: string;
       placeholder?: string;
+      advanced?: boolean;
     }
-  | { type: "seed"; key: string; label: string }
+  | { type: "seed"; key: string; label: string; advanced?: boolean }
   | {
       type: "choice";
       key: string;
       label: string;
       default: string | number | boolean;
       options: { value: string | number | boolean; label: string }[];
+      advanced?: boolean;
     }
   | {
       type: "int";
@@ -26,6 +28,17 @@ export type StudioParam =
       default: number;
       min: number;
       max: number;
+      advanced?: boolean;
+    }
+  | {
+      type: "float";
+      key: string;
+      label: string;
+      default: number;
+      min: number;
+      max: number;
+      step: number;
+      advanced?: boolean;
     };
 
 export type StudioInput = {
@@ -41,6 +54,8 @@ export type StudioPreset = {
   chip?: string;
   model: { id: string; label: string };
   isFork?: boolean;
+  partner?: boolean;
+  estimate?: { count: number; medianSeconds: number | null };
   thumbUrl: string;
   inputs: StudioInput[];
   params: StudioParam[];
@@ -79,6 +94,7 @@ export function toStudioPreset(p: Preset | ListedPreset): StudioPreset {
     chip: p.chip,
     model: { id: p.model.id, label: p.model.label },
     isFork: "origin" in p ? p.origin === "fork" : undefined,
+    partner: p.model.license === "partner",
     thumbUrl: presetPreview(p),
     inputs: p.inputs.map(({ key, label, required }) => ({ key, label, required })),
     params: p.params.map((param): StudioParam => {
@@ -90,6 +106,7 @@ export function toStudioPreset(p: Preset | ListedPreset): StudioPreset {
             label: param.label,
             default: param.default,
             placeholder: param.placeholder,
+            advanced: param.advanced,
           };
         case "seed":
           return { type: "seed", key: param.key, label: param.label };
@@ -103,6 +120,7 @@ export function toStudioPreset(p: Preset | ListedPreset): StudioPreset {
               value: o.value,
               label: o.label,
             })),
+            advanced: param.advanced,
           };
         case "int":
           return {
@@ -112,6 +130,18 @@ export function toStudioPreset(p: Preset | ListedPreset): StudioPreset {
             default: param.default,
             min: param.min,
             max: param.max,
+            advanced: param.advanced,
+          };
+        case "float":
+          return {
+            type: "float",
+            key: param.key,
+            label: param.label,
+            default: param.default,
+            min: param.min,
+            max: param.max,
+            step: param.step,
+            advanced: param.advanced,
           };
       }
     }),

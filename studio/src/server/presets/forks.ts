@@ -92,6 +92,13 @@ function validateDefaults(preset: Preset, defaults: Record<string, string | numb
         }
         break;
       }
+      case "float": {
+        const n = Number(value);
+        if (!Number.isFinite(n) || n < param.min || n > param.max) {
+          problems.push(`"${key}" must be a number in [${param.min}, ${param.max}]`);
+        }
+        break;
+      }
       case "choice":
         if (!param.options.some((o) => o.value === value)) {
           problems.push(`"${key}" must be one of its options`);

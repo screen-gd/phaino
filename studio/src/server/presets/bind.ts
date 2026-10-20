@@ -88,6 +88,16 @@ export function applyPreset(
         resolved[param.key] = raw;
         break;
       }
+      case "float": {
+        const raw = given === undefined ? param.default : Number(given);
+        if (!Number.isFinite(raw) || raw < param.min || raw > param.max) {
+          throw new PresetBindError(
+            `Float "${param.key}" must be a number in [${param.min}, ${param.max}]`,
+          );
+        }
+        resolved[param.key] = raw;
+        break;
+      }
     }
   }
 
@@ -136,6 +146,7 @@ export function applyPreset(
         break;
       }
       case "int":
+      case "float":
         write(graph, param.bind, resolved[param.key]);
         break;
     }

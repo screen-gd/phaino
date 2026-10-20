@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listPresets, type ListedPreset } from "@/server/presets/load";
+import { getPreset, listPresets, type ListedPreset } from "@/server/presets/load";
 import { presetPreview } from "@/lib/preset-preview";
 import { MODEL_FAMILIES, matchesFamily } from "@/lib/model-families";
 import fs from "node:fs";
@@ -8,18 +8,30 @@ import { getEnv } from "@/server/env";
 
 export const dynamic = "force-dynamic";
 
+function countNodes(wf: unknown): number | null {
+  const w = wf as {
+    nodes?: unknown[];
+    definitions?: { subgraphs?: { nodes?: unknown[] }[] };
+  };
+  if (!Array.isArray(w?.nodes)) return null;
+  const inner = w.definitions?.subgraphs?.reduce(
+    (n, s) => n + (s.nodes?.length ?? 0),
+    0,
+  );
+  return w.nodes.length + (inner ?? 0);
+}
+
 function nodeCount(id: string, origin: ListedPreset["origin"]): number | null {
-  const env = getEnv();
-  const dir = path.join(origin === "fork" ? env.forksDir : env.presetsDir, id);
   try {
+    if (origin === "model") {
+      return countNodes(getPreset(id)?.workflowUi ?? null);
+    }
+    const env = getEnv();
+    const dir = path.join(origin === "fork" ? env.forksDir : env.presetsDir, id);
     const wf = JSON.parse(
       fs.readFileSync(path.join(dir, "workflow.json"), "utf8"),
-    ) as { nodes?: unknown[]; definitions?: { subgraphs?: { nodes?: unknown[] }[] } };
-    const inner = wf.definitions?.subgraphs?.reduce(
-      (n, s) => n + (s.nodes?.length ?? 0),
-      0,
     );
-    return (wf.nodes?.length ?? 0) + (inner ?? 0);
+    return countNodes(wf);
   } catch {
     return null;
   }

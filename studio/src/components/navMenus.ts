@@ -1,4 +1,5 @@
 import type { Preset } from "@/server/presets/schema";
+import type { StudioModel } from "@/components/toolStudioData";
 import type { IconName } from "./icons";
 
 export type MenuRow = {
@@ -21,10 +22,11 @@ export type NavMenus = {
   camera: MenuRow[];
 };
 
-/** Header mega-menu data built from the preset catalog. */
-export function buildNavMenus(presets: Preset[]): NavMenus {
-  const imagePresets = presets.filter((p) => p.category === "image");
-  const videoPresets = presets.filter((p) => p.category === "video");
+/** Header mega-menu data built from the preset catalog and model registry. */
+export function buildNavMenus(
+  presets: Preset[],
+  models: StudioModel[] = [],
+): NavMenus {
   const cameraPresets = presets.filter((p) => p.category === "camera");
   return {
     image: {
@@ -56,14 +58,16 @@ export function buildNavMenus(presets: Preset[]): NavMenus {
           icon: "workflows",
         },
       ],
-      models: imagePresets.map(
-        (p): MenuRow => ({
-          title: p.name,
-          description: p.description,
-          href: `/image?preset=${p.id}`,
-          icon: "image",
-        }),
-      ),
+      models: models
+        .filter((m) => m.kind === "image")
+        .map(
+          (m): MenuRow => ({
+            title: m.label,
+            description: m.modeLabels,
+            href: `/image?preset=${m.defaultPresetId}`,
+            icon: "image",
+          }),
+        ),
     },
     video: {
       features: [
@@ -102,14 +106,16 @@ export function buildNavMenus(presets: Preset[]): NavMenus {
           badge: "Soon",
         },
       ],
-      models: videoPresets.map(
-        (p): MenuRow => ({
-          title: p.name,
-          description: p.description,
-          href: `/video?preset=${p.id}`,
-          icon: "video",
-        }),
-      ),
+      models: models
+        .filter((m) => m.kind === "video")
+        .map(
+          (m): MenuRow => ({
+            title: m.label,
+            description: m.modeLabels,
+            href: `/video?preset=${m.defaultPresetId}`,
+            icon: "video",
+          }),
+        ),
     },
     camera: cameraPresets.map(
       (p): MenuRow => ({

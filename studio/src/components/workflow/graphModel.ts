@@ -281,10 +281,17 @@ function bindPath(node: string): number[] {
   return node.split(":").map((s) => Number.parseInt(s, 10)).filter((n) => Number.isFinite(n));
 }
 
+type BindLike = { node: string } | { node: string }[];
+
+function firstNode(b: BindLike | undefined): string | null {
+  if (!b) return null;
+  return (Array.isArray(b) ? b[0] : b)?.node ?? null;
+}
+
 /** Every preset binding mapped to a UI-graph node path. */
 export function bindingTargets(preset: {
   inputs: readonly { key: string; label: string; bind: { node: string } }[];
-  params: readonly { key: string; label: string; bind?: { node: string } }[];
+  params: readonly { key: string; label: string; bind?: BindLike }[];
   outputs: readonly { node: string; kind: string }[];
 }): BindingTarget[] {
   const out: BindingTarget[] = [];
@@ -292,9 +299,9 @@ export function bindingTargets(preset: {
     out.push({ path: bindPath(input.bind.node), key: input.key, label: input.label, kind: "input" });
   }
   for (const param of preset.params) {
-    const bind = param.bind;
-    if (bind) {
-      out.push({ path: bindPath(bind.node), key: param.key, label: param.label, kind: "param" });
+    const node = firstNode(param.bind);
+    if (node) {
+      out.push({ path: bindPath(node), key: param.key, label: param.label, kind: "param" });
     }
   }
   for (const output of preset.outputs) {

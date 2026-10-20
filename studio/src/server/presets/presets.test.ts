@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { getEnv } from "@/server/env";
 import { listPresets, getPreset } from "./load";
-import type { PresetBind } from "./schema";
+import { bindsOf, type PresetBind } from "./schema";
 
 type ObjectInfoSpec = [unknown, ...unknown[]];
 type ObjectInfoNode = {
@@ -95,10 +95,11 @@ describe("presets on disk", () => {
   };
   const presets = listPresets(env);
 
-  it("loads all nine presets, folder name equals id", () => {
-    expect(presets).toHaveLength(15);
+  it("loads all folder presets, folder name equals id", () => {
+    const folder = presets.filter((p) => p.origin !== "model");
+    expect(folder).toHaveLength(15);
     const dir = getEnv().presetsDir;
-    for (const p of presets) {
+    for (const p of folder) {
       expect(fs.existsSync(path.join(dir, p.id, "preset.json"))).toBe(true);
     }
   });
@@ -132,13 +133,14 @@ describe("presets on disk", () => {
           checkBind(graph, input.bind, `input ${input.key}`);
         }
         for (const param of preset.params) {
-          if ("bind" in param && param.bind) {
-            checkBind(graph, param.bind, `param ${param.key}`);
+          const binds = "bind" in param ? bindsOf(param.bind) : [];
+          for (const b of binds) {
+            checkBind(graph, b, `param ${param.key}`);
           }
           if (param.type === "choice") {
             for (const option of param.options) {
-              if (param.bind) {
-                checkBindValue(graph, param.bind, option.value, `param ${param.key}`);
+              for (const b of binds) {
+                checkBindValue(graph, b, option.value, `param ${param.key}`);
               }
               for (const set of option.set ?? []) {
                 checkBindValue(graph, set, set.value, `param ${param.key} set`);
@@ -153,7 +155,7 @@ describe("presets on disk", () => {
         for (const out of preset.outputs) {
           const node = graph[out.node];
           expect(node, `output node ${out.node} missing`).toBeTruthy();
-          expect(["SaveVideo", "SaveImage"]).toContain(node.class_type);
+          expect(node.class_type).toMatch(/^Save/);
         }
       });
     });

@@ -129,7 +129,7 @@ export function WorkflowView({
             Use in studio
           </Button>
           <div className="grid grid-cols-2 gap-1.5">
-            {preset.origin === "builtin" && (
+            {preset.origin !== "fork" && (
               <Button
                 variant="outline"
                 className="w-full"

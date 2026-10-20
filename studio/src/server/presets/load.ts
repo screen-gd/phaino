@@ -2,12 +2,23 @@ import "server-only";
 import fs from "node:fs";
 import path from "node:path";
 import { getEnv, type StudioEnv } from "@/server/env";
+import {
+  cacheFiles,
+  loadModelsManifest,
+  syntheticPreset,
+} from "../models/resolve";
+import {
+  MODEL_REGISTRY,
+  modeForPresetId,
+  modePresetId,
+  type ModelMode,
+} from "../models/registry";
 import { presetSchema, type Preset } from "./schema";
 
 export const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-/** A preset as listed: Preset plus where it lives (built-in or user fork). */
-export type ListedPreset = Preset & { origin: "builtin" | "fork" };
+/** A preset as listed: folder preset, template-backed model mode, or fork. */
+export type ListedPreset = Preset & { origin: "builtin" | "fork" | "model" };
 
 export type LoadedPreset = {
   preset: ListedPreset;
@@ -87,13 +98,28 @@ function listDir(dir: string, origin: "builtin" | "fork"): ListedPreset[] {
 }
 
 /**
- * Every valid preset under PRESETS_DIR plus the user's forks, sorted by
- * category then order. Invalid folders are skipped with a warning so one
- * bad preset cannot take down the whole list. Partner presets are hidden
- * unless PHAINO_PARTNER_MODELS=on.
+ * Every valid preset under PRESETS_DIR plus template-backed model modes whose
+ * manifest gate passes, plus the user's forks, sorted by category then order.
+ * Invalid folders are skipped with a warning so one bad preset cannot take
+ * down the whole list. Partner presets are hidden unless
+ * PHAINO_PARTNER_MODELS=on.
  */
 export function listPresets(env: StudioEnv = getEnv()): ListedPreset[] {
-  const all = [...listDir(env.presetsDir, "builtin"), ...listDir(env.forksDir, "fork")];
+  const synthetic: ListedPreset[] = [];
+  for (const model of MODEL_REGISTRY) {
+    for (const mode of Object.keys(model.modes) as ModelMode[]) {
+      const src = model.modes[mode];
+      if (src && "template" in src) {
+        const p = syntheticPreset(modePresetId(model, mode), env);
+        if (p) synthetic.push({ ...p, origin: "model" });
+      }
+    }
+  }
+  const all = [
+    ...listDir(env.presetsDir, "builtin"),
+    ...synthetic,
+    ...listDir(env.forksDir, "fork"),
+  ];
   return all
     .filter((p) => presetVisible(p, env))
     .sort(
@@ -112,7 +138,24 @@ export function listPresets(env: StudioEnv = getEnv()): ListedPreset[] {
  */
 export function getPreset(id: string, env: StudioEnv = getEnv()): LoadedPreset | null {
   if (!SLUG.test(id)) return null;
-  const isFork = !fs.existsSync(path.join(presetDir(env, id), "preset.json"));
+  const presetFileBuiltin = path.join(presetDir(env, id), "preset.json");
+  if (!fs.existsSync(presetFileBuiltin) && !fs.existsSync(path.join(forkDir(env, id), "preset.json"))) {
+    // Maybe a template-backed model mode: models/cache holds its graphs.
+    const hit = modeForPresetId(id);
+    if (!hit) return null;
+    const preset = syntheticPreset(id, env);
+    if (!preset) return null;
+    const manifest = loadModelsManifest(env);
+    const entry = manifest?.modes?.[id];
+    if (!entry) return null;
+    const files = cacheFiles(entry.template, env);
+    return {
+      preset: { ...preset, origin: "model" },
+      workflowApi: JSON.parse(fs.readFileSync(files.apiFile, "utf8")),
+      workflowUi: JSON.parse(fs.readFileSync(files.uiFile, "utf8")),
+    };
+  }
+  const isFork = !fs.existsSync(presetFileBuiltin);
   const dir = isFork ? forkDir(env, id) : presetDir(env, id);
   const presetFile = path.join(dir, "preset.json");
   if (!fs.existsSync(presetFile)) return null;
@@ -137,5 +180,25 @@ export function getPreset(id: string, env: StudioEnv = getEnv()): LoadedPreset |
     workflowApi: JSON.parse(fs.readFileSync(apiFile, "utf8")),
     workflowUi: JSON.parse(fs.readFileSync(uiFile, "utf8")),
   };
+}
+
+/**
+ * The thumb.webp file for any preset id: the preset folder for builtins and
+ * forks, models/cache/<template>.webp for template-backed modes. Null when
+ * the preset is hidden, missing, or has no thumb.
+ */
+export function resolveThumbPath(id: string, env: StudioEnv = getEnv()): string | null {
+  if (!SLUG.test(id)) return null;
+  const dir = resolvePresetDir(id, env);
+  if (dir) {
+    const file = path.join(dir, "thumb.webp");
+    return fs.existsSync(file) ? file : null;
+  }
+  const hit = modeForPresetId(id);
+  if (!hit || !syntheticPreset(id, env)) return null;
+  const entry = loadModelsManifest(env)?.modes?.[id];
+  if (!entry) return null;
+  const file = cacheFiles(entry.template, env).thumbFile;
+  return fs.existsSync(file) ? file : null;
 }
 

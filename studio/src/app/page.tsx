@@ -9,6 +9,7 @@ import { presetPreview } from "@/lib/preset-preview";
 import { EXPLORE_MEDIA } from "@/lib/explore-media";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { toStudioModels } from "@/server/models/view";
 import { getPreset, listPresets } from "@/server/presets/load";
 import { miniGraph, type MiniGraph } from "@/server/presets/miniGraph";
 import type { Preset } from "@/server/presets/schema";
@@ -17,8 +18,8 @@ export const dynamic = "force-dynamic";
 
 const TOOLS = [
   { href: "/camera", name: "Camera moves", kind: "Video", badge: "New", desc: "7 moves on LTX 2.5", icon: "camera" },
-  { href: "/image", name: "Image", kind: "Image", badge: null, desc: "FLUX.2 Klein", icon: "image" },
-  { href: "/video", name: "Video", kind: "Video", badge: null, desc: "Image or text to video on LTX 2.5", icon: "video" },
+  { href: "/image", name: "Image", kind: "Image", badge: null, desc: "FLUX 3 Klein, Qwen, Z-Image", icon: "image" },
+  { href: "/video", name: "Video", kind: "Video", badge: null, desc: "LTX 2.5, Wan 2.2, HunyuanVideo, MiniMax H3", icon: "video" },
   { href: "/effects", name: "Effects", kind: "Video", badge: "Soon", desc: "One-click VFX", icon: "effects" },
   { href: "/characters", name: "Characters", kind: "Image", badge: "Soon", desc: "Consistent characters", icon: "characters" },
   { href: "/avatars", name: "Avatars", kind: "Video", badge: "Soon", desc: "Lipsync", icon: "avatars" },
@@ -178,7 +179,13 @@ function PresetCard({ preset, mini }: { preset: Preset; mini: MiniGraph | null }
 }
 
 export default function Home() {
-  const catalog = listPresets();
+  // Trending stays on folder presets; template-backed modes appear on
+  // /workflows and in the model pickers.
+  const catalog = listPresets().filter((p) => p.origin !== "model");
+  const models = [
+    ...toStudioModels("image"),
+    ...toStudioModels("video"),
+  ];
 
   const minis = new Map<string, MiniGraph | null>();
   for (const p of catalog) {
@@ -213,7 +220,7 @@ export default function Home() {
 
       <SectionHead
         title="Trending presets"
-        sub="Camera moves on LTX 2.5, images on FLUX.2 Klein"
+        sub="Camera moves on LTX 2.5, images on FLUX 3 Klein"
         actions={[
           { label: "Start generating", href: "/camera", accent: true },
           { label: "All workflows", href: "/workflows" },
@@ -252,7 +259,7 @@ export default function Home() {
         actions={[{ label: "See the showcase", href: "/community" }]}
       />
       <CommunityGrid items={EXPLORE_MEDIA.slice(0, 8)} />
-      <ExploreFooter presets={catalog} />
+      <ExploreFooter presets={catalog} models={models} />
     </div>
   );
 }

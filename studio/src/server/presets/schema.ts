@@ -3,6 +3,8 @@ import { z } from "zod";
 const slug = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
 const paramKey = z.string().regex(/^[a-z][a-zA-Z0-9]*$/);
 const bind = z.object({ node: z.string().min(1), field: z.string().min(1) });
+/** One bind or a list; a list writes the same value to every target. */
+const binds = z.union([bind, z.array(bind).min(1)]);
 const jsonValue = z.union([z.string(), z.number(), z.boolean()]);
 
 /**
@@ -18,14 +20,14 @@ const textParam = z.object({
   placeholder: z.string().optional(),
   template: z.string().optional(),
   advanced: z.boolean().optional(),
-  bind,
+  bind: binds,
 });
 
 const seedParam = z.object({
   type: z.literal("seed"),
   key: paramKey,
   label: z.string(),
-  bind,
+  bind: binds,
 });
 
 /**
@@ -48,7 +50,7 @@ const choiceParam = z.object({
     )
     .min(1),
   advanced: z.boolean().optional(),
-  bind: bind.optional(),
+  bind: binds.optional(),
 });
 
 const intParam = z.object({
@@ -59,7 +61,7 @@ const intParam = z.object({
   min: z.number().int(),
   max: z.number().int(),
   advanced: z.boolean().optional(),
-  bind,
+  bind: binds,
 });
 
 const floatParam = z.object({
@@ -71,7 +73,7 @@ const floatParam = z.object({
   max: z.number(),
   step: z.number().positive(),
   advanced: z.boolean().optional(),
-  bind,
+  bind: binds,
 });
 
 export const presetSchema = z
@@ -164,3 +166,10 @@ export type Preset = z.infer<typeof presetSchema>;
 export type PresetParam = Preset["params"][number];
 export type PresetInput = Preset["inputs"][number];
 export type PresetBind = z.infer<typeof bind>;
+
+/** Normalise a bind field (single object or list) to an array. */
+export function bindsOf(
+  b: PresetBind | PresetBind[] | undefined,
+): PresetBind[] {
+  return b ? (Array.isArray(b) ? b : [b]) : [];
+}

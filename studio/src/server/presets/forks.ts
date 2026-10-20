@@ -3,7 +3,14 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { getEnv, type StudioEnv } from "@/server/env";
-import { forkDir, resolvePresetDir, SLUG, type ListedPreset } from "./load";
+import {
+  forkDir,
+  getPreset,
+  resolvePresetDir,
+  resolveThumbPath,
+  SLUG,
+  type ListedPreset,
+} from "./load";
 import { presetSchema, type Preset } from "./schema";
 import { validateWorkflowApi } from "./validate";
 
@@ -42,18 +49,41 @@ function readForkPreset(id: string, env: StudioEnv): { preset: Preset; dir: stri
   return { preset, dir };
 }
 
-/** Copy a preset folder into a new fork under forksDir. */
+/** Copy a preset folder into a new fork under forksDir. Template-backed model
+ * modes have no folder; their loaded preset and graphs are materialised. */
 export function createFork(presetId: string, env: StudioEnv = getEnv()): ListedPreset {
   const dir = resolvePresetDir(presetId, env);
-  if (!dir) throw new ForkError(`Unknown preset "${presetId}"`, 404);
-  const raw = JSON.parse(fs.readFileSync(path.join(dir, "preset.json"), "utf8")) as Record<string, unknown>;
   const forkId = newForkId(presetId, env);
   const target = forkDir(env, forkId);
   fs.mkdirSync(target, { recursive: true });
-  for (const name of FORK_FILES) {
-    const src = path.join(dir, name);
-    if (fs.existsSync(src)) fs.copyFileSync(src, path.join(target, name));
+
+  let raw: Record<string, unknown>;
+  if (dir) {
+    raw = JSON.parse(fs.readFileSync(path.join(dir, "preset.json"), "utf8")) as Record<string, unknown>;
+    for (const name of FORK_FILES) {
+      if (name === "preset.json") continue;
+      const src = path.join(dir, name);
+      if (fs.existsSync(src)) fs.copyFileSync(src, path.join(target, name));
+    }
+  } else {
+    const loaded = getPreset(presetId, env);
+    if (!loaded || loaded.preset.origin !== "model") {
+      fs.rmSync(target, { recursive: true, force: true });
+      throw new ForkError(`Unknown preset "${presetId}"`, 404);
+    }
+    raw = loaded.preset as unknown as Record<string, unknown>;
+    fs.writeFileSync(
+      path.join(target, "workflow.json"),
+      JSON.stringify(loaded.workflowUi, null, 2) + "\n",
+    );
+    fs.writeFileSync(
+      path.join(target, "workflow_api.json"),
+      JSON.stringify(loaded.workflowApi, null, 2) + "\n",
+    );
+    const thumb = resolveThumbPath(presetId, env);
+    if (thumb) fs.copyFileSync(thumb, path.join(target, "thumb.webp"));
   }
+
   const forkPreset = presetSchema.parse({
     ...raw,
     id: forkId,

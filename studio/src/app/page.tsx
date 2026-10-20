@@ -2,13 +2,11 @@ import Link from "next/link";
 import { CloudPromo } from "@/components/CloudPromo";
 import { CommunityGrid } from "@/components/CommunityGrid";
 import { ExploreBanner } from "@/components/ExploreBanner";
-import { ExploreVideo } from "@/components/ExploreVideo";
 import { Icon, SECTION_ICONS, type IconName } from "@/components/icons";
 import { ExploreCarousel } from "@/components/ExploreCarousel";
 import { ExploreFooter } from "@/components/ExploreFooter";
 import { presetPreview } from "@/lib/preset-preview";
-import { EXPLORE_MEDIA, type MediaItem } from "@/lib/explore-media";
-import { MODEL_FAMILIES, matchesFamily } from "@/lib/model-families";
+import { EXPLORE_MEDIA } from "@/lib/explore-media";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getPreset, listPresets } from "@/server/presets/load";
@@ -179,33 +177,6 @@ function PresetCard({ preset, mini }: { preset: Preset; mini: MiniGraph | null }
   );
 }
 
-/** Example media tile filling the last slots of a model row. */
-function MediaTile({ item }: { item: MediaItem }) {
-  const external = item.href.startsWith("http");
-  return (
-    <div className="group relative aspect-video overflow-hidden rounded-xl border border-line bg-s2">
-      {item.media.kind === "video" ? (
-        <ExploreVideo media={item.media} title={item.title} source={item.source} />
-      ) : (
-        <img
-          src={item.media.src}
-          alt=""
-          className="h-full w-full object-cover"
-        />
-      )}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-linear-to-t from-black/80 to-transparent" />
-      <Link
-        href={item.href}
-        target={external ? "_blank" : undefined}
-        rel={external ? "noreferrer" : undefined}
-        className="absolute bottom-2.5 left-3 text-caption font-semibold text-white hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ac"
-      >
-        {item.title}
-      </Link>
-    </div>
-  );
-}
-
 export default function Home() {
   const catalog = listPresets();
 
@@ -219,14 +190,7 @@ export default function Home() {
     }
   }
 
-  const families = MODEL_FAMILIES.map((family) => {
-    const presets = catalog.filter((p) => matchesFamily(p, family.id));
-    const cards = presets.slice(0, 4);
-    const media = EXPLORE_MEDIA.filter((m) =>
-      family.mediaModels.includes(m.model),
-    ).slice(0, Math.max(0, 4 - cards.length));
-    return { family, presets, cards, media };
-  }).filter((f) => f.presets.length > 0);
+  const presets = catalog.slice(0, 8);
 
   return (
     <div className="px-3 pt-3 pb-10">
@@ -247,27 +211,41 @@ export default function Home() {
         <ExploreBanner />
       </div>
 
-      {families.map(({ family, presets, cards, media }) => (
-        <section key={family.id}>
-          <SectionHead
-            title={family.label}
-            sub={`${presets.length} preset${presets.length === 1 ? "" : "s"}`}
-            actions={[{ label: "View all", href: family.viewAll }]}
-          />
-          <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 sm:overflow-visible sm:pb-0">
-            {cards.map((p) => (
-              <div key={p.id} className="w-64 flex-none snap-start sm:w-auto">
-                <PresetCard preset={p} mini={minis.get(p.id) ?? null} />
-              </div>
-            ))}
-            {media.map((item) => (
-              <div key={item.media.src} className="w-64 flex-none snap-start sm:w-auto">
-                <MediaTile item={item} />
-              </div>
+      <SectionHead
+        title="Trending presets"
+        sub="Camera moves on LTX 2.5, images on FLUX.2 Klein"
+        actions={[
+          { label: "Start generating", href: "/camera", accent: true },
+          { label: "All workflows", href: "/workflows" },
+        ]}
+      />
+      {presets.length === 0 ? (
+        <p className="text-t3">No presets yet</p>
+      ) : (
+        <div className="relative">
+          <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+            {presets.map((p) => (
+              <PresetCard key={p.id} preset={p} mini={minis.get(p.id) ?? null} />
             ))}
           </div>
-        </section>
-      ))}
+          {presets.length > 4 && (
+            <>
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[48%] bg-linear-to-b from-transparent via-black/70 to-black" />
+              <div className="pointer-events-none absolute inset-x-0 bottom-5 z-20 flex justify-center">
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="pointer-events-auto"
+                  render={<Link href="/workflows" />}
+                >
+                  View all presets
+                  <Icon d={SECTION_ICONS.arrowUpRight} />
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       <SectionHead
         title="Made with Comfy"

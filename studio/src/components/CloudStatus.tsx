@@ -4,17 +4,20 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useComfyHealth } from "@/lib/useComfyHealth";
+import { useDemo } from "./DemoProvider";
+import { DEMO_MESSAGE } from "@/lib/demo";
 
 const DOT = "h-1.5 w-1.5 rounded-full";
 
 /** Compact pill showing Comfy connectivity, plus a credit balance when known. */
 export function CloudStatus() {
+  const demo = useDemo();
   const health = useComfyHealth();
   const [credits, setCredits] = useState<number | null>(null);
   const connected = health?.status === "ok";
 
   useEffect(() => {
-    if (!connected) return;
+    if (!connected || demo.enabled) return;
     let alive = true;
     const load = () => {
       void fetch("/api/comfy/balance")
@@ -32,7 +35,7 @@ export function CloudStatus() {
       alive = false;
       window.removeEventListener("focus", load);
     };
-  }, [connected]);
+  }, [connected, demo.enabled]);
 
   const balance =
     connected && credits !== null ? (
@@ -45,6 +48,10 @@ export function CloudStatus() {
         {credits.toLocaleString()} credits
       </a>
     ) : null;
+
+  if (demo.enabled) {
+    return <Badge variant="outline" size="lg" title={DEMO_MESSAGE} className="font-mono text-ac">Demo</Badge>;
+  }
 
   if (!health) {
     return (

@@ -319,11 +319,9 @@ p { line-height: 1.55; font-size: 17px; }
 .challenge-credit p { font-size: 14px; color: var(--muted); }
 .challenge-credit p > span { color: var(--ink); }
 
-.footer-cta { padding-top: 40px; overflow: hidden; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 30px; }
+.footer-cta { padding-top: 40px; overflow: hidden; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 30px; }
 .footer-dither { position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; width: 100%; height: calc(clamp(100px,28vw,460px) * 1.2 + 140px); image-rendering: pixelated; background: linear-gradient(0deg, #ff5b2214, transparent 70%); pointer-events: none; }
-.footer-cta h2 { font-size: clamp(56px,8vw,128px); }
-.footer-cta p { color: var(--lede); margin-top: 20px; font-size: 17px; }
-.footer-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.footer-actions { display: flex; width: 100%; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .footer-wordmark { display: flex; align-items: baseline; justify-content: center; width: 100%; padding-top: 72px; padding-bottom: 6px; font-size: clamp(100px,28vw,460px); font-weight: 650; line-height: .9; letter-spacing: -.087em; color: #f2f2f2; overflow: hidden; }
 
 .footer-word { display: inline-block; font-family: 'Outfit', sans-serif; font-weight: 800; letter-spacing: -.024em; }
@@ -511,8 +509,6 @@ dialog.is-showcase { width: calc(100vw - 24px); height: calc(100svh - 24px); max
   .challenge-credit { padding-top: 72px; }
   .challenge-pill { gap: 10px; }
   .challenge-credit p { font-size: 13px; }
-  .footer-cta h2 { font-size: 52px; }
-  .footer-cta p { font-size: 16px; }
   .footer-wordmark { padding-top: 56px; }
   .site-footer { flex-wrap: wrap; gap: 15px; }
   .footer-license { display: none; }
@@ -558,7 +554,6 @@ dialog.is-showcase { width: calc(100vw - 24px); height: calc(100svh - 24px); max
   .timeline-ruler > span:nth-child(2n) { display: none; }
   .challenge-pill { padding: 9px 16px 9px 12px; border-radius: 20px; }
   .challenge-credit p { font-size: 12px; }
-  .footer-cta h2 { font-size: 44px; }
   .footer-actions .button { flex: 1; }
   .footer-wordmark { padding-top: 36px; }
   .site-footer { padding-top: 22px; }

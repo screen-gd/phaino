@@ -58,6 +58,18 @@
       "title": "Studio UI and brand",
       "tasks": [
         {
+          "id": "footer-centered-actions",
+          "title": "Remove footer CTA copy and center GitHub and Follow buttons on both sites",
+          "status": "done",
+          "notes": "Removed the footer headline and supporting line from Studio and the marketing site. Centered both action buttons with responsive wrapping and retained the wordmark and footer links."
+        },
+        {
+          "id": "website-favicon",
+          "title": "Use the current Phaino app icon on the marketing website",
+          "status": "done",
+          "notes": "Marketing favicon now matches the black mark on orange rounded square in the brand master and Studio. Refreshed icon URLs in the page and manifest to bypass browser caches. Website build and built-asset checks pass."
+        },
+        {
           "id": "explore-media-showcase",
           "title": "Explore video carousel, banner navigation and credited Comfy creations",
           "status": "done",
@@ -512,6 +524,12 @@
       "id": "ops",
       "title": "Housekeeping",
       "tasks": [
+        {
+          "id": "hosted-demo",
+          "title": "Hosted mockup with bundled catalog and sample previews",
+          "status": "done",
+          "notes": "Vercel defaults to demo mode. Bundled 112 visible presets including all seven camera moves; browser-only reference uploads and sample previews with tab history. Skips SQLite estimates, blocks API writes and credentials, and keeps the local backend unchanged. Verified production routes over HTTP with unavailable storage."
+        },
         {
           "id": "ops-commit",
           "title": "Commit the uncommitted UI and brand work",

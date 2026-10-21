@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Icon, SECTION_ICONS } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useComfyHealth } from "@/lib/useComfyHealth";
+import { useDemo } from "./DemoProvider";
 
 const CHECKLIST = [
   "Open weights on Comfy Cloud",
@@ -17,15 +18,16 @@ const CHECKLIST = [
  * to a "Try Orbit" deep link. While health is loading the CTA stays invisible.
  */
 export function CloudPromo() {
+  const demo = useDemo();
   const health = useComfyHealth();
   const connected = health?.status === "ok";
 
   return (
     <div className="rounded-panel border border-line bg-s2 bg-[radial-gradient(120%_120%_at_100%_0%,color-mix(in_srgb,var(--color-ac)_18%,transparent),transparent_60%)] p-5">
       <h2 className="font-display font-extrabold uppercase text-h2 leading-none font-stretch-[112.5%]">
-        {connected ? "Comfy Cloud" : "Connect"}
+        {demo.enabled ? "Explore" : connected ? "Comfy Cloud" : "Connect"}
         <br />
-        <span className="text-ac">{connected ? "Connected" : "Comfy Cloud"}</span>
+        <span className="text-ac">{demo.enabled ? "the studio" : connected ? "Connected" : "Comfy Cloud"}</span>
       </h2>
       <ul className="mt-4 space-y-2 text-body text-t2">
         {CHECKLIST.map((item) => (
@@ -37,10 +39,10 @@ export function CloudPromo() {
       </ul>
       <Button
         size="lg"
-        className={`mt-5 ${health ? "" : "invisible"}`}
-        render={<Link href={connected ? "/camera?preset=orbit" : "/settings"} />}
+        className={`mt-5 ${health || demo.enabled ? "" : "invisible"}`}
+        render={<Link href={connected || demo.enabled ? "/camera?preset=orbit" : "/settings"} />}
       >
-        {connected ? "Try Orbit" : "Add your API key"}
+        {connected || demo.enabled ? "Try Orbit" : "Add your API key"}
       </Button>
     </div>
   );

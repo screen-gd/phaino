@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { FooterDither } from "@/components/FooterDither";
 import { FooterWordmark } from "@/components/FooterWordmark";
-import { GitHubIcon, Icon, SECTION_ICONS } from "@/components/icons";
+import { GitHubIcon } from "@/components/icons";
 import { SECTIONS } from "@/components/sections";
 import type { Preset } from "@/server/presets/schema";
 import type { StudioModel } from "@/components/toolStudioData";
@@ -28,12 +28,16 @@ export function ExploreFooter({
     },
     ...(["image", "video"] satisfies Preset["category"][]).map((kind) => ({
       title: kind === "image" ? "Image models" : "Video models",
-      links: models
-        .filter((m) => m.kind === kind)
-        .map((m) => ({
-          label: m.label,
-          href: `/${kind}?preset=${m.defaultPresetId}`,
-        })),
+      links: [
+        ...models
+          .filter((m) => m.kind === kind)
+          .slice(0, 6)
+          .map((m) => ({
+            label: m.label,
+            href: `/${kind}?preset=${m.defaultPresetId}`,
+          })),
+        { label: `All ${kind} models`, href: `/${kind}` },
+      ],
     })),
     {
       title: "Camera moves",
@@ -108,26 +112,18 @@ export function ExploreFooter({
                 href={REPO}
                 target="_blank"
                 rel="noreferrer"
-                className="group inline-flex min-h-[50px] items-center justify-center gap-3 rounded-full bg-ac px-[22px] text-[14px] font-[550] whitespace-nowrap text-on transition-[transform,background-color] duration-150 hover:bg-[#ff6d3a] active:scale-[0.97]"
+                className="inline-flex min-h-[50px] items-center justify-center gap-3 rounded-full bg-ac px-[22px] text-[14px] font-[550] whitespace-nowrap text-on transition-[transform,background-color] duration-150 hover:bg-[#ff6d3a] active:scale-[0.97]"
               >
                 <GitHubIcon className="h-[18px] w-[18px]" />
                 Get Phaino on GitHub
-                <Icon
-                  d={SECTION_ICONS.arrowUpRight}
-                  className="ml-1.5 h-4 w-4 transition-transform duration-[180ms] group-hover:translate-x-[3px]"
-                />
               </a>
               <a
                 href="https://x.com/Screeendev"
                 target="_blank"
                 rel="noreferrer"
-                className="group inline-flex min-h-[50px] items-center justify-center gap-3 rounded-full border border-white/25 bg-black/65 px-[22px] text-[14px] font-[550] whitespace-nowrap text-white transition-[transform,background-color,border-color] duration-150 hover:border-white/50 hover:bg-black/85 active:scale-[0.97]"
+                className="inline-flex min-h-[50px] items-center justify-center gap-3 rounded-full border border-white/25 bg-black/65 px-[22px] text-[14px] font-[550] whitespace-nowrap text-white transition-[transform,background-color,border-color] duration-150 hover:border-white/50 hover:bg-black/85 active:scale-[0.97]"
               >
                 Follow @Screeendev
-                <Icon
-                  d={SECTION_ICONS.arrowUpRight}
-                  className="ml-1.5 h-4 w-4 transition-transform duration-[180ms] group-hover:translate-x-[3px]"
-                />
               </a>
             </div>
           </section>

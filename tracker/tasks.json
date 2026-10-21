@@ -58,6 +58,18 @@
       "title": "Studio UI and brand",
       "tasks": [
         {
+          "id": "demo-notice-marquee",
+          "title": "Slim orange demo notice with bold scrolling text",
+          "status": "done",
+          "notes": "Demo notice is a 24px orange strip with bold black text and a seamless CSS transform loop. Includes a pause/resume control, one screen-reader copy and a static reduced-motion fallback."
+        },
+        {
+          "id": "footer-compact-models",
+          "title": "Shorten footer model lists and remove footer button arrows",
+          "status": "done",
+          "notes": "Limited each footer model column to six entries plus an All models link. Removed GitHub and Follow button arrows from Studio and the marketing site. Both builds, Studio typecheck and focused lint pass."
+        },
+        {
           "id": "footer-centered-actions",
           "title": "Remove footer CTA copy and center GitHub and Follow buttons on both sites",
           "status": "done",

@@ -21,7 +21,7 @@ import { SECTIONS } from "./sections";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useDemo } from "./DemoProvider";
-import { DEMO_MESSAGE } from "@/lib/demo";
+import { DemoNotice } from "./DemoNotice";
 
 function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -400,7 +400,7 @@ export function AppShell({
         </div>
       </header>
 
-      {demo.enabled && <p className="border-b border-line px-4 py-2 text-caption text-t3">{DEMO_MESSAGE}</p>}
+      {demo.enabled && <DemoNotice />}
       <main ref={mainRef} className="relative min-h-0 overflow-auto">
         <div ref={sentinelRef} aria-hidden="true" className="pointer-events-none absolute top-0 h-2 w-px" />
         {children}

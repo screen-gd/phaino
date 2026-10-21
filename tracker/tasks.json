@@ -61,7 +61,7 @@
           "id": "demo-notice-marquee",
           "title": "Slim orange demo notice with bold scrolling text",
           "status": "done",
-          "notes": "Demo notice is a 24px orange strip with bold black text and a seamless CSS transform loop. Includes a pause/resume control, one screen-reader copy and a static reduced-motion fallback."
+          "notes": "Increased the marquee from 11px to 14px bold text while retaining the 24px orange strip, pause control and static reduced-motion fallback. Build, typecheck and focused lint pass."
         },
         {
           "id": "footer-compact-models",

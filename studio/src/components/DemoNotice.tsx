@@ -11,7 +11,7 @@ export function DemoNotice() {
   return (
     <div role="region" aria-label="Demo notice" className="flex h-6 min-w-0 items-center overflow-hidden bg-ac text-black">
       <p className="sr-only">{DEMO_MESSAGE}</p>
-      <div className="min-w-0 flex-1 overflow-hidden text-[11px] font-extrabold leading-none">
+      <div className="min-w-0 flex-1 overflow-hidden text-sm font-bold leading-none">
         <div className="demo-notice-track" data-paused={paused} aria-hidden="true">
           {[0, 1].map((copy) => (
             <div key={copy} className="demo-notice-group">
@@ -21,7 +21,7 @@ export function DemoNotice() {
             </div>
           ))}
         </div>
-        <span className="demo-notice-static" aria-hidden="true">Demo · Sample previews only. No credits used.</span>
+        <span className="demo-notice-static" aria-hidden="true">Demo · Sample previews. No credits used.</span>
       </div>
       <button
         type="button"

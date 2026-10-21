@@ -7,6 +7,7 @@ import { Icon, SECTION_ICONS } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { refreshComfyHealth } from "@/lib/useComfyHealth";
+import { useDemo } from "./DemoProvider";
 
 const TARGET_LABELS = { cloud: "Comfy Cloud", custom: "Custom endpoint" } as const;
 
@@ -21,6 +22,7 @@ const API_KEYS_URL = "https://platform.comfy.org/profile/api-keys";
 
 /** Comfy target status plus the BYOK key form. */
 export function SettingsView() {
+  const demo = useDemo();
   const [health, setHealth] = useState<ComfyHealth | null>(null);
   const [creds, setCreds] = useState<ComfyCreds | null>(null);
   const [checking, setChecking] = useState(false);
@@ -148,7 +150,7 @@ export function SettingsView() {
           <p className="font-mono text-xs text-ac">{health.message}</p>
         )}
 
-        <div className="grid gap-2">
+        {!demo.enabled && <div className="grid gap-2">
           <Input
             type="password"
             value={key}
@@ -202,7 +204,7 @@ export function SettingsView() {
           <p className="text-caption text-t3">
             Or set COMFY_API_KEY and COMFY_BASE_URL in studio/.env.local.
           </p>
-        </div>
+        </div>}
       </div>
     </div>
   );

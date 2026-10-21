@@ -20,6 +20,8 @@ import type { MenuRow, NavMenus, TwoColumnMenu } from "./navMenus";
 import { SECTIONS } from "./sections";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useDemo } from "./DemoProvider";
+import { DEMO_MESSAGE } from "@/lib/demo";
 
 function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -76,7 +78,7 @@ function MenuRowLink({ row }: { row: MenuRow }) {
 /** Image/Video dropdown: Features + Models columns (~720px). */
 function TwoColumnPanel({ menu }: { menu: TwoColumnMenu }) {
   return (
-    <div className="grid w-[720px] max-w-[calc(100vw-24px)] grid-cols-2 gap-x-2 p-3">
+    <div className="grid max-h-[calc(100dvh-96px)] w-[720px] max-w-[calc(100vw-24px)] grid-cols-2 gap-x-2 overflow-y-auto p-3">
       <div>
         <h4 className="mb-1.5 px-2 text-caption text-t3">Features</h4>
         <ul className="grid gap-0.5">
@@ -144,6 +146,7 @@ export function AppShell({
   menus: NavMenus;
   stars?: number | null;
 }) {
+  const demo = useDemo();
   const pathname = usePathname();
   const mainRef = useRef<HTMLElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -192,7 +195,7 @@ export function AppShell({
   }, []);
 
   return (
-    <div className="grid h-dvh grid-cols-[minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)]">
+    <div className={`grid h-dvh grid-cols-[minmax(0,1fr)] ${demo.enabled ? "grid-rows-[auto_auto_minmax(0,1fr)]" : "grid-rows-[auto_minmax(0,1fr)]"}`}>
       <header
         data-compact={compact}
         className={`group flex h-14 items-center gap-3 bg-bg px-3 ${GROW} data-[compact=true]:h-9`}
@@ -397,6 +400,7 @@ export function AppShell({
         </div>
       </header>
 
+      {demo.enabled && <p className="border-b border-line px-4 py-2 text-caption text-t3">{DEMO_MESSAGE}</p>}
       <main ref={mainRef} className="relative min-h-0 overflow-auto">
         <div ref={sentinelRef} aria-hidden="true" className="pointer-events-none absolute top-0 h-2 w-px" />
         {children}

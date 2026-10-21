@@ -3,6 +3,7 @@
 import { useRef, useState, type DragEvent } from "react";
 import { Icon, SECTION_ICONS } from "../icons";
 import type { Uploaded } from "./useStudio";
+import { useDemo } from "@/components/DemoProvider";
 
 /** Large 120px drop card for one image input. */
 export function UploadCard({
@@ -18,11 +19,23 @@ export function UploadCard({
   onUploaded: (u: Uploaded) => void;
   onClear: () => void;
 }) {
+  const demo = useDemo();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [drag, setDrag] = useState(false);
 
   async function upload(file: File) {
+    if (demo.enabled) {
+      if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          onUploaded({ uploadId: crypto.randomUUID(), previewUrl: reader.result, name: file.name });
+        }
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
     setBusy(true);
     try {
       const form = new FormData();

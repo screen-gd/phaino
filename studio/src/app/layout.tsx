@@ -5,6 +5,8 @@ import "./globals.css";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/AppShell";
+import { DemoProvider } from "@/components/DemoProvider";
+import { isDemoMode } from "@/lib/demo-mode";
 import { buildNavMenus } from "@/components/navMenus";
 import { getEnv } from "@/server/env";
 import { getGitHubStars } from "@/server/github";
@@ -27,7 +29,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang="en" className="dark">
       <body>
-        <AppShell menus={menus} stars={stars}>{children}</AppShell>
+        <DemoProvider enabled={isDemoMode()}>
+          <AppShell menus={menus} stars={stars}>{children}</AppShell>
+        </DemoProvider>
       </body>
     </html>
   );

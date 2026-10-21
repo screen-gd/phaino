@@ -300,7 +300,7 @@ export function VideoStudio({
         </div>
 
         <div className="flex flex-col gap-1.5 border-t border-line p-2">
-          {health && health.status !== "ok" && (
+          {!s.demo && health && health.status !== "ok" && (
             <p className="text-xs text-t3">
               Comfy Cloud is not connected.{" "}
               <Link href="/settings" className="text-t1 underline underline-offset-2">
@@ -322,7 +322,7 @@ export function VideoStudio({
             disabled={!s.ready || !!modeError || s.submitting}
             onClick={() => void s.submit().then(() => setView(null))}
           >
-            Generate
+            {s.demo ? "Preview sample" : "Generate"}
           </Button>
         </div>
       </aside>

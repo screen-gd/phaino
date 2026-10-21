@@ -2,6 +2,8 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useDemo } from "@/components/DemoProvider";
+import { createDemoJob } from "@/lib/demo";
 import type {
   StudioJob,
   StudioPreset,
@@ -19,6 +21,7 @@ export function useStudio(
   presets: StudioPreset[],
   opts: { prefillKey?: string } = {},
 ) {
+  const demo = useDemo();
   const router = useRouter();
   const searchParams = useSearchParams();
   const wanted = searchParams.get("preset");
@@ -45,14 +48,16 @@ export function useStudio(
   const esRef = useRef<EventSource | null>(null);
 
   const loadRecent = useCallback(async () => {
+    if (demo.enabled) return;
     const res = await fetch(`/api/jobs?category=${category}&limit=12`);
     if (res.ok) {
       const data = (await res.json()) as { jobs: StudioJob[] };
       setRecent(data.jobs);
     }
-  }, [category]);
+  }, [category, demo.enabled]);
 
   useEffect(() => {
+    if (demo.enabled) return;
     fetch(`/api/jobs?category=${category}&limit=12`)
       .then((r) =>
         r.ok ? (r.json() as Promise<{ jobs: StudioJob[] }>) : null,
@@ -62,7 +67,7 @@ export function useStudio(
       })
       .catch(() => {});
     return () => esRef.current?.close();
-  }, [category]);
+  }, [category, demo.enabled]);
 
   // ?from=<output path> pre-fills the first required image input with a copy
   // of an existing output (used by "Animate" on image results).
@@ -78,12 +83,16 @@ export function useStudio(
       return;
     }
     fromApplied.current = preset.id;
-    void fetch("/api/uploads/from-output", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ path: fromPath }),
-    })
-      .then((r) => (r.ok ? (r.json() as Promise<{ uploadId: string; previewUrl: string }>) : null))
+    const load = demo.enabled
+      ? Promise.resolve(fromPath.startsWith("/explore/examples/")
+          ? { uploadId: fromPath, previewUrl: fromPath }
+          : null)
+      : fetch("/api/uploads/from-output", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ path: fromPath }),
+        }).then((r) => (r.ok ? (r.json() as Promise<{ uploadId: string; previewUrl: string }>) : null));
+    void load
       .then((data) => {
         if (!data) {
           setError("Couldn't load that image.");
@@ -178,6 +187,12 @@ export function useStudio(
       for (const inp of preset.inputs) {
         if (uploads[inp.key]) inputs[inp.key] = uploads[inp.key].uploadId;
       }
+      if (demo.enabled) {
+        const sample = createDemoJob({ presetId: preset.id, category, params, inputs });
+        setJob(sample);
+        demo.addJob(sample);
+        return;
+      }
       const res = await fetch("/api/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -195,7 +210,7 @@ export function useStudio(
     } finally {
       setSubmitting(false);
     }
-  }, [preset, submitting, randomSeed, values, uploads, subscribe]);
+  }, [preset, submitting, randomSeed, values, uploads, subscribe, demo, category]);
 
   const cancel = useCallback(async () => {
     const current = job;
@@ -225,10 +240,11 @@ export function useStudio(
     error,
     job,
     setJob: selectJob,
-    recent,
+    recent: demo.enabled ? demo.jobs.filter((row) => row.category === category) : recent,
     submit,
     cancel,
     subscribe,
     ready,
+    demo: demo.enabled,
   };
 }

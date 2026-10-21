@@ -54,6 +54,12 @@ pnpm dev:studio
 
 Open http://localhost:3000. Check backend connectivity at http://localhost:3000/api/health (it reports `not_configured` until a Comfy key is set).
 
+### Hosted demo
+
+Vercel deployments run as a mockup by default. Image, Video, Camera and Workflows use the bundled catalog. You can change models, adjust controls, upload reference images in your browser and preview existing sample media. Samples do not use your prompt or reference images. Library shows sample media and this tab's preview history until reload. Generation, credential entry and server writes are disabled; this is not a hosted generation backend.
+
+Set `PHAINO_DEMO=on` in `studio/.env.local` to try the same demo locally. Local use otherwise keeps the real backend. `PHAINO_DEMO=off` overrides the Vercel default, but requires hosting that supports the app's storage and job runner. On Vercel, use `studio/` as the project root and allow files outside that root in the build so Next.js can bundle `presets/`, `models/` and `tracker/`.
+
 To use another port (3000 is the default): `cd studio && pnpm exec next dev -H 127.0.0.1 -p 3100`.
 
 ## Comfy Cloud setup
@@ -82,6 +88,7 @@ All variables live in `studio/.env.local` (copy `studio/.env.example`). The old 
 | `PRESETS_DIR` | Preset folder (default `../presets` from `studio/`) |
 | `FORKS_DIR` | User forks folder (default `<PHAINO_DATA_DIR>/forks`) |
 | `PHAINO_PARTNER_MODELS` | Show partner-model presets (uses Comfy credits). Off by default |
+| `PHAINO_DEMO` | Hosted mockup: `on` by default on Vercel, off locally. `on`/`off` overrides the default |
 | `TRACKER_FILE` | Tracker data file (default `../tracker/tasks.json` from `studio/`) |
 | `PHAINO_DATA_DIR` | Local data folder (default `./.data` under `studio/`) |
 | `PHAINO_USER` | Local user name (default `local`) |

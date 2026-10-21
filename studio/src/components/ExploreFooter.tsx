@@ -100,21 +100,10 @@ export function ExploreFooter({
         <FooterDither />
         <div className="relative z-10">
           <section
-            aria-labelledby="footer-heading"
-            className="flex flex-wrap items-end justify-between gap-[30px] px-4 pt-10 sm:px-6"
+            aria-label="Get Phaino"
+            className="px-4 pt-10 sm:px-6"
           >
-            <div>
-              <h2
-                id="footer-heading"
-                className="font-display text-[clamp(56px,8vw,128px)] font-medium leading-[1.02] tracking-[-0.048em] [word-spacing:0.04em] max-[800px]:text-[52px] max-[480px]:text-[44px]"
-              >
-                Open the studio<span className="text-ac">.</span>
-              </h2>
-              <p className="mt-5 text-[17px] leading-[1.55] text-[#d4d4d4]">
-                Free and open source. Star the repo to follow the build.
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2.5 max-[480px]:w-full max-[480px]:[&>*]:flex-1">
+            <div className="flex flex-wrap justify-center gap-2.5 max-[480px]:w-full max-[480px]:[&>*]:flex-1">
               <a
                 href={REPO}
                 target="_blank"

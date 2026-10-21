@@ -110,7 +110,7 @@ export function ImageStudio({
 
   return (
     <div className="relative h-full">
-      {health && health.status !== "ok" && (
+      {!s.demo && health && health.status !== "ok" && (
         <div className="absolute top-3 left-1/2 z-20 flex h-[58px] -translate-x-1/2 items-center gap-3 rounded-full border border-line bg-s2 p-2.5 pl-2">
           <span className="grid h-9 w-9 place-items-center rounded-full bg-s3 text-t2">
             <Icon d={SECTION_ICONS.alert} className="h-4 w-4" />
@@ -325,7 +325,7 @@ export function ImageStudio({
               disabled={!s.ready || !!modeError || s.submitting}
               onClick={() => void s.submit()}
             >
-              Generate
+              {s.demo ? "Preview sample" : "Generate"}
             </Button>
           </div>
         </div>

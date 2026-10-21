@@ -7,6 +7,8 @@ import { AddToSequence } from "@/components/sequence/AddToSequence";
 import { EditVideoButton } from "@/components/edit/EditVideoButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useDemo } from "@/components/DemoProvider";
+import { outputUrl } from "@/lib/demo";
 
 export const STATUS_BADGE: Record<
   StudioJob["status"],
@@ -36,6 +38,7 @@ export function CurrentJob({
   presetName: (id: string) => string;
   onCancel: () => void;
 }) {
+  const demo = useDemo();
   const output = job.outputs[0];
   const outputKind = output && isVideoPath(output) ? "video" : "image";
   return (
@@ -77,7 +80,7 @@ export function CurrentJob({
         <div className="mt-3">
           {outputKind === "video" ? (
             <video
-              src={`/api/outputs/${output}`}
+              src={outputUrl(output)}
               controls
               loop
               muted
@@ -86,13 +89,13 @@ export function CurrentJob({
             />
           ) : (
             <img
-              src={`/api/outputs/${output}`}
+              src={outputUrl(output)}
               alt=""
               className="w-full rounded-lg border border-line"
             />
           )}
           <div className="mt-2.5 flex items-center gap-2">
-            {outputKind === "video" && (
+            {outputKind === "video" && !demo.enabled && (
               <>
                 <AddToSequence path={output} />
                 <EditVideoButton path={output} />
@@ -115,6 +118,7 @@ export function CurrentJob({
               Open in Library
             </Button>
           </div>
+          {demo.enabled && <p className="mt-2 text-caption text-t3">{job.message}</p>}
         </div>
       )}
     </div>
@@ -133,6 +137,7 @@ export function RecentGrid({
   activeId?: string;
   onSelect: (row: StudioJob) => void;
 }) {
+  const demo = useDemo();
   const presetName = (id: string) =>
     presets.find((p) => p.id === id)?.name ?? id;
   return (
@@ -154,14 +159,14 @@ export function RecentGrid({
               {r.status === "succeeded" && out ? (
                 isVid ? (
                   <video
-                    src={`/api/outputs/${out}`}
+                    src={outputUrl(out)}
                     muted
                     preload="metadata"
                     className="aspect-video w-full object-cover"
                   />
                 ) : (
                   <img
-                    src={`/api/outputs/${out}`}
+                    src={outputUrl(out)}
                     alt=""
                     className="aspect-video w-full object-cover"
                   />
@@ -187,7 +192,7 @@ export function RecentGrid({
                 </Badge>
               </span>
             </button>
-            {r.status === "succeeded" && isVid && out && (
+            {r.status === "succeeded" && isVid && out && !demo.enabled && (
               <span className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                 <EditVideoButton path={out} iconOnly />
                 <AddToSequence path={out} iconOnly />

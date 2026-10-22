@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-21",
+  "updated": "2026-10-23",
   "milestones": [
     {
       "id": "m1",
@@ -529,6 +529,37 @@
           "id": "m10-media",
           "title": "Replace unlicensed and hotlinked media with MIT Comfy template outputs",
           "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "m11",
+      "title": "M11 Partner models through Comfy Router",
+      "tasks": [
+        {
+          "id": "m11-client",
+          "title": "Router client on comfy.models with the Settings key",
+          "status": "doing"
+        },
+        {
+          "id": "m11-registry",
+          "title": "Router mode source and per-model input/output adapters",
+          "status": "todo"
+        },
+        {
+          "id": "m11-runner",
+          "title": "Runner branch: submit, queue status, collect, cancel, resume",
+          "status": "todo"
+        },
+        {
+          "id": "m11-migrate",
+          "title": "Move Kling 3.0, Nano Banana 2 and Seedance 2.5 onto Router",
+          "status": "todo"
+        },
+        {
+          "id": "m11-credits",
+          "title": "Credits from creditsUsed and Router estimates",
+          "status": "todo"
         }
       ]
     },

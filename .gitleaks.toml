@@ -1,0 +1,18 @@
+# Secret scanning rules for gitleaks (used by .github/workflows/secret-scan.yml).
+# Starts from the built-in gitleaks rules and adds formats they don't cover.
+title = "phaino secret scanning"
+
+[extend]
+useDefault = true
+
+# Comfy platform API keys (platform.comfy.org/profile/api-keys): "comfyui-" plus 64 hex chars.
+# The built-in rules do not recognise this format.
+[[rules]]
+id = "comfy-api-key"
+description = "Comfy platform API key"
+regex = '''\bcomfyui-[0-9a-f]{64}\b'''
+keywords = ["comfyui-"]
+
+[[allowlists]]
+description = "Generated ComfyUI node schema; its field names look like key assignments"
+paths = ['''^studio/src/server/comfy/object_info\.snapshot\.json$''']

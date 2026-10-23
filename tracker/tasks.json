@@ -555,7 +555,7 @@
         {
           "id": "m11-nano-banana",
           "title": "Nano Banana 2 adapter on vertexai/gemini-3.1-flash-image",
-          "status": "todo"
+          "status": "done"
         },
         {
           "id": "m11-seedance",

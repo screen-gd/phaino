@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { findAdapter, routerAdapterFor, type RouterAdapter } from "./adapters";
+import { nanoBananaAdapter } from "./nanoBanana";
 
 const adapter: RouterAdapter = {
   presetId: "test-preset",
@@ -21,5 +22,9 @@ describe("findAdapter", () => {
 describe("routerAdapterFor", () => {
   it("returns null for Kling while the registry is empty", () => {
     expect(routerAdapterFor("kling3-video")).toBeNull();
+  });
+
+  it("returns the Nano Banana 2 adapter", () => {
+    expect(routerAdapterFor("nano-banana-2")).toBe(nanoBananaAdapter);
   });
 });

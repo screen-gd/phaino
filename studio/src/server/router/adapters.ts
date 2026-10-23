@@ -1,4 +1,5 @@
 import { nanoBananaAdapter } from "./nanoBanana";
+import { seedanceAdapter } from "./seedance";
 import type { RouterAdapter } from "./types";
 
 export { RouterOutputError } from "./types";
@@ -10,7 +11,10 @@ export type {
 } from "./types";
 
 /** Registered preset adapters for Comfy Router. */
-export const ROUTER_ADAPTERS: readonly RouterAdapter[] = [nanoBananaAdapter];
+export const ROUTER_ADAPTERS: readonly RouterAdapter[] = [
+  nanoBananaAdapter,
+  seedanceAdapter,
+];
 
 /** Find the adapter for a preset in the supplied registry. */
 export function findAdapter(

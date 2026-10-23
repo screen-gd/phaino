@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { findAdapter, routerAdapterFor, type RouterAdapter } from "./adapters";
 import { nanoBananaAdapter } from "./nanoBanana";
+import { seedanceAdapter } from "./seedance";
 
 const adapter: RouterAdapter = {
   presetId: "test-preset",
@@ -26,5 +27,9 @@ describe("routerAdapterFor", () => {
 
   it("returns the Nano Banana 2 adapter", () => {
     expect(routerAdapterFor("nano-banana-2")).toBe(nanoBananaAdapter);
+  });
+
+  it("returns the Seedance 2.5 adapter", () => {
+    expect(routerAdapterFor("seedance25-i2v")).toBe(seedanceAdapter);
   });
 });

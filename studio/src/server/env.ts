@@ -34,7 +34,6 @@ const envSchema = z.object({
   PHAINO_SITE_URL: optionalString,
   FFMPEG_PATH: optionalString,
   FFPROBE_PATH: optionalString,
-  PHAINO_PARTNER_MODELS: optionalString,
   // Old CUTAWAY_* names still work as fallbacks.
   CUTAWAY_DATA_DIR: optionalString,
   CUTAWAY_USER: optionalString,
@@ -53,7 +52,6 @@ function buildEnv() {
     siteUrl: e.PHAINO_SITE_URL ?? "http://localhost:3000",
     ffmpegPath: e.FFMPEG_PATH ?? "ffmpeg",
     ffprobePath: e.FFPROBE_PATH ?? "ffprobe",
-    partnerModels: e.PHAINO_PARTNER_MODELS === "on",
     forksDir: path.resolve(/* turbopackIgnore: true */ process.cwd(), e.FORKS_DIR ?? path.join(dataDir, "forks")),
     trackerFile: path.resolve(/* turbopackIgnore: true */ process.cwd(), e.TRACKER_FILE ?? "../tracker/tasks.json"),
   };

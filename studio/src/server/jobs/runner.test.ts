@@ -1,23 +1,35 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import type { RunResult } from "@comfyorg/sdk";
 import { describe, expect, it, vi } from "vitest";
 import type { StudioEnv } from "@/server/env";
+import type { RouterAdapter } from "@/server/router/adapters";
 import {
   JobRunner,
   NotConnected,
+  subscribeJob,
   type ComfyLike,
   type JobHandleLike,
   type OutputLike,
+  type RouterHandleLike,
+  type RouterLike,
+  type RunnerDeps,
 } from "./runner";
-import { openStore } from "./store";
+import { openStore, type JobRecord } from "./store";
 
 const NOW = "2026-10-19T00:00:00.000Z";
+const ROUTER_RESULT: RunResult = {
+  kind: "json",
+  data: { image: "router-output" },
+  requestId: "router-result-1",
+  servingProvider: null,
+  droppedParams: null,
+};
 
-function envWith(key: string | undefined, partnerModels = false): StudioEnv {
+function envWith(key: string | undefined): StudioEnv {
   return {
     comfyApiKey: key,
-    partnerModels,
     comfyBaseUrl: undefined,
     // The runner resolves presets from the env it was given, so point at the
     // real catalog (vitest runs with cwd = studio/).
@@ -62,7 +74,11 @@ function fakeJob(over: Partial<JobHandleLike> = {}): JobHandleLike {
 
 type SubmitOpts = { idempotencyKey: string; apiKey?: string };
 
-function makeDeps(job: JobHandleLike, key = "test-key", partnerModels = false) {
+function makeDeps(
+  job: JobHandleLike,
+  key = "test-key",
+  over: Partial<Pick<RunnerDeps, "env" | "getClient" | "getRouter" | "adapterFor">> = {},
+) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "phaino-run-"));
   const store = openStore(path.join(dir, "phaino.db"));
   const submitCalls: SubmitOpts[] = [];
@@ -83,11 +99,16 @@ function makeDeps(job: JobHandleLike, key = "test-key", partnerModels = false) {
     jobs: { get: async () => job },
   };
   const runner = new JobRunner({
-    env: envWith(key, partnerModels),
+    env: envWith(key),
     getClient: () => client,
+    getRouter: () => {
+      throw new Error("no Router client in workflow test");
+    },
+    adapterFor: () => null,
     store,
     dataDir: dir,
     now: () => NOW,
+    ...over,
   });
   return { dir, store, runner, submitCalls, setInputs, client };
 }
@@ -97,6 +118,54 @@ function makeUpload(dir: string): string {
   fs.mkdirSync(path.join(dir, "uploads"), { recursive: true });
   fs.writeFileSync(path.join(dir, "uploads", id), "png-bytes");
   return id;
+}
+
+function fakeRouterHandle(over: Partial<RouterHandleLike> = {}): RouterHandleLike {
+  return {
+    requestId: "router-request-1",
+    events: vi.fn(async function* () {
+      yield { status: "IN_QUEUE", completed: false, queuePosition: 2 };
+      yield { status: "IN_PROGRESS", completed: false, queuePosition: null };
+      yield { status: "COMPLETED", completed: true, queuePosition: null };
+    }),
+    get: vi.fn(async () => ROUTER_RESULT),
+    cancelBestEffort: vi.fn(async () => {}),
+    ...over,
+  };
+}
+
+function makeRouterDeps(
+  handle = fakeRouterHandle(),
+  over: Partial<RouterAdapter> = {},
+  env = envWith("test-key"),
+) {
+  const router = {
+    submit: vi.fn<RouterLike["submit"]>(async () => handle),
+    handle: vi.fn<RouterLike["handle"]>(() => handle),
+  } satisfies RouterLike;
+  const adapter: RouterAdapter = {
+    presetId: "dolly-in",
+    model: "test/image-model",
+    buildInput: vi.fn<RouterAdapter["buildInput"]>(({ params, images }) => ({
+      ...params,
+      ...images,
+    })),
+    readOutputs: vi.fn<RouterAdapter["readOutputs"]>(() => [{
+      kind: "base64",
+      data: Buffer.from("router-png-bytes").toString("base64"),
+      mimeType: "image/png",
+    }]),
+    ...over,
+  };
+  const deps = makeDeps(fakeJob(), "test-key", {
+    env,
+    getClient: () => {
+      throw new Error("no workflow client in Router test");
+    },
+    getRouter: () => router,
+    adapterFor: (presetId) => presetId === adapter.presetId ? adapter : null,
+  });
+  return { ...deps, router, adapter, handle };
 }
 
 describe("job runner", () => {
@@ -122,7 +191,7 @@ describe("job runner", () => {
   });
 
   it("passes apiKey for partner presets, not for open", async () => {
-    const { dir, store, runner, submitCalls } = makeDeps(fakeJob(), "test-key", true);
+    const { dir, store, runner, submitCalls } = makeDeps(fakeJob(), "test-key");
     const open = runner.startJob({
       presetId: "dolly-in",
       params: {},
@@ -166,6 +235,10 @@ describe("job runner", () => {
       getClient: () => {
         throw new Error("no client");
       },
+      getRouter: () => {
+        throw new Error("no Router client in workflow test");
+      },
+      adapterFor: () => null,
       store,
       dataDir: dir,
       now: () => NOW,
@@ -196,6 +269,180 @@ describe("job runner", () => {
     expect(job.cancel).toHaveBeenCalled();
     expect(updated?.status).toBe("cancelled");
     expect(store.get(row.id)?.status).toBe("cancelled");
+  });
+});
+
+describe("Router job runner", () => {
+  it.each([
+    { creditsUsed: "12.5", replayed: false, expected: "12.5" },
+    { creditsUsed: "12.5", replayed: true, expected: null },
+    { creditsUsed: "0", replayed: undefined, expected: "0" },
+    { creditsUsed: "0.4, 0.4", replayed: false, expected: null },
+    { creditsUsed: "", replayed: false, expected: null },
+    { creditsUsed: null, replayed: false, expected: null },
+    { creditsUsed: undefined, replayed: false, expected: null },
+  ])("records creditsUsed $creditsUsed with replayed $replayed as $expected", async ({ creditsUsed, replayed, expected }) => {
+    const handle = fakeRouterHandle({
+      get: vi.fn(async () => ({ ...ROUTER_RESULT, creditsUsed, replayed })),
+    });
+    const { dir, store, runner, adapter } = makeRouterDeps(handle);
+    const row = runner.startJob({
+      presetId: adapter.presetId,
+      params: {},
+      inputs: { image: makeUpload(dir) },
+    });
+    await vi.waitFor(() => expect(store.get(row.id)?.status).toBe("succeeded"));
+    expect(store.get(row.id)?.creditsUsed).toBe(expected);
+  });
+
+  it("submits images as data URLs, follows the queue and saves outputs", async () => {
+    const { dir, store, runner, router, adapter, handle } = makeRouterDeps();
+    const params = { prompt: "drift in" };
+    const row = runner.startJob({
+      presetId: adapter.presetId,
+      params,
+      inputs: { image: makeUpload(dir) },
+    });
+    const updates: JobRecord[] = [];
+    const unsubscribe = subscribeJob(row.id, (update) => updates.push(update));
+    try {
+      await vi.waitFor(() => expect(store.get(row.id)?.status).toBe("succeeded"));
+    } finally {
+      unsubscribe();
+    }
+    const images = {
+      image: `data:image/png;base64,${Buffer.from("png-bytes").toString("base64")}`,
+    };
+    expect(adapter.buildInput).toHaveBeenCalledWith({ params, images });
+    expect(router.submit).toHaveBeenCalledExactlyOnceWith(
+      adapter.model,
+      { ...params, ...images },
+      { idempotencyKey: row.id },
+    );
+    expect(handle.get).toHaveBeenCalledOnce();
+    expect(adapter.readOutputs).toHaveBeenCalledExactlyOnceWith(ROUTER_RESULT);
+    expect(updates.filter((update) => update.status === "running").map((update) => ({
+      message: update.message,
+      progress: update.progress,
+    }))).toEqual([
+      { message: "Submitting", progress: 0 },
+      { message: "Submitting", progress: 0 },
+      { message: "Queued (#2)", progress: 0 },
+      { message: "Running", progress: 0 },
+      { message: "Running", progress: 0 },
+    ]);
+    const done = store.get(row.id)!;
+    expect(done.comfyJobId).toBe(handle.requestId);
+    expect(done.progress).toBe(1);
+    expect(done.message).toBe("Done");
+    expect(done.outputs).toEqual([`${adapter.presetId}/${row.id}-0.png`]);
+    const output = path.join(dir, "outputs", done.outputs[0]);
+    expect(fs.existsSync(output)).toBe(true);
+    expect(fs.readFileSync(output, "utf8")).toBe("router-png-bytes");
+  });
+
+  it("fails when the adapter returns no outputs", async () => {
+    const { dir, store, runner, adapter } = makeRouterDeps(fakeRouterHandle(), {
+      readOutputs: () => [],
+    });
+    const row = runner.startJob({
+      presetId: adapter.presetId,
+      params: {},
+      inputs: { image: makeUpload(dir) },
+    });
+    await vi.waitFor(() => expect(store.get(row.id)?.status).toBe("failed"));
+    expect(store.get(row.id)?.error).toBe("Router returned no outputs");
+    expect(store.get(row.id)?.outputs).toEqual([]);
+  });
+
+  it("fails when get() rejects", async () => {
+    const handle = fakeRouterHandle({
+      get: vi.fn(async () => {
+        throw new Error("Router execution exploded");
+      }),
+    });
+    const { dir, store, runner, adapter } = makeRouterDeps(handle);
+    const row = runner.startJob({
+      presetId: adapter.presetId,
+      params: {},
+      inputs: { image: makeUpload(dir) },
+    });
+    await vi.waitFor(() => expect(store.get(row.id)?.status).toBe("failed"));
+    expect(store.get(row.id)?.error).toBe("Router execution exploded");
+    expect(adapter.readOutputs).not.toHaveBeenCalled();
+  });
+
+  it.each([undefined, "http://localhost:8188"])(
+    "requires an API key even with base URL %s",
+    (comfyBaseUrl) => {
+      const { dir, store, runner, router, adapter } = makeRouterDeps(
+        fakeRouterHandle(),
+        {},
+        { ...envWith(undefined), comfyBaseUrl },
+      );
+      expect(() => runner.startJob({
+        presetId: adapter.presetId,
+        params: {},
+        inputs: { image: makeUpload(dir) },
+      })).toThrow(NotConnected);
+      expect(store.list()).toHaveLength(0);
+      expect(router.submit).not.toHaveBeenCalled();
+    },
+  );
+
+  it("cancels a running request through a rebuilt handle", async () => {
+    let finishEvents: () => void = () => {};
+    const waiting = new Promise<void>((resolve) => { finishEvents = resolve; });
+    const eventsFinished = vi.fn();
+    const handle = fakeRouterHandle({
+      events: vi.fn(async function* () {
+        try {
+          yield { status: "IN_PROGRESS", completed: false, queuePosition: null };
+          await waiting;
+          yield { status: "COMPLETED", completed: true, queuePosition: null };
+        } finally {
+          eventsFinished();
+        }
+      }),
+    });
+    const { dir, store, runner, router, adapter } = makeRouterDeps(handle);
+    const row = runner.startJob({
+      presetId: adapter.presetId,
+      params: {},
+      inputs: { image: makeUpload(dir) },
+    });
+    try {
+      await vi.waitFor(() => expect(store.get(row.id)?.message).toBe("Running"));
+      const updated = await runner.cancelJob(row.id);
+      expect(router.handle).toHaveBeenCalledExactlyOnceWith(adapter.model, handle.requestId);
+      expect(handle.cancelBestEffort).toHaveBeenCalledOnce();
+      expect(updated?.status).toBe("cancelled");
+    } finally {
+      finishEvents();
+    }
+    await vi.waitFor(() => expect(eventsFinished).toHaveBeenCalledOnce());
+    expect(store.get(row.id)?.status).toBe("cancelled");
+    expect(store.get(row.id)?.outputs).toEqual([]);
+    expect(handle.get).not.toHaveBeenCalled();
+  });
+
+  it("resumes a running Router request and saves its outputs", async () => {
+    const { dir, store, runner, router, adapter, handle } = makeRouterDeps();
+    const row = store.create({
+      id: "router-resume-1",
+      presetId: adapter.presetId,
+      category: "camera",
+    }, NOW);
+    store.update(row.id, { status: "running", comfyJobId: handle.requestId }, NOW);
+    await runner.resume();
+    await vi.waitFor(() => expect(store.get(row.id)?.status).toBe("succeeded"));
+    expect(router.handle).toHaveBeenCalledExactlyOnceWith(adapter.model, handle.requestId);
+    expect(router.submit).not.toHaveBeenCalled();
+    const done = store.get(row.id)!;
+    expect(done.progress).toBe(1);
+    expect(done.message).toBe("Done");
+    expect(done.outputs).toEqual([`${adapter.presetId}/${row.id}-0.png`]);
+    expect(fs.existsSync(path.join(dir, "outputs", done.outputs[0]))).toBe(true);
   });
 });
 

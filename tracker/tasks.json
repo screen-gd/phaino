@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-21",
+  "updated": "2026-10-23",
   "milestones": [
     {
       "id": "m1",
@@ -529,6 +529,59 @@
           "id": "m10-media",
           "title": "Replace unlicensed and hotlinked media with MIT Comfy template outputs",
           "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "m11",
+      "title": "M11 Partner models through Comfy Router",
+      "tasks": [
+        {
+          "id": "m11-client",
+          "title": "Router client on comfy.models with the Settings key",
+          "status": "done",
+          "notes": "getRouter in server/comfy/router.ts configures comfy.models with the resolved Comfy key; Router keeps its own host."
+        },
+        {
+          "id": "m11-adapters",
+          "title": "Router adapter types, registry and media helpers",
+          "status": "done"
+        },
+        {
+          "id": "m11-runner",
+          "title": "Runner branch: submit, queue status, collect, cancel, resume",
+          "status": "done"
+        },
+        {
+          "id": "m11-nano-banana",
+          "title": "Nano Banana 2 adapter on vertexai/gemini-3.1-flash-image",
+          "status": "done"
+        },
+        {
+          "id": "m11-seedance",
+          "title": "Seedance 2.5 adapter on byteplus/dreamina-seedance-2-5-260628",
+          "status": "done"
+        },
+        {
+          "id": "m11-kling",
+          "title": "Kling 3.0 adapter on kling/kling-v3-omni",
+          "status": "done"
+        },
+        {
+          "id": "m11-flag",
+          "title": "Drop PHAINO_PARTNER_MODELS; show partner presets that have a Router adapter",
+          "status": "done"
+        },
+        {
+          "id": "m11-credits",
+          "title": "Record creditsUsed and estimate Router presets from it",
+          "status": "done"
+        },
+        {
+          "id": "m11-live",
+          "title": "Live Router run for each partner preset",
+          "status": "blocked",
+          "notes": "The saved Comfy key gets 401 from api.comfy.org (catalog and balance). Needs a Router-enabled key in Settings."
         }
       ]
     },

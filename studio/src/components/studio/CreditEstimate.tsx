@@ -14,7 +14,7 @@ export function EstimateCaption({
   stats?: RuntimeStats;
   partner?: boolean;
 }) {
-  if (partner) {
+  if (partner && stats?.kind !== "router") {
     return (
       <a
         href="https://comfy.org/pricing"

@@ -15,6 +15,7 @@ import {
   type ModelMode,
 } from "../models/registry";
 import { EDIT_TOOLS, toolForPresetId } from "../models/tools";
+import { routerAdapterFor } from "@/server/router/adapters";
 import { presetSchema, type Preset } from "./schema";
 
 export const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -38,8 +39,8 @@ export function forkDir(env: StudioEnv, name: string) {
 
 /**
  * The folder a preset id resolves to: PRESETS_DIR first, then forks.
- * Null when the id isn't a slug, has no preset.json, or is a hidden
- * partner preset.
+ * Null when the id isn't a slug, has no preset.json, or is a partner preset
+ * without a Router adapter.
  */
 export function resolvePresetDir(id: string, env: StudioEnv = getEnv()): string | null {
   if (!SLUG.test(id)) return null;
@@ -49,15 +50,15 @@ export function resolvePresetDir(id: string, env: StudioEnv = getEnv()): string 
   if (!fs.existsSync(presetFile)) return null;
   try {
     const preset = parsePreset(id, JSON.parse(fs.readFileSync(presetFile, "utf8")));
-    return presetVisible(preset, env) ? dir : null;
+    return presetVisible(preset) ? dir : null;
   } catch {
     return null;
   }
 }
 
-/** Partner presets hide unless PHAINO_PARTNER_MODELS=on. */
-export function presetVisible(preset: Preset, env: StudioEnv = getEnv()): boolean {
-  return preset.model.license !== "partner" || env.partnerModels;
+/** Partner presets show when they have a Router adapter. */
+export function presetVisible(preset: Preset): boolean {
+  return preset.model.license !== "partner" || routerAdapterFor(preset.id) !== null;
 }
 
 function parsePreset(dirName: string, raw: unknown): Preset {
@@ -103,8 +104,7 @@ function listDir(dir: string, origin: "builtin" | "fork"): ListedPreset[] {
  * Every valid preset under PRESETS_DIR plus template-backed model modes whose
  * manifest gate passes, plus the user's forks, sorted by category then order.
  * Invalid folders are skipped with a warning so one bad preset cannot take
- * down the whole list. Partner presets are hidden unless
- * PHAINO_PARTNER_MODELS=on.
+ * down the whole list. Partner presets show when they have a Router adapter.
  */
 export function listPresets(env: StudioEnv = getEnv()): ListedPreset[] {
   const synthetic: ListedPreset[] = [];
@@ -128,7 +128,7 @@ export function listPresets(env: StudioEnv = getEnv()): ListedPreset[] {
     ...listDir(env.forksDir, "fork"),
   ];
   return all
-    .filter((p) => presetVisible(p, env))
+    .filter((p) => presetVisible(p))
     .sort(
       (a, b) =>
         a.category.localeCompare(b.category) ||
@@ -179,7 +179,7 @@ export function getPreset(id: string, env: StudioEnv = getEnv()): LoadedPreset |
     ...raw,
     origin: isFork ? "fork" : "builtin",
   };
-  if (!presetVisible(preset, env)) return null;
+  if (!presetVisible(preset)) return null;
 
   const apiFile = path.join(dir, "workflow_api.json");
   const uiFile = path.join(dir, "workflow.json");

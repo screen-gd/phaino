@@ -21,7 +21,6 @@ function env(): StudioEnv {
     siteUrl: "http://localhost:3000",
     ffmpegPath: "ffmpeg",
     ffprobePath: "ffprobe",
-    partnerModels: false,
     trackerFile: "",
   };
 }

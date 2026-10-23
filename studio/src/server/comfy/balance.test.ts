@@ -16,7 +16,6 @@ function envWithKey(): StudioEnv {
     siteUrl: "http://localhost:3000",
     ffmpegPath: "ffmpeg",
     ffprobePath: "ffprobe",
-    partnerModels: false,
     forksDir: path.join(dataDir, "forks"),
     trackerFile: path.join(dataDir, "tasks.json"),
   };

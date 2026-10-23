@@ -4,14 +4,18 @@ import { EventEmitter } from "node:events";
 import { existsSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
+import type { RunResult } from "@comfyorg/sdk";
 import { comfyTarget, getComfy } from "@/server/comfy/client";
+import { getRouter } from "@/server/comfy/router";
 import type { StudioEnv } from "@/server/env";
 import { getEnv } from "@/server/env";
 import { PresetBindError, applyPreset, type WorkflowApi } from "@/server/presets/bind";
 import { getPreset } from "@/server/presets/load";
+import type { Preset } from "@/server/presets/schema";
 import { applyDerived, prepareEditJob } from "@/server/edits/prepare";
 import { resolveUpload } from "@/server/uploads";
-import { extForMime } from "@/server/router/media";
+import { RouterOutputError, routerAdapterFor, type RouterAdapter } from "@/server/router/adapters";
+import { extForMime, saveRouterOutput, uploadDataUrl } from "@/server/router/media";
 import { getStore, type JobRecord, type JobStore } from "./store";
 
 /** A run submitted without a reachable Comfy deployment. */
@@ -58,9 +62,29 @@ export interface ComfyLike {
   jobs: { get(id: string): Promise<JobHandleLike> };
 }
 
+/** Narrow queued Router handle for runner tests. */
+export interface RouterHandleLike {
+  requestId: string;
+  events(): AsyncGenerator<{ status: string; completed: boolean; queuePosition: number | null }, void, void>;
+  get(): Promise<RunResult>;
+  cancelBestEffort(): Promise<void>;
+}
+
+/** Narrow Router client for runner tests. */
+export interface RouterLike {
+  submit(
+    model: string,
+    input: Record<string, unknown>,
+    opts: { idempotencyKey: string },
+  ): Promise<RouterHandleLike>;
+  handle(model: string, requestId: string): RouterHandleLike;
+}
+
 export type RunnerDeps = {
   env: StudioEnv;
   getClient: () => ComfyLike;
+  getRouter: () => RouterLike;
+  adapterFor: (presetId: string) => RouterAdapter | null;
   store: JobStore;
   dataDir: string;
   now: () => string;
@@ -112,6 +136,17 @@ export class JobRunner {
       if (row.status === "running" && row.comfyJobId) {
         const watch = async () => {
           try {
+            const adapter = this.deps.adapterFor(row.presetId);
+            if (adapter) {
+              const remote = this.deps.getRouter().handle(adapter.model, row.comfyJobId!);
+              this.acquire();
+              try {
+                await this.watchRouter(row, adapter, remote);
+              } finally {
+                this.release();
+              }
+              return;
+            }
             const remote = await this.deps.getClient().jobs.get(row.comfyJobId!);
             this.acquire();
             try {
@@ -140,7 +175,10 @@ export class JobRunner {
     /** Overrides preset.category (the extend tool files jobs under "edit"). */
     category?: string;
   }): JobRecord {
-    if (!comfyTarget(this.deps.env).configured) throw new NotConnected();
+    const target = comfyTarget(this.deps.env);
+    if (this.deps.adapterFor(input.presetId) ? target.apiKey === undefined : !target.configured) {
+      throw new NotConnected();
+    }
 
     const loaded = getPreset(input.presetId, this.deps.env);
     if (!loaded) throw new JobInputError(`Unknown preset "${input.presetId}"`);
@@ -204,8 +242,13 @@ export class JobRunner {
     const updated = this.finish(id, { status: "cancelled" });
     if (row.comfyJobId) {
       try {
-        const remote = await this.deps.getClient().jobs.get(row.comfyJobId);
-        await remote.cancel();
+        const adapter = this.deps.adapterFor(row.presetId);
+        if (adapter) {
+          await this.deps.getRouter().handle(adapter.model, row.comfyJobId).cancelBestEffort();
+        } else {
+          const remote = await this.deps.getClient().jobs.get(row.comfyJobId);
+          await remote.cancel();
+        }
       } catch {
         // best effort: the local row is already cancelled
       }
@@ -261,6 +304,11 @@ export class JobRunner {
       const loaded = getPreset(row.presetId, this.deps.env);
       if (!loaded) throw new JobInputError(`Unknown preset "${row.presetId}"`);
       const { preset } = loaded;
+      const adapter = this.deps.adapterFor(row.presetId);
+      if (adapter) {
+        await this.runRouter(row, preset, adapter);
+        return;
+      }
       const client = this.deps.getClient();
 
       // Edit tools: probe the source video, trim to maxSeconds and derive
@@ -303,6 +351,48 @@ export class JobRunner {
     } catch (err) {
       this.fail(jobId, err);
     }
+  }
+
+  private async runRouter(row: JobRecord, preset: Preset, adapter: RouterAdapter) {
+    const images: Record<string, string> = {};
+    for (const spec of preset.inputs) {
+      const uploadId = row.inputs[spec.key];
+      if (uploadId === undefined) continue;
+      images[spec.key] = await uploadDataUrl(resolveUpload(this.deps.dataDir, uploadId));
+    }
+    const input = adapter.buildInput({ params: row.params, images });
+    this.update(row.id, { status: "running", message: "Submitting" });
+    const handle = await this.deps.getRouter().submit(adapter.model, input, {
+      idempotencyKey: row.id,
+    });
+    this.update(row.id, { comfyJobId: handle.requestId });
+    await this.watchRouter(row, adapter, handle);
+  }
+
+  private async watchRouter(row: JobRecord, adapter: RouterAdapter, handle: RouterHandleLike) {
+    for await (const u of handle.events()) {
+      if (this.isCancelled(row.id)) return;
+      if (u.completed) continue;
+      this.update(row.id, {
+        progress: 0,
+        message: u.queuePosition != null ? `Queued (#${u.queuePosition})` : "Running",
+      });
+    }
+    const result = await handle.get();
+    if (this.isCancelled(row.id)) return;
+    const outputs = adapter.readOutputs(result);
+    if (outputs.length === 0) throw new RouterOutputError("Router returned no outputs");
+    const outputsDir = path.join(this.deps.dataDir, "outputs");
+    for (const [i, output] of outputs.entries()) {
+      const dest = await saveRouterOutput(
+        output,
+        path.join(outputsDir, row.presetId, `${row.id}-${i}`),
+      );
+      const rel = path.relative(outputsDir, dest).split(path.sep).join("/");
+      const current = this.deps.store.get(row.id);
+      this.update(row.id, { outputs: [...(current?.outputs ?? []), rel] });
+    }
+    this.update(row.id, { status: "succeeded", progress: 1, message: "Done" });
   }
 
   /** Follow a live remote job: events, outputs, then the terminal result. */
@@ -389,6 +479,8 @@ export function getRunner(): JobRunner {
       // lazy: getComfy() throws ComfyNotConfigured when unconfigured;
       // startJob already rejects unconfigured runs via NotConnected.
       getClient: () => getComfy() as unknown as ComfyLike,
+      getRouter: () => getRouter(),
+      adapterFor: routerAdapterFor,
       store: getStore(),
       dataDir: env.dataDir,
       now: () => new Date().toISOString(),

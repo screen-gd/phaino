@@ -64,6 +64,10 @@ describe("jobs store", () => {
       getClient: () => {
         throw new Error("no client in test");
       },
+      getRouter: () => {
+        throw new Error("no Router client in test");
+      },
+      adapterFor: () => null,
       store,
       dataDir: dir,
       now: () => NOW,

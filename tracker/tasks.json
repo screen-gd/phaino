@@ -550,7 +550,7 @@
         {
           "id": "m11-runner",
           "title": "Runner branch: submit, queue status, collect, cancel, resume",
-          "status": "todo"
+          "status": "done"
         },
         {
           "id": "m11-nano-banana",

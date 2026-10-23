@@ -28,10 +28,13 @@ describe("GET /api/presets/[id]/workflow", () => {
     );
   });
 
-  it("404s for a hidden partner preset and unknown ids", async () => {
+  it("serves a partner preset that runs on Router", async () => {
     expect(
       (await call("kling3-video", "http://localhost/x/api/presets/kling3-video/workflow")).status,
-    ).toBe(404);
+    ).toBe(200);
+  });
+
+  it("404s for unknown ids", async () => {
     expect(
       (await call("nope", "http://localhost/x/api/presets/nope/workflow")).status,
     ).toBe(404);

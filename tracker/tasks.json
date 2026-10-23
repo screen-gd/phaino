@@ -539,7 +539,8 @@
         {
           "id": "m11-client",
           "title": "Router client on comfy.models with the Settings key",
-          "status": "doing"
+          "status": "done",
+          "notes": "getRouter in server/comfy/router.ts configures comfy.models with the resolved Comfy key; Router keeps its own host."
         },
         {
           "id": "m11-registry",

@@ -18,7 +18,6 @@ function envWith(dataDir: string, key?: string, baseUrl?: string): StudioEnv {
   return {
     comfyApiKey: key,
     comfyBaseUrl: baseUrl,
-    partnerModels: false,
     presetsDir: "/presets",
     forksDir: "/forks",
     dataDir,

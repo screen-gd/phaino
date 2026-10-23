@@ -27,10 +27,9 @@ const ROUTER_RESULT: RunResult = {
   droppedParams: null,
 };
 
-function envWith(key: string | undefined, partnerModels = false): StudioEnv {
+function envWith(key: string | undefined): StudioEnv {
   return {
     comfyApiKey: key,
-    partnerModels,
     comfyBaseUrl: undefined,
     // The runner resolves presets from the env it was given, so point at the
     // real catalog (vitest runs with cwd = studio/).
@@ -78,7 +77,6 @@ type SubmitOpts = { idempotencyKey: string; apiKey?: string };
 function makeDeps(
   job: JobHandleLike,
   key = "test-key",
-  partnerModels = false,
   over: Partial<Pick<RunnerDeps, "env" | "getClient" | "getRouter" | "adapterFor">> = {},
 ) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "phaino-run-"));
@@ -101,7 +99,7 @@ function makeDeps(
     jobs: { get: async () => job },
   };
   const runner = new JobRunner({
-    env: envWith(key, partnerModels),
+    env: envWith(key),
     getClient: () => client,
     getRouter: () => {
       throw new Error("no Router client in workflow test");
@@ -159,7 +157,7 @@ function makeRouterDeps(
     }]),
     ...over,
   };
-  const deps = makeDeps(fakeJob(), "test-key", false, {
+  const deps = makeDeps(fakeJob(), "test-key", {
     env,
     getClient: () => {
       throw new Error("no workflow client in Router test");
@@ -193,7 +191,7 @@ describe("job runner", () => {
   });
 
   it("passes apiKey for partner presets, not for open", async () => {
-    const { dir, store, runner, submitCalls } = makeDeps(fakeJob(), "test-key", true);
+    const { dir, store, runner, submitCalls } = makeDeps(fakeJob(), "test-key");
     const open = runner.startJob({
       presetId: "dolly-in",
       params: {},

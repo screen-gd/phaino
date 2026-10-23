@@ -18,7 +18,7 @@ Phaino is an open-source AI video and image studio that runs locally on your mac
 
   The Image and Video pickers list **models**, not presets, with search and family groups (FLUX, Qwen, Wan, LTX, ...). Each model's modes (text to video, image to video, first and last frame, text to image, edit) come from the registry in `studio/src/server/models/registry.ts`, which covers every open-weights model Comfy ships an official template for: FLUX.1/2/3 (Dev, Schnell, Krea, Kontext, Klein), Qwen Image (1, 2.1, 2511, 2512), Z-Image, HiDream (I1, O1, E1.1), SDXL, SD 3.5, Chroma, Anima, Mage-Flow, Ideogram 4, ERNIE, OmniGen2, Kandinsky 5, Wan 2.1/2.2 (+VACE, Alpha), LTXV/LTX 2/2.3, HunyuanVideo, MiniMax H3, FastH3, HuMo, Capybara and more. Template-backed modes are synced into `models/cache` by `pnpm models:sync` (see "Add a model" below); a mode that fails the gates stays hidden. Models that only edit or only take a first frame ask for that input and won't generate without it.
 
-  Partner-model presets (Kling 3.0, Seedance 2.5, Nano Banana 2) ship in `presets/` but are hidden unless `PHAINO_PARTNER_MODELS=on`.
+  Partner-model presets (Kling 3.0, Seedance 2.5, Nano Banana 2) run through Comfy Router with your Comfy key and use Comfy credits.
 
 - **Library**: every generated output, downloadable or ready to edit.
 - **Controls**: per-model Advanced params (negative prompt, steps, CFG) behind a sliders chip, plus a credit estimate next to Generate (median of your last runs at 0.266 credits/s).
@@ -64,7 +64,7 @@ To use another port (3000 is the default): `cd studio && pnpm exec next dev -H 1
 
 ## Comfy Cloud setup
 
-Create an API key at [platform.comfy.org/profile/api-keys](https://platform.comfy.org/profile/api-keys) and set it as `COMFY_API_KEY` in `studio/.env.local`, or paste it into Settings > Comfy Cloud. All built-in presets run on open-weights models on Comfy Cloud and need the model files listed in [presets/README.md](presets/README.md). Partner presets (Kling, Seedance, Nano Banana) run on hosted API nodes and use [Comfy credits](https://docs.comfy.org/tutorials/partner-nodes/pricing); they're hidden unless `PHAINO_PARTNER_MODELS=on`.
+Create an API key at [platform.comfy.org/profile/api-keys](https://platform.comfy.org/profile/api-keys) and set it as `COMFY_API_KEY` in `studio/.env.local`, or paste it into Settings > Comfy Cloud. All built-in presets run on open-weights models on Comfy Cloud and need the model files listed in [presets/README.md](presets/README.md). Partner presets (Kling, Seedance, Nano Banana) run through [Comfy Router](https://docs.comfy.org/development/comfy-router/models) and use Comfy credits.
 
 ### Advanced: your own ComfyUI
 
@@ -87,7 +87,6 @@ All variables live in `studio/.env.local` (copy `studio/.env.example`). The old 
 | `COMFY_BASE_URL` | Optional custom Comfy API v2 endpoint (blank = Comfy Cloud) |
 | `PRESETS_DIR` | Preset folder (default `../presets` from `studio/`) |
 | `FORKS_DIR` | User forks folder (default `<PHAINO_DATA_DIR>/forks`) |
-| `PHAINO_PARTNER_MODELS` | Show partner-model presets (uses Comfy credits). Off by default |
 | `PHAINO_DEMO` | Hosted mockup: `on` by default on Vercel, off locally. `on`/`off` overrides the default |
 | `TRACKER_FILE` | Tracker data file (default `../tracker/tasks.json` from `studio/`) |
 | `PHAINO_DATA_DIR` | Local data folder (default `./.data` under `studio/`) |

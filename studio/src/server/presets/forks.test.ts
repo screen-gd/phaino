@@ -37,9 +37,8 @@ describe("forks", () => {
     expect(listPresets(e).some((p) => p.id === fork.id)).toBe(true);
   });
 
-  it("create 404s for hidden or missing presets", () => {
-    const e = { ...env(), partnerModels: false };
-    expect(() => createFork("kling3-video", e)).toThrowError(ForkError);
+  it("create 404s for missing presets", () => {
+    const e = env();
     expect(() => createFork("nope", e)).toThrowError(ForkError);
   });
 

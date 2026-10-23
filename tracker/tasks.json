@@ -570,7 +570,7 @@
         {
           "id": "m11-flag",
           "title": "Drop PHAINO_PARTNER_MODELS; show partner presets that have a Router adapter",
-          "status": "todo"
+          "status": "done"
         },
         {
           "id": "m11-credits",

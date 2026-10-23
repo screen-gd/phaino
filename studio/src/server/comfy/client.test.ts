@@ -5,7 +5,6 @@ import { comfyTarget } from "./client";
 const baseEnv = {
   comfyApiKey: undefined,
   comfyBaseUrl: undefined,
-  partnerModels: false,
   presetsDir: "/presets",
   forksDir: "/forks",
   dataDir: "/data",

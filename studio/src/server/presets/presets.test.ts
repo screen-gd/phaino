@@ -86,11 +86,10 @@ function checkBindValue(graph: WorkflowApiGraph, bind: PresetBind, value: unknow
 }
 
 describe("presets on disk", () => {
-  // partnerModels on: the full catalog, including the partner presets.
+  // The full catalog, including partner presets with Router adapters.
   // forksDir points at nothing so local forks can't skew the count.
   const env = {
     ...getEnv(),
-    partnerModels: true,
     forksDir: path.join(getEnv().presetsDir, "__no_forks__"),
   };
   const presets = listPresets(env);
@@ -164,26 +163,18 @@ describe("presets on disk", () => {
 
 describe("partner preset visibility", () => {
   const noForks = path.join(getEnv().presetsDir, "__no_forks__");
-  const off = { ...getEnv(), partnerModels: false, forksDir: noForks };
-  const on = { ...getEnv(), partnerModels: true, forksDir: noForks };
+  const env = { ...getEnv(), forksDir: noForks };
 
-  it("hides partner presets by default", () => {
-    const ids = listPresets(off).map((p) => p.id);
-    expect(listPresets(off).every((p) => p.model.license === "open")).toBe(true);
-    expect(ids).not.toContain("kling3-video");
-    expect(ids).not.toContain("seedance25-i2v");
-    expect(ids).not.toContain("nano-banana-2");
-  });
-
-  it("shows them when PHAINO_PARTNER_MODELS is on", () => {
-    const ids = listPresets(on).map((p) => p.id);
+  it("lists partner presets that have a Router adapter", () => {
+    const ids = listPresets(env).map((p) => p.id);
     expect(ids).toContain("kling3-video");
     expect(ids).toContain("seedance25-i2v");
     expect(ids).toContain("nano-banana-2");
   });
 
-  it("getPreset treats a hidden partner id as not found", () => {
-    expect(getPreset("kling3-video", off)).toBeNull();
-    expect(getPreset("kling3-video", on)?.preset.id).toBe("kling3-video");
+  it("getPreset returns partner presets that have a Router adapter", () => {
+    for (const id of ["kling3-video", "seedance25-i2v", "nano-banana-2"]) {
+      expect(getPreset(id, env)?.preset.id).toBe(id);
+    }
   });
 });

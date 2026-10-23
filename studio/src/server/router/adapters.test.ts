@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { findAdapter, routerAdapterFor, type RouterAdapter } from "./adapters";
+import { klingAdapter } from "./kling";
 import { nanoBananaAdapter } from "./nanoBanana";
 import { seedanceAdapter } from "./seedance";
 
@@ -21,8 +22,12 @@ describe("findAdapter", () => {
 });
 
 describe("routerAdapterFor", () => {
-  it("returns null for Kling while the registry is empty", () => {
-    expect(routerAdapterFor("kling3-video")).toBeNull();
+  it("returns the Kling 3.0 adapter", () => {
+    expect(routerAdapterFor("kling3-video")).toBe(klingAdapter);
+  });
+
+  it("returns null for a preset without an adapter", () => {
+    expect(routerAdapterFor("ltx25-i2v")).toBeNull();
   });
 
   it("returns the Nano Banana 2 adapter", () => {

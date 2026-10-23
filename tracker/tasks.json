@@ -565,7 +565,7 @@
         {
           "id": "m11-kling",
           "title": "Kling 3.0 adapter on kling/kling-v3-omni",
-          "status": "todo"
+          "status": "done"
         },
         {
           "id": "m11-flag",

@@ -1,8 +1,9 @@
+import { klingAdapter } from "./kling";
 import { nanoBananaAdapter } from "./nanoBanana";
 import { seedanceAdapter } from "./seedance";
 import type { RouterAdapter } from "./types";
 
-export { RouterOutputError } from "./types";
+export { RouterInputError, RouterOutputError } from "./types";
 export type {
   RouterAdapter,
   RouterImages,
@@ -14,6 +15,7 @@ export type {
 export const ROUTER_ADAPTERS: readonly RouterAdapter[] = [
   nanoBananaAdapter,
   seedanceAdapter,
+  klingAdapter,
 ];
 
 /** Find the adapter for a preset in the supplied registry. */

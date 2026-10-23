@@ -89,8 +89,7 @@
       "default": "1080p",
       "options": [
         { "value": "720p", "label": "720p" },
-        { "value": "1080p", "label": "1080p" },
-        { "value": "4k", "label": "4K" }
+        { "value": "1080p", "label": "1080p" }
       ],
       "bind": {
         "node": "3",

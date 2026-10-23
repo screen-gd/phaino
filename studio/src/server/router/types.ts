@@ -19,6 +19,14 @@ export type RouterAdapter = {
   readOutputs(result: RunResult): RouterOutput[];
 };
 
+/** Invalid input passed to a Router adapter. */
+export class RouterInputError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RouterInputError";
+  }
+}
+
 /** A Router result that could not be read or downloaded. */
 export class RouterOutputError extends Error {
   constructor(message: string) {

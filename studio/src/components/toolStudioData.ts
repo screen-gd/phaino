@@ -1,6 +1,7 @@
 import type { Preset } from "@/server/presets/schema";
 import type { ListedPreset } from "@/server/presets/load";
 import { presetPreview } from "@/lib/preset-preview";
+import type { RuntimeStats } from "@/lib/credits";
 
 /** Serializable preset data for ToolStudio — no bind node ids. */
 export type StudioParam =
@@ -56,7 +57,7 @@ export type StudioPreset = {
   model: { id: string; label: string };
   isFork?: boolean;
   partner?: boolean;
-  estimate?: { count: number; medianSeconds: number | null };
+  estimate?: RuntimeStats;
   thumbUrl: string;
   inputs: StudioInput[];
   params: StudioParam[];

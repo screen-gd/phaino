@@ -380,6 +380,13 @@ export class JobRunner {
     }
     const result = await handle.get();
     if (this.isCancelled(row.id)) return;
+    if (
+      result.replayed !== true &&
+      typeof result.creditsUsed === "string" &&
+      /^\d+(\.\d+)?$/.test(result.creditsUsed)
+    ) {
+      this.update(row.id, { creditsUsed: result.creditsUsed });
+    }
     const outputs = adapter.readOutputs(result);
     if (outputs.length === 0) throw new RouterOutputError("Router returned no outputs");
     const outputsDir = path.join(this.deps.dataDir, "outputs");

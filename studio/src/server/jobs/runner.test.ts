@@ -273,6 +273,28 @@ describe("job runner", () => {
 });
 
 describe("Router job runner", () => {
+  it.each([
+    { creditsUsed: "12.5", replayed: false, expected: "12.5" },
+    { creditsUsed: "12.5", replayed: true, expected: null },
+    { creditsUsed: "0", replayed: undefined, expected: "0" },
+    { creditsUsed: "0.4, 0.4", replayed: false, expected: null },
+    { creditsUsed: "", replayed: false, expected: null },
+    { creditsUsed: null, replayed: false, expected: null },
+    { creditsUsed: undefined, replayed: false, expected: null },
+  ])("records creditsUsed $creditsUsed with replayed $replayed as $expected", async ({ creditsUsed, replayed, expected }) => {
+    const handle = fakeRouterHandle({
+      get: vi.fn(async () => ({ ...ROUTER_RESULT, creditsUsed, replayed })),
+    });
+    const { dir, store, runner, adapter } = makeRouterDeps(handle);
+    const row = runner.startJob({
+      presetId: adapter.presetId,
+      params: {},
+      inputs: { image: makeUpload(dir) },
+    });
+    await vi.waitFor(() => expect(store.get(row.id)?.status).toBe("succeeded"));
+    expect(store.get(row.id)?.creditsUsed).toBe(expected);
+  });
+
   it("submits images as data URLs, follows the queue and saves outputs", async () => {
     const { dir, store, runner, router, adapter, handle } = makeRouterDeps();
     const params = { prompt: "drift in" };

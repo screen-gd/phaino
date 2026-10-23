@@ -543,9 +543,9 @@
           "notes": "getRouter in server/comfy/router.ts configures comfy.models with the resolved Comfy key; Router keeps its own host."
         },
         {
-          "id": "m11-registry",
-          "title": "Router mode source and per-model input/output adapters",
-          "status": "todo"
+          "id": "m11-adapters",
+          "title": "Router adapter types, registry and media helpers",
+          "status": "doing"
         },
         {
           "id": "m11-runner",
@@ -553,14 +553,35 @@
           "status": "todo"
         },
         {
-          "id": "m11-migrate",
-          "title": "Move Kling 3.0, Nano Banana 2 and Seedance 2.5 onto Router",
+          "id": "m11-nano-banana",
+          "title": "Nano Banana 2 adapter on vertexai/gemini-3.1-flash-image",
+          "status": "todo"
+        },
+        {
+          "id": "m11-seedance",
+          "title": "Seedance 2.5 adapter on byteplus/dreamina-seedance-2-5-260628",
+          "status": "todo"
+        },
+        {
+          "id": "m11-kling",
+          "title": "Kling 3.0 adapter on kling/kling-v3-omni",
+          "status": "todo"
+        },
+        {
+          "id": "m11-flag",
+          "title": "Drop PHAINO_PARTNER_MODELS; show partner presets that have a Router adapter",
           "status": "todo"
         },
         {
           "id": "m11-credits",
-          "title": "Credits from creditsUsed and Router estimates",
+          "title": "Record creditsUsed and estimate Router presets from it",
           "status": "todo"
+        },
+        {
+          "id": "m11-live",
+          "title": "Live Router run for each partner preset",
+          "status": "blocked",
+          "notes": "The saved Comfy key gets 401 from api.comfy.org (catalog and balance). Needs a Router-enabled key in Settings."
         }
       ]
     },

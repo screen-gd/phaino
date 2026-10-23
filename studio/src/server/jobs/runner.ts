@@ -11,6 +11,7 @@ import { PresetBindError, applyPreset, type WorkflowApi } from "@/server/presets
 import { getPreset } from "@/server/presets/load";
 import { applyDerived, prepareEditJob } from "@/server/edits/prepare";
 import { resolveUpload } from "@/server/uploads";
+import { extForMime } from "@/server/router/media";
 import { getStore, type JobRecord, type JobStore } from "./store";
 
 /** A run submitted without a reachable Comfy deployment. */
@@ -96,13 +97,7 @@ export function subscribeJob(id: string, cb: (row: JobRecord) => void) {
 function extFor(output: OutputLike): string {
   const fromName = path.extname(output.name ?? "").toLowerCase();
   if (fromName) return fromName;
-  const mime = (output.contentType ?? "").toLowerCase();
-  if (mime === "image/png") return ".png";
-  if (mime === "image/jpeg") return ".jpg";
-  if (mime === "image/webp") return ".webp";
-  if (mime === "video/mp4") return ".mp4";
-  if (mime === "video/quicktime") return ".mov";
-  return ".bin";
+  return extForMime(output.contentType ?? "");
 }
 
 export class JobRunner {

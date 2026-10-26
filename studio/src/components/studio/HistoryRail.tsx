@@ -32,6 +32,7 @@ function RailTile({
     }
   };
   const shape = wide ? "aspect-video" : "aspect-square";
+  const time = relativeTime(job.createdAt);
   const out = job.outputs[0];
   const media =
     job.status === "succeeded" && out ? (
@@ -71,6 +72,7 @@ function RailTile({
     <button
       type="button"
       title={name}
+      aria-label={`${name}, ${time}`}
       aria-current={active || undefined}
       onClick={() => onSelect(job)}
       onPointerEnter={play}
@@ -87,7 +89,7 @@ function RailTile({
           <span className="truncate text-caption text-t1">{name}</span>
         )}
         <span className="ml-auto flex-none text-caption text-t3">
-          {relativeTime(job.createdAt)}
+          {time}
         </span>
       </span>
     </button>

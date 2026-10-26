@@ -182,8 +182,9 @@ export function useStudio(
             ? freshSeed()
             : Number(values[p.key] ?? 0);
         } else if (p.key === promptKey) {
-          // The main prompt never falls back to the preset default.
-          params[p.key] = values[p.key] ?? "";
+          // Edit tools display preset defaults; generation prompts start empty.
+          params[p.key] =
+            values[p.key] ?? (category === "edit" ? p.default : "");
         } else {
           params[p.key] = values[p.key] ?? p.default;
         }

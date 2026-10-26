@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDemo } from "@/components/DemoProvider";
 import { createDemoJob } from "@/lib/demo";
+import { mainPromptKey } from "./studioUtils";
 import type {
   StudioJob,
   StudioPreset,
@@ -173,12 +174,16 @@ export function useStudio(
     setSubmitting(true);
     setError(null);
     try {
+      const promptKey = mainPromptKey(preset.params);
       const params: Record<string, string | number | boolean> = {};
       for (const p of preset.params) {
         if (p.type === "seed") {
           params[p.key] = randomSeed
             ? freshSeed()
             : Number(values[p.key] ?? 0);
+        } else if (p.key === promptKey) {
+          // The main prompt never falls back to the preset default.
+          params[p.key] = values[p.key] ?? "";
         } else {
           params[p.key] = values[p.key] ?? p.default;
         }
@@ -221,8 +226,17 @@ export function useStudio(
     if (res.ok) setJob(((await res.json()) as { job: StudioJob }).job);
   }, [job]);
 
+  // The main prompt must be non-empty unless a required image input can
+  // drive the run on its own (camera moves).
+  const promptKey = preset ? mainPromptKey(preset.params) : undefined;
+  const promptOk =
+    !promptKey ||
+    preset.inputs.some((i) => i.required) ||
+    String(values[promptKey] ?? "").trim().length > 0;
   const ready =
-    !!preset && preset.inputs.every((i) => !i.required || uploads[i.key]);
+    !!preset &&
+    promptOk &&
+    preset.inputs.every((i) => !i.required || uploads[i.key]);
 
   return {
     preset,

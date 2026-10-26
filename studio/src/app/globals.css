@@ -4,13 +4,13 @@
 
 @theme {
   --color-bg: #000;
-  --color-s1: #0b0b0b;
-  --color-s2: #131313;
-  --color-s3: #1b1b1b;
-  --color-line: #262626;
+  --color-s1: #121212;
+  --color-s2: #1a1a1a;
+  --color-s3: #242424;
+  --color-line: #2f2f2f;
   --color-t1: #fff;
-  --color-t2: #d4d4d4;
-  --color-t3: #9b9b9b;
+  --color-t2: #e0e0e0;
+  --color-t3: #a8a8a8;
   --color-ac: #ff5b22;
   --color-acs: #ff5b221f;
   --color-on: #160700;

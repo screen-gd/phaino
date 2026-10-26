@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import type { ModeKey } from "@/lib/modes";
-import { groupPickerRows, modelFamily } from "@/lib/model-families";
+import { modelFamily } from "@/lib/model-families";
 import type { StudioModel, StudioPreset } from "@/components/toolStudioData";
 import type { PickerRow } from "./ModelPicker";
 
@@ -13,6 +13,14 @@ export type ModelMaps = {
   modeOf: Map<string, ModeKey>;
   /** Models plus presets a model doesn't claim (forks, partners). */
   pickerRows: PickerRow[];
+};
+
+const MODE_SHORT: Record<ModeKey, string> = {
+  t2i: "T2I",
+  edit: "Edit",
+  t2v: "T2V",
+  i2v: "I2V",
+  flf2v: "FLF",
 };
 
 export function useModelMaps(
@@ -31,16 +39,18 @@ export function useModelMaps(
       }
     }
     const claimed = new Set(modelOf.keys());
-    const pickerRows: PickerRow[] = groupPickerRows(
-      models.map((m) => ({
-        id: m.defaultPresetId,
-        name: m.label,
-        description: m.modeLabels,
-        thumbUrl: m.thumbUrl,
-        model: { label: m.label },
-        group: modelFamily(m.id),
-      })),
-    );
+    // Family grouping happens in the picker; rows keep registry order.
+    const pickerRows: PickerRow[] = models.map((m) => ({
+      id: m.defaultPresetId,
+      name: m.label,
+      description: m.modeLabels,
+      thumbUrl: m.thumbUrl,
+      model: { label: m.label },
+      group: modelFamily(m.id),
+      modes: (Object.keys(MODE_SHORT) as ModeKey[])
+        .filter((k) => m.modes[k])
+        .map((k) => MODE_SHORT[k]),
+    }));
     for (const p of presets) {
       if (!claimed.has(p.id)) {
         pickerRows.push({

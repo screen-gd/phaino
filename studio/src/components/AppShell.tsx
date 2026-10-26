@@ -33,96 +33,101 @@ const MENU_HREFS = new Set(["/image", "/video", "/camera"]);
 const GROW =
   "transition-[height,padding,font-size] duration-200 ease-out motion-reduce:transition-none";
 
-type Capsule = {
-  x: number;
-  w: number;
-  h: number;
-  visible: boolean;
-  /** First paint at a new spot runs without transitions so the capsule never slides in from x=0. */
-  instant: boolean;
-};
-
-/** One dropdown row: icon tile + title + description (+ badge). */
-function MenuRowLink({ row }: { row: MenuRow }) {
+/** One Features row: 16px icon + title, 36px tall. */
+function FeatureRowLink({ row }: { row: MenuRow }) {
   return (
     <li>
       <NavigationMenu.Link
         render={<Link href={row.href} />}
-        className="group/row flex items-center gap-3 rounded-lg p-2 text-left hover:bg-s3 focus-visible:bg-s3"
+        closeOnClick
+        className="flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-left text-body text-t2 hover:bg-s3 hover:text-t1 focus-visible:bg-s3 focus-visible:text-t1"
       >
-        <span className="relative flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-s3 text-t2">
+        <span className="flex h-4 w-4 flex-none items-center justify-center text-t3">
+          {row.icon && <Icon d={SECTION_ICONS[row.icon]} className="h-4 w-4" />}
+        </span>
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate">{row.title}</span>
           {row.badge && (
             <Badge
               size="sm"
               variant={row.badge === "New" ? "default" : "secondary"}
-              className="absolute -top-1.5 -left-1.5"
             >
               {row.badge}
             </Badge>
           )}
-          {row.icon && <Icon d={SECTION_ICONS[row.icon]} className="h-4 w-4" />}
-        </span>
-        <span className="min-w-0">
-          <b className="flex items-center gap-1.5 text-body font-semibold text-t1">
-            {row.title}
-          </b>
-          <span className="block truncate text-caption text-t3">
-            {row.description}
-          </span>
         </span>
       </NavigationMenu.Link>
     </li>
   );
 }
 
-/** Image/Video dropdown: Features + Models columns (~720px). */
-function TwoColumnPanel({ menu }: { menu: TwoColumnMenu }) {
+/** One Models row: title only, 32px tall. */
+function ModelRowLink({ row }: { row: MenuRow }) {
   return (
-    <div className="grid max-h-[calc(100dvh-96px)] w-[720px] max-w-[calc(100vw-24px)] grid-cols-2 gap-x-2 overflow-y-auto p-3">
+    <li>
+      <NavigationMenu.Link
+        render={<Link href={row.href} />}
+        closeOnClick
+        className="flex h-8 items-center rounded-lg px-2.5 text-body text-t2 hover:bg-s3 hover:text-t1 focus-visible:bg-s3 focus-visible:text-t1"
+      >
+        <span className="truncate">{row.title}</span>
+      </NavigationMenu.Link>
+    </li>
+  );
+}
+
+/** Image/Video dropdown: compact Features + Models columns. */
+function TwoColumnPanel({ menu }: { menu: TwoColumnMenu }) {
+  const models = menu.models.slice(0, 8);
+  return (
+    <div className="grid max-h-[420px] w-[520px] max-w-[calc(100vw-24px)] grid-cols-[180px_1fr] gap-x-2 overflow-y-auto p-3">
       <div>
-        <h4 className="mb-1.5 px-2 text-caption text-t3">Features</h4>
+        <h4 className="mb-1 px-2 text-caption text-t3">Features</h4>
         <ul className="grid gap-0.5">
           {menu.features.map((row) => (
-            <MenuRowLink key={row.title} row={row} />
+            <FeatureRowLink key={row.title} row={row} />
           ))}
         </ul>
       </div>
       <div>
-        <h4 className="mb-1.5 px-2 text-caption text-t3">Models</h4>
+        <h4 className="mb-1 px-2 text-caption text-t3">Models</h4>
         <ul className="grid gap-0.5">
-          {menu.models.map((row) => (
-            <MenuRowLink key={row.title} row={row} />
+          {models.map((row) => (
+            <ModelRowLink key={row.title} row={row} />
           ))}
+          {menu.models.length > models.length && (
+            <ModelRowLink
+              row={{ title: "All models", href: "/workflows", description: "" }}
+            />
+          )}
         </ul>
       </div>
     </div>
   );
 }
 
-/** Camera moves dropdown: 2-column grid of preset thumbs. */
+/** Camera moves dropdown: 2-column grid of compact thumb rows. */
 function CameraPanel({ items }: { items: MenuRow[] }) {
   return (
-    <div className="grid w-[720px] max-w-[calc(100vw-24px)] grid-cols-2 gap-1 p-3">
+    <div className="grid w-[520px] max-w-[calc(100vw-24px)] grid-cols-2 gap-1 p-3">
       {items.map((row) => (
         <NavigationMenu.Link
           key={row.href}
           render={<Link href={row.href} />}
-          className="group/row flex items-center gap-3 rounded-lg p-2 text-left hover:bg-s3 focus-visible:bg-s3"
+          closeOnClick
+          className="group/row flex items-center gap-2.5 rounded-lg p-1.5 text-left hover:bg-s3 focus-visible:bg-s3"
         >
           {row.thumb && (
             <img
               src={row.thumb}
               alt=""
-              className="aspect-video w-32 flex-none rounded-lg border border-line object-cover"
+              className="aspect-video w-16 flex-none rounded-md border border-line object-cover"
             />
           )}
           <span className="min-w-0 self-center">
             <b className="block truncate text-body font-semibold text-t1">
               {row.title}
             </b>
-            <span className="block truncate text-caption text-t3">
-              {row.description}
-            </span>
           </span>
         </NavigationMenu.Link>
       ))}
@@ -150,19 +155,25 @@ export function AppShell({
   const pathname = usePathname();
   const mainRef = useRef<HTMLElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const itemEls = useRef(new Map<string, HTMLElement>());
-  const lastHover = useRef<HTMLElement | null>(null);
   const [scrolled, setScrolled] = useState(false);
   // Slim on every page except Explore, where it stays scroll-driven.
   const compact = pathname !== "/" || scrolled;
   const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const [capsule, setCapsule] = useState<Capsule>({
-    x: 0,
-    w: 0,
-    h: 0,
-    visible: false,
-    instant: true,
-  });
+
+  // A click-pinned menu still closes when the pointer leaves both the
+  // trigger and the popup (after the same 150ms grace Base UI uses).
+  const closeTimer = useRef<number | null>(null);
+  const scheduleClose = useCallback(() => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = window.setTimeout(() => setOpenMenu(null), 150);
+  }, []);
+  const cancelClose = useCallback(() => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  }, []);
+  useEffect(() => cancelClose, [cancelClose]);
 
   useEffect(() => {
     const root = mainRef.current;
@@ -174,24 +185,6 @@ export function AppShell({
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, []);
-
-  const showCapsule = useCallback((el: HTMLElement) => {
-    lastHover.current = el;
-    const box = { x: el.offsetLeft, w: el.offsetWidth, h: el.offsetHeight };
-    setCapsule((prev) =>
-      prev.visible
-        ? { ...box, visible: true, instant: false }
-        : { ...box, visible: true, instant: true },
-    );
-    // Next frame: transitions back on, so moves between items slide.
-    requestAnimationFrame(() =>
-      setCapsule((prev) => (prev.instant ? { ...prev, instant: false } : prev)),
-    );
-  }, []);
-
-  const hideCapsule = useCallback(() => {
-    setCapsule((prev) => ({ ...prev, visible: false }));
   }, []);
 
   return (
@@ -212,17 +205,7 @@ export function AppShell({
           aria-label="Sections"
           closeDelay={150}
           value={openMenu}
-          onValueChange={(value) => {
-            setOpenMenu(value);
-            if (value != null) {
-              const el = itemEls.current.get(value);
-              if (el) showCapsule(el);
-            } else {
-              const el = lastHover.current;
-              if (el && el.matches(":hover")) showCapsule(el);
-              else hideCapsule();
-            }
-          }}
+          onValueChange={(value) => setOpenMenu(value)}
           onWheel={(e) => {
             // A plain mouse wheel only sends deltaY; turn it into a sideways scroll.
             if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
@@ -231,26 +214,7 @@ export function AppShell({
           className="hidden min-w-0 flex-1 overflow-x-auto [scrollbar-width:none] [mask-image:linear-gradient(to_right,#000_calc(100%-32px),transparent)] md:block [&::-webkit-scrollbar]:hidden"
         >
           <div className="relative w-max min-w-full">
-            <span
-              aria-hidden="true"
-              className={`pointer-events-none absolute top-0 left-0 rounded-lg bg-s3 ${
-                capsule.instant
-                  ? "transition-none"
-                  : "transition-[transform,width,height,opacity] duration-200 ease-out motion-reduce:transition-none"
-              }`}
-              style={{
-                transform: `translateX(${capsule.x}px)`,
-                width: capsule.w,
-                height: capsule.h,
-                opacity: capsule.visible ? 1 : 0,
-              }}
-            />
-            <NavigationMenu.List
-              className="flex list-none gap-0.5 p-0"
-              onPointerLeave={() => {
-                if (openMenu == null) hideCapsule();
-              }}
-            >
+            <NavigationMenu.List className="flex list-none gap-0.5 p-0">
               {GROUPS.map((g, gi) => (
                 <Fragment key={g}>
                   {gi > 0 && (
@@ -266,26 +230,17 @@ export function AppShell({
                       <NavigationMenu.Item
                         key={s.href}
                         value={s.href}
-                        ref={(el: HTMLElement | null) => {
-                          if (el) itemEls.current.set(s.href, el);
-                          else itemEls.current.delete(s.href);
-                        }}
                         className="relative z-10 flex h-9 shrink-0 items-stretch group-data-[compact=true]:h-7"
-                        onPointerEnter={(e: { currentTarget: HTMLElement }) =>
-                          showCapsule(e.currentTarget)
-                        }
-                        onFocus={() => {
-                          const el = itemEls.current.get(s.href);
-                          if (el) showCapsule(el);
-                        }}
+                        onPointerEnter={cancelClose}
+                        onPointerLeave={scheduleClose}
                       >
                         {isMenu ? (
                           <>
                             <NavigationMenu.Trigger
-                              className={`flex h-full items-center gap-1.5 px-3 text-body whitespace-nowrap ${GROW} ${
+                              className={`flex h-full items-center gap-1.5 px-3 font-wordmark font-semibold text-body whitespace-nowrap ${GROW} ${
                                 active
-                                  ? "font-semibold text-ac"
-                                  : "text-t3 hover:text-t1"
+                                  ? "text-ac"
+                                  : "text-t2 hover:text-t1 data-[popup-open]:text-t1"
                               }`}
                             >
                               {s.label}
@@ -313,11 +268,12 @@ export function AppShell({
                         ) : (
                           <NavigationMenu.Link
                             render={<Link href={s.href} />}
+                            closeOnClick
                             aria-current={active ? "page" : undefined}
-                            className={`flex h-full items-center px-3 text-body whitespace-nowrap ${GROW} ${
+                            className={`flex h-full items-center px-3 font-wordmark font-semibold text-body whitespace-nowrap ${GROW} ${
                               active
-                                ? "font-semibold text-ac"
-                                : "text-t3 hover:text-t1"
+                                ? "text-ac"
+                                : "text-t2 hover:text-t1"
                             }`}
                           >
                             {s.label}
@@ -346,7 +302,11 @@ export function AppShell({
               sideOffset={8}
               className="nav-positioner z-50"
             >
-              <NavigationMenu.Popup className="nav-popup rounded-2xl border border-line bg-s2">
+              <NavigationMenu.Popup
+                className="nav-popup rounded-2xl border border-line bg-s2"
+                onPointerEnter={cancelClose}
+                onPointerLeave={scheduleClose}
+              >
                 <NavigationMenu.Viewport className="relative h-full w-full overflow-hidden" />
               </NavigationMenu.Popup>
             </NavigationMenu.Positioner>

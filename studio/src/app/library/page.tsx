@@ -26,9 +26,9 @@ export default async function LibraryPage() {
   }
 
   return (
-    <div className="px-3 pt-3 pb-10">
+    <div className="px-4 pt-3 pb-10">
       <h1 className="sr-only">Library</h1>
-      <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {items.map((item) => {
           const url = previewUrl(item);
           return (
@@ -60,7 +60,7 @@ export default async function LibraryPage() {
               {item.kind === "image" && (
                 <Link
                   href={`/video?preset=ltx25-i2v&from=${encodeURIComponent(item.relPath)}`}
-                  className="absolute top-2 left-2 z-10 rounded-md bg-black/70 px-2 py-1 text-[11px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100"
+                  className="absolute top-2 left-2 z-10 rounded-md bg-black/70 px-2 py-1 text-caption font-medium text-white opacity-0 transition-opacity group-hover:opacity-100"
                 >
                   Animate
                 </Link>

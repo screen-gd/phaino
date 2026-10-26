@@ -79,7 +79,7 @@ function DefaultsForm({ preset }: { preset: ForkPreset }) {
       <div className="grid gap-2">
         {params.map((param) => (
           <label key={param.key} className="grid gap-1">
-            <span className="text-[11px] text-t3">{param.label}</span>
+            <span className="text-caption text-t3">{param.label}</span>
             {param.type === "choice" ? (
               <Select
                 value={String(values[param.key] ?? "")}
@@ -128,11 +128,11 @@ function DefaultsForm({ preset }: { preset: ForkPreset }) {
         ))}
       </div>
       {state.problems.map((p) => (
-        <p key={p} className="mt-1.5 text-[11px] text-destructive">
+        <p key={p} className="mt-1.5 text-caption text-destructive">
           {p}
         </p>
       ))}
-      {state.ok && <p className="mt-1.5 text-[11px] text-t3">Saved.</p>}
+      {state.ok && <p className="mt-1.5 text-caption text-t3">Saved.</p>}
       <Button
         variant="outline"
         size="sm"
@@ -183,33 +183,33 @@ function WorkflowReplace({ preset }: { preset: ForkPreset }) {
   return (
     <div className="rounded-panel border border-line bg-s1 p-3">
       <h2 className="mb-1 text-caption font-medium text-t3">Replace workflow</h2>
-      <p className="mb-2 text-[11px] text-t3">
+      <p className="mb-2 text-caption text-t3">
         In ComfyUI: File &gt; Export, and File &gt; Export (API).
       </p>
       <label className="grid gap-1">
-        <span className="text-[11px] text-t3">workflow.json</span>
+        <span className="text-caption text-t3">workflow.json</span>
         <input
           ref={uiFile}
           type="file"
           accept="application/json,.json"
-          className="text-[12px] text-t2 file:mr-2 file:rounded-md file:border-0 file:bg-s2 file:px-2 file:py-1 file:text-[12px] file:text-t1"
+          className="text-caption text-t2 file:mr-2 file:rounded-md file:border-0 file:bg-s2 file:px-2 file:py-1 file:text-caption file:text-t1"
         />
       </label>
       <label className="mt-2 grid gap-1">
-        <span className="text-[11px] text-t3">workflow_api.json</span>
+        <span className="text-caption text-t3">workflow_api.json</span>
         <input
           ref={apiFile}
           type="file"
           accept="application/json,.json"
-          className="text-[12px] text-t2 file:mr-2 file:rounded-md file:border-0 file:bg-s2 file:px-2 file:py-1 file:text-[12px] file:text-t1"
+          className="text-caption text-t2 file:mr-2 file:rounded-md file:border-0 file:bg-s2 file:px-2 file:py-1 file:text-caption file:text-t1"
         />
       </label>
       {state.problems.map((p) => (
-        <p key={p} className="mt-1.5 text-[11px] text-destructive">
+        <p key={p} className="mt-1.5 text-caption text-destructive">
           {p}
         </p>
       ))}
-      {state.ok && <p className="mt-1.5 text-[11px] text-t3">Workflow replaced.</p>}
+      {state.ok && <p className="mt-1.5 text-caption text-t3">Workflow replaced.</p>}
       <Button
         variant="outline"
         size="sm"
@@ -261,7 +261,7 @@ export function ForkEditor({ preset }: { preset: ForkPreset }) {
       <div className="rounded-panel border border-line bg-s1 p-3">
         <h2 className="mb-2 text-caption font-medium text-t3">Fork</h2>
         <label className="grid gap-1">
-          <span className="text-[11px] text-t3">Name</span>
+          <span className="text-caption text-t3">Name</span>
           <Input
             value={meta.name}
             onChange={(e) => setMeta((m) => ({ ...m, name: e.target.value }))}
@@ -269,7 +269,7 @@ export function ForkEditor({ preset }: { preset: ForkPreset }) {
           />
         </label>
         <label className="mt-2 grid gap-1">
-          <span className="text-[11px] text-t3">Description</span>
+          <span className="text-caption text-t3">Description</span>
           <Textarea
             value={meta.description}
             rows={2}

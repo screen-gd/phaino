@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Icon, SECTION_ICONS } from "../icons";
+import { cn } from "@/lib/utils";
 
 /**
  * Copy an output video into uploads and open /edit with it preselected.
@@ -59,7 +60,10 @@ export function EditVideoButton({
       type="button"
       onClick={go}
       disabled={busy}
-      className={`rounded-full border border-line px-3 py-1.5 text-[12px] text-t2 hover:bg-s2 hover:text-t1 ${className ?? ""}`}
+      className={cn(
+        "rounded-full border border-line px-3 py-1.5 text-[12px] text-t2 hover:bg-s2 hover:text-t1",
+        className,
+      )}
     >
       Edit
     </button>

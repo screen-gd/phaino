@@ -10,8 +10,7 @@ import { EXPLORE_MEDIA } from "@/lib/explore-media";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toStudioModels } from "@/server/models/view";
-import { getPreset, listPresets } from "@/server/presets/load";
-import { miniGraph, type MiniGraph } from "@/server/presets/miniGraph";
+import { listPresets } from "@/server/presets/load";
 import type { Preset } from "@/server/presets/schema";
 
 export const dynamic = "force-dynamic";
@@ -46,7 +45,7 @@ function SectionHead({
   actions?: readonly { label: string; href: string; accent?: boolean }[];
 }) {
   return (
-    <div className="mt-8 mb-3 flex items-end justify-between gap-4">
+    <div className="mt-12 mb-4 flex items-end justify-between gap-4">
       <div>
         <h2 className="font-display font-extrabold uppercase text-h3 tracking-tight text-ac font-stretch-[112.5%]">
           {title}
@@ -76,7 +75,7 @@ function ToolTile({ tool }: { tool: (typeof TOOLS)[number] }) {
   return (
     <Link
       href={tool.href}
-      className="flex min-h-24 flex-col justify-between rounded-xl border border-line bg-s2 p-3 hover:border-[#3a3a3a] hover:bg-s3"
+      className="flex min-h-24 flex-col justify-between rounded-xl border border-line bg-s2 p-3 hover:border-[#444] hover:bg-s3"
     >
       <div className="flex items-center justify-between">
         <Icon d={SECTION_ICONS[tool.icon]} className="h-5 w-5 text-t2" />
@@ -102,78 +101,49 @@ function ToolTile({ tool }: { tool: (typeof TOOLS)[number] }) {
 }
 
 /** The whole preset card opens its studio with the preset selected. */
-function PresetCard({ preset, mini }: { preset: Preset; mini: MiniGraph | null }) {
+function PresetCard({ preset }: { preset: Preset }) {
   const tryHref = `/${preset.category}?preset=${preset.id}`;
   const imageIn = preset.inputs.some((i) => i.required && i.key === "image");
   const outKind = preset.outputs[0]?.kind ?? "video";
   const inLabel = imageIn ? "Image" : "Text";
   const outLabel = outKind === "image" ? "Image" : "Video";
   return (
-    <Link href={tryHref} aria-label={`Try ${preset.name}`} className="group relative block aspect-video overflow-hidden rounded-xl border border-line bg-s3 focus-visible:outline-2 focus-visible:outline-ac">
+    <Link href={tryHref} aria-label={`Try ${preset.name}`} className="group relative block aspect-video overflow-hidden rounded-xl border border-line bg-s3 hover:border-[#444]">
       <img
         src={presetPreview(preset)}
         alt=""
-        className="h-full w-full object-cover"
+        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
       />
-      {mini && (
-        <svg
-          aria-hidden="true"
-          viewBox={`0 0 1 ${(1 / mini.aspect).toFixed(3)}`}
-          preserveAspectRatio="xMidYMid slice"
-          className="absolute inset-0 h-full w-full bg-black/75 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
-        >
-          {mini.links.map(([x1, y1, x2, y2], i) => (
-            <line
-              key={i}
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              stroke="#555"
-              strokeWidth={0.002}
-            />
-          ))}
-          {mini.nodes.map((n, i) => (
-            <rect
-              key={i}
-              x={n.x}
-              y={n.y}
-              width={n.w}
-              height={n.h}
-              rx={0.004}
-              fill="none"
-              stroke={n.bound ? "#FF5B22" : "#3a3a3a"}
-              strokeWidth={0.002}
-            />
-          ))}
-        </svg>
-      )}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-linear-to-t from-black/80 to-transparent" />
-      {preset.chip && (
+      <div className="pointer-events-none absolute inset-x-3 top-2 flex items-center justify-between">
+        {preset.chip ? (
+          <Badge
+            variant="secondary"
+            className="bg-black/70 font-mono text-caption text-t2"
+          >
+            {preset.chip}
+          </Badge>
+        ) : (
+          <span />
+        )}
         <Badge
           variant="secondary"
-          className="pointer-events-none absolute top-2 left-2 bg-black/70 font-mono text-t2"
+          className="bg-black/70 font-mono text-caption text-t2"
         >
-          {preset.chip}
+          {preset.model.label}
         </Badge>
-      )}
-      <Badge
-        variant="secondary"
-        className="pointer-events-none absolute top-2 right-2 font-mono bg-black/70 text-t2"
-      >
-        {preset.model.label}
-      </Badge>
-      <b className="pointer-events-none absolute bottom-2.5 left-3 text-body font-semibold">
-        {preset.name}
-      </b>
-      <span
-        aria-label={`${inLabel} to ${outLabel}`}
-        className="pointer-events-none absolute right-2 bottom-2 flex items-center gap-1 rounded-full bg-black/70 px-2 py-1 text-t2"
-      >
-        <Icon d={imageIn ? SECTION_ICONS.image : SECTION_ICONS.pencil} className="h-3 w-3" />
-        <Icon d={SECTION_ICONS.chevronRight} className="h-2.5 w-2.5 text-t3" />
-        <Icon d={outKind === "image" ? SECTION_ICONS.image : SECTION_ICONS.video} className="h-3 w-3" />
-      </span>
+      </div>
+      <div className="pointer-events-none absolute inset-x-3 bottom-3 flex items-center justify-between">
+        <b className="text-body font-semibold">{preset.name}</b>
+        <span
+          aria-label={`${inLabel} to ${outLabel}`}
+          className="flex items-center gap-1 rounded-full bg-black/70 px-2 py-1 text-t2"
+        >
+          <Icon d={imageIn ? SECTION_ICONS.image : SECTION_ICONS.pencil} className="h-3 w-3" />
+          <Icon d={SECTION_ICONS.chevronRight} className="h-2.5 w-2.5 text-t3" />
+          <Icon d={outKind === "image" ? SECTION_ICONS.image : SECTION_ICONS.video} className="h-3 w-3" />
+        </span>
+      </div>
     </Link>
   );
 }
@@ -187,34 +157,24 @@ export default function Home() {
     ...toStudioModels("video"),
   ];
 
-  const minis = new Map<string, MiniGraph | null>();
-  for (const p of catalog) {
-    try {
-      const loaded = getPreset(p.id);
-      minis.set(p.id, loaded ? miniGraph(loaded.preset, loaded.workflowUi) : null);
-    } catch {
-      minis.set(p.id, null);
-    }
-  }
-
   const presets = catalog.slice(0, 8);
 
   return (
-    <div className="px-3 pt-3 pb-10">
+    <div className="px-4 pt-3 pb-10">
       <h1 className="sr-only">Explore</h1>
 
       <ExploreCarousel />
 
-      <div className="mt-8 grid gap-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+      <div className="mt-12 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <CloudPromo />
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {TOOLS.map((t) => (
             <ToolTile key={t.href} tool={t} />
           ))}
         </div>
       </div>
 
-      <div className="mt-8">
+      <div className="mt-12">
         <ExploreBanner />
       </div>
 
@@ -230,9 +190,9 @@ export default function Home() {
         <p className="text-t3">No presets yet</p>
       ) : (
         <div className="relative">
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {presets.map((p) => (
-              <PresetCard key={p.id} preset={p} mini={minis.get(p.id) ?? null} />
+              <PresetCard key={p.id} preset={p} />
             ))}
           </div>
           {presets.length > 4 && (

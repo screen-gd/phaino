@@ -72,7 +72,7 @@ export function ExploreVideo({ media, title, source, portrait = false, natural =
           type="button"
           aria-label={`${paused ? "Play" : "Pause"} ${title}`}
           onClick={() => setPaused(!paused)}
-          className="absolute top-2 right-2 grid size-9 cursor-pointer place-items-center rounded-full bg-black/70 text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-ac"
+          className="absolute top-2 right-2 grid size-9 cursor-pointer place-items-center rounded-full bg-black/70 text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
         >
           {paused ? <Icon d={SECTION_ICONS.play} className="size-4" /> : <Icon d={SECTION_ICONS.pause} className="size-4" />}
         </button>

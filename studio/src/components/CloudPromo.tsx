@@ -23,7 +23,7 @@ export function CloudPromo() {
   const connected = health?.status === "ok";
 
   return (
-    <div className="rounded-panel border border-line bg-s2 bg-[radial-gradient(120%_120%_at_100%_0%,color-mix(in_srgb,var(--color-ac)_18%,transparent),transparent_60%)] p-5">
+    <div className="rounded-panel border border-line bg-s1 bg-[radial-gradient(120%_120%_at_100%_0%,color-mix(in_srgb,var(--color-ac)_18%,transparent),transparent_60%)] p-5">
       <h2 className="font-display font-extrabold uppercase text-h2 leading-none font-stretch-[112.5%]">
         {demo.enabled ? "Explore" : connected ? "Comfy Cloud" : "Connect"}
         <br />

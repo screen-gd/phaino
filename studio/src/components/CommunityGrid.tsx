@@ -16,11 +16,11 @@ const MODEL_LABELS: Record<string, string> = {
 /** Mixed-height masonry of example media at their real aspect ratios. */
 export function CommunityGrid({ items }: { items: MediaItem[] }) {
   return (
-    <div className="columns-2 gap-2 sm:columns-3 lg:columns-4">
+    <div className="columns-2 gap-3 sm:columns-3 lg:columns-4">
       {items.map((item) => (
         <article
           key={item.media.src}
-          className="group relative mb-2 break-inside-avoid"
+          className="group relative mb-3 break-inside-avoid"
         >
           {item.media.kind === "video" ? (
             <ExploreVideo
@@ -45,14 +45,14 @@ export function CommunityGrid({ items }: { items: MediaItem[] }) {
             <b className="block text-caption font-semibold text-white">
               {item.title}
             </b>
-            <span className="mt-0.5 block text-[11px] text-t3">
+            <span className="mt-0.5 block text-caption text-t3">
               {MODEL_LABELS[item.model] ?? item.model}
             </span>
             <a
               href={item.source}
               target="_blank"
               rel="noreferrer"
-              className="pointer-events-auto mt-1 inline-block text-[11px] text-t3 underline underline-offset-2 hover:text-t1"
+              className="pointer-events-auto mt-1 inline-block text-caption text-t3 underline underline-offset-2 hover:text-t1"
             >
               {item.credit} ↗
             </a>

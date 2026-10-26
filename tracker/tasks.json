@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-26",
+  "updated": "2026-10-27",
   "milestones": [
     {
       "id": "m1",
@@ -589,6 +589,12 @@
       "id": "ops",
       "title": "Housekeeping",
       "tasks": [
+        {
+          "id": "pr-10-coderabbit",
+          "title": "Fix CodeRabbit findings from PR #10",
+          "status": "done",
+          "notes": "Fixed all four actionable findings: camera changes retain the frame and entered values; edit prompts display and submit preset defaults until changed; history names include preset and time; carousel CSS respects reduced motion. Lint (30 existing warnings), typecheck and build pass. Tests: 1335 passed, 12 skipped, one existing FCPXML snapshot failure from C:/ versus E:/ paths."
+        },
         {
           "id": "hosted-demo",
           "title": "Hosted mockup with bundled catalog and sample previews",

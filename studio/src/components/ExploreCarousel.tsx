@@ -74,7 +74,7 @@ export function ExploreCarousel() {
         if (event.target !== event.currentTarget) return;
         const destinations: Record<string, number> = { ArrowLeft: Math.max(0, position.index - 1), ArrowRight: Math.min(MODEL_DEMOS.length - 1, position.index + 1), Home: 0, End: MODEL_DEMOS.length - 1 };
         if (event.key in destinations) { event.preventDefault(); move(destinations[event.key]); }
-      }} className="flex snap-x snap-proximity scroll-smooth overscroll-x-contain gap-3 overflow-x-auto scroll-pr-4 pr-4 pb-2 [scrollbar-width:none]">
+      }} className="flex snap-x snap-proximity motion-safe:scroll-smooth overscroll-x-contain gap-3 overflow-x-auto scroll-pr-4 pr-4 pb-2 [scrollbar-width:none]">
         {MODEL_DEMOS.map((demo, index) => (
           <article key={demo.title} aria-roledescription="slide" aria-label={`${index + 1} of ${MODEL_DEMOS.length}: ${demo.title}`} className="w-[86%] min-w-0 flex-none snap-start sm:w-[46%] xl:w-[30%] 2xl:w-[26%]">
             {demo.media.kind === "image" ? (

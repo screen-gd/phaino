@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { EstimateCaption } from "../studio/CreditEstimate";
 import { RecentGrid, STATUS_BADGE, isVideoPath } from "../studio/JobViews";
 import { AdvancedDisclosure, ParamChip } from "../studio/ParamControls";
-import { mainPromptKey } from "../studio/studioUtils";
 import { UploadCard } from "../studio/UploadCard";
 import { useStudio } from "../studio/useStudio";
 import { VideoPicker } from "./VideoPicker";
@@ -221,7 +220,6 @@ export function EditStudio({
   const chipParams =
     preset?.params.filter((p) => p.type !== "text" && !p.advanced) ?? [];
   const advancedParams = preset?.params.filter((p) => p.advanced) ?? [];
-  const promptKey = mainPromptKey(textParams);
 
   const ready = isExtend
     ? !!video && !!extendModel
@@ -363,11 +361,7 @@ export function EditStudio({
                       </label>
                       <textarea
                         rows={param.key.toLowerCase().includes("prompt") ? 3 : 1}
-                        value={
-                          param.key === promptKey
-                            ? String(s.values[param.key] ?? "")
-                            : String(s.values[param.key] ?? param.default)
-                        }
+                        value={String(s.values[param.key] ?? param.default)}
                         placeholder={param.placeholder}
                         onChange={(e) => s.setValue(param.key, e.target.value)}
                         className="w-full resize-none bg-transparent text-body text-t1 outline-none placeholder:text-t3"

@@ -142,7 +142,7 @@ export function VideoStudio({
             <MoveStrip
               presets={presets}
               selectedId={preset?.id ?? ""}
-              onSelect={(id) => s.selectPreset(id)}
+              onSelect={(id) => s.selectPreset(id, { keep: true })}
             />
           </div>
         )}

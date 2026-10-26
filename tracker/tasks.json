@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-23",
+  "updated": "2026-10-26",
   "milestones": [
     {
       "id": "m1",
@@ -596,10 +596,44 @@
           "notes": "Vercel defaults to demo mode. Bundled 112 visible presets including all seven camera moves; browser-only reference uploads and sample previews with tab history. Skips SQLite estimates, blocks API writes and credentials, and keeps the local backend unchanged. Verified production routes over HTTP with unavailable storage."
         },
         {
+          "id": "launch-prompts",
+          "title": "Write launch and challenge video prompts",
+          "status": "done",
+          "notes": "launch/prompts: index, eight-shot 36s hero, four vertical teasers and a 24s challenge recording plan. Checked preset controls, durations, links and prompt structure. No generations or app code changes."
+        },
+        {
           "id": "ops-commit",
           "title": "Commit the uncommitted UI and brand work",
           "status": "done",
           "notes": "Committed on studio/phaino-app"
+        },
+        {
+          "id": "ui-rework-1",
+          "title": "UI rework pass: studios, Explore, remove preset hover graph",
+          "status": "done"
+        },
+        {
+          "id": "ui-rework-2",
+          "title": "Stage-first studio layout for video, camera and image",
+          "status": "done",
+          "notes": "Stage + 280px history rail + bottom composer shared by the three studios. New Composer, PipelineLine, HistoryRail, MoveStrip; UploadCard compact prop; JobMedia shared thumb; useComfyHealth hydration fix via useSyncExternalStore. Lint/typecheck clean, tests pass except the known fcpxml drive-letter snapshot."
+        },
+        {
+          "id": "ui-rework-3",
+          "title": "Empty states, stage results, contrast, carousel scroll",
+          "status": "done",
+          "notes": "EmptyStage thumb pile replaces preset previews in the shot area; StageResult replaces the CurrentJob card on stage (toolbar actions, multi-output grid, pending/failed frames); stage column uncapped to full width; s/line/t tokens raised, composer restyled on s2, rail bg-s1; ExploreCarousel proximity snap, rAF-throttled scroll state, persistent fades, page scrolling. Verified lint/typecheck/tests and screenshots including demo-mode results."
+        },
+        {
+          "id": "ui-rework-4",
+          "title": "History rail media, empty prompts, seed chip, model family submenus",
+          "status": "done"
+        },
+        {
+          "id": "ui-rework-5",
+          "title": "Review fixes, compact menus, header text states, rail restyle",
+          "status": "done",
+          "notes": "Bug fixes: progress 0..1 -> percent clamp (progressPct), StageResult demo.enabled and per-job key reset, click-pinned nav menu closes on pointer leave, ModelPicker hover timer removed (drill-in rewrite), rail 60s re-render tick, EmptyStage stray tab stop removed. Header: capsule removed, wordmark 600 items, compact 520px Image/Video and Camera dropdowns. Picker: single-column 340px drill-in. Rail: no fill/border, dashed placeholders, no fade. Back row pinned above scroll area."
         }
       ]
     }

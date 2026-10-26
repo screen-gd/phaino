@@ -42,7 +42,7 @@ function PresetCard({ preset }: { preset: ListedPreset }) {
   return (
     <Link
       href={`/workflows/${preset.id}`}
-      className="group overflow-hidden rounded-xl border border-line bg-s2 hover:border-[#3a3a3a]"
+      className="group overflow-hidden rounded-xl border border-line bg-s2 hover:border-[#444]"
     >
       <div className="relative aspect-video overflow-hidden">
         <img
@@ -50,7 +50,7 @@ function PresetCard({ preset }: { preset: ListedPreset }) {
           alt=""
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
         />
-        <span className="absolute top-2 left-2 rounded bg-black/70 px-1.5 py-0.5 font-mono text-[10px] uppercase text-t2">
+        <span className="absolute top-2 left-2 rounded bg-black/70 px-1.5 py-0.5 font-mono text-caption uppercase text-t2">
           {preset.model.label}
         </span>
       </div>
@@ -83,7 +83,7 @@ export default async function WorkflowsPage({
   const builtins = filtered.filter((p) => p.origin !== "fork");
 
   return (
-    <div className="px-4 py-6 sm:px-6">
+    <div className="px-4 py-6">
       <div className="flex flex-wrap gap-2">
         <Link
           href="/workflows"
@@ -107,7 +107,7 @@ export default async function WorkflowsPage({
           <h1 className="mt-6 font-display text-h3 font-extrabold uppercase text-t1 font-stretch-[112.5%]">
             My forks
           </h1>
-          <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
+          <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
             {forks.map((p) => (
               <PresetCard key={p.id} preset={p} />
             ))}
@@ -117,7 +117,7 @@ export default async function WorkflowsPage({
       <h1 className="mt-8 font-display text-h3 font-extrabold uppercase text-t1 font-stretch-[112.5%]">
         Workflows
       </h1>
-      <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
+      <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {builtins.map((p) => (
           <PresetCard key={p.id} preset={p} />
         ))}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import type { ComfyHealth } from "@/lib/health";
 
 let pending: Promise<ComfyHealth | null> | null = null;
@@ -34,16 +34,18 @@ export function refreshComfyHealth(): void {
  * later mount can retry.
  */
 export function useComfyHealth(): ComfyHealth | null {
-  const [health, setHealth] = useState<ComfyHealth | null>(last);
-
-  useEffect(() => {
-    const on = () => setHealth(last);
-    listeners.add(on);
+  // The server snapshot is null so SSR and hydration match; the client
+  // snapshot picks up the module cache after hydration.
+  const subscribe = useCallback((onChange: () => void) => {
+    listeners.add(onChange);
     void fetchHealth();
     return () => {
-      listeners.delete(on);
+      listeners.delete(onChange);
     };
   }, []);
-
-  return health;
+  return useSyncExternalStore(
+    subscribe,
+    () => last,
+    () => null,
+  );
 }

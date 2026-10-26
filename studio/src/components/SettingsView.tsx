@@ -105,17 +105,17 @@ export function SettingsView() {
   return (
     <div className="mx-auto w-full max-w-xl p-6">
       <div className="mb-3 flex items-baseline justify-between">
-        <h1 className="text-base font-semibold">Comfy Cloud</h1>
+        <h1 className="text-lead font-semibold">Comfy Cloud</h1>
         <button
           type="button"
           onClick={() => void recheck()}
-          className="inline-flex h-11 items-center rounded-full border border-line bg-s2 px-3.5 hover:border-[#3a3a3a] hover:bg-s3"
+          className="inline-flex h-11 items-center rounded-full border border-line bg-s2 px-3.5 hover:border-[#444] hover:bg-s3"
         >
           {checking ? "Checking..." : "Check again"}
         </button>
       </div>
 
-      <div className="grid gap-3 rounded-[14px] border border-line bg-s2 p-3.5">
+      <div className="grid gap-3 rounded-panel border border-line bg-s1 p-3.5">
         <div className="flex items-center justify-between gap-2 font-semibold">
           <span className="flex items-center gap-2">
             <span
@@ -126,18 +126,18 @@ export function SettingsView() {
             />
             {health ? TARGET_LABELS[health.target] : "Comfy Cloud"}
           </span>
-          <span className="font-mono text-xs font-normal text-t2">
+          <span className="font-mono text-caption font-normal text-t2">
             {health?.status ?? "checking"}
           </span>
         </div>
         <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-          <dt className="font-mono text-xs uppercase tracking-[0.06em] text-t3">Host</dt>
+          <dt className="font-mono text-caption uppercase tracking-[0.06em] text-t3">Host</dt>
           <dd className="text-t2">{health?.host ?? "-"}</dd>
-          <dt className="font-mono text-xs uppercase tracking-[0.06em] text-t3">Latency</dt>
+          <dt className="font-mono text-caption uppercase tracking-[0.06em] text-t3">Latency</dt>
           <dd className="text-t2">
             {health?.latencyMs != null ? `${health.latencyMs} ms` : "-"}
           </dd>
-          <dt className="font-mono text-xs uppercase tracking-[0.06em] text-t3">Key</dt>
+          <dt className="font-mono text-caption uppercase tracking-[0.06em] text-t3">Key</dt>
           <dd className="text-t2">
             {creds?.source === "settings"
               ? `Key from Settings ${creds.maskedKey ?? ""}`
@@ -147,7 +147,7 @@ export function SettingsView() {
           </dd>
         </dl>
         {health?.message && (
-          <p className="font-mono text-xs text-ac">{health.message}</p>
+          <p className="font-mono text-caption text-ac">{health.message}</p>
         )}
 
         {!demo.enabled && <div className="grid gap-2">
@@ -181,7 +181,7 @@ export function SettingsView() {
             />
           )}
           {formError && (
-            <p className="font-mono text-xs text-destructive">{formError}</p>
+            <p className="font-mono text-caption text-destructive">{formError}</p>
           )}
           <div className="flex items-center gap-2">
             <Button onClick={() => void save()} loading={saving} disabled={key.trim().length < 8}>

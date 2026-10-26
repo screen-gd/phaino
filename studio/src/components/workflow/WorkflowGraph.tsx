@@ -286,8 +286,8 @@ export function WorkflowGraph({
             role="switch"
             aria-checked={showControls}
             onClick={() => setShowControls((v) => !v)}
-            className={`flex h-7 items-center gap-1.5 rounded-lg px-2 text-xs font-medium ${
-              showControls ? "bg-white/10 text-t1" : "text-t3 hover:text-t1"
+            className={`flex h-7 items-center gap-1.5 rounded-lg px-2 text-caption font-medium ${
+              showControls ? "bg-s2 text-t1" : "text-t3 hover:text-t1"
             }`}
           >
             <Icon d={SECTION_ICONS.sliders} className="h-3.5 w-3.5" />
@@ -312,7 +312,7 @@ export function WorkflowGraph({
           <button
             type="button"
             onClick={() => doFit(model)}
-            className="flex h-7 items-center rounded-lg bg-s2 px-2 text-xs font-medium text-t2 hover:text-t1"
+            className="flex h-7 items-center rounded-lg bg-s2 px-2 text-caption font-medium text-t2 hover:text-t1"
           >
             Fit
           </button>

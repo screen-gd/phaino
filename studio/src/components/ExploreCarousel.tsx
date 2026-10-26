@@ -7,6 +7,12 @@ import { Icon, SECTION_ICONS } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { MODEL_DEMOS } from "@/lib/explore-media";
 
+function scrollBehavior(): ScrollBehavior {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ? "instant"
+    : "smooth";
+}
+
 export function ExploreCarousel() {
   const id = useId();
   const track = useRef<HTMLDivElement>(null);
@@ -15,7 +21,9 @@ export function ExploreCarousel() {
   useEffect(() => {
     const element = track.current;
     if (!element) return;
+    let frame = 0;
     const update = () => {
+      frame = 0;
       const cards = Array.from(element.children);
       let closest = 0;
       let distance = Infinity;
@@ -23,20 +31,41 @@ export function ExploreCarousel() {
         const offset = Math.abs(card.getBoundingClientRect().left - element.getBoundingClientRect().left);
         if (offset < distance) { closest = index; distance = offset; }
       });
-      setPosition({ index: closest, atStart: element.scrollLeft <= 2, atEnd: element.scrollWidth - element.clientWidth - element.scrollLeft <= 2 });
+      const next = {
+        index: closest,
+        atStart: element.scrollLeft <= 2,
+        atEnd: element.scrollWidth - element.clientWidth - element.scrollLeft <= 2,
+      };
+      setPosition((prev) =>
+        prev.index === next.index && prev.atStart === next.atStart && prev.atEnd === next.atEnd
+          ? prev
+          : next,
+      );
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
     };
     update();
-    element.addEventListener("scroll", update, { passive: true });
+    element.addEventListener("scroll", onScroll, { passive: true });
     const observer = new ResizeObserver(update);
     observer.observe(element);
-    return () => { element.removeEventListener("scroll", update); observer.disconnect(); };
+    return () => {
+      element.removeEventListener("scroll", onScroll);
+      observer.disconnect();
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, []);
 
   function move(index: number) {
     const element = track.current;
     const card = element?.children.item(index);
     if (!element || !card) return;
-    element.scrollTo({ left: element.scrollLeft + card.getBoundingClientRect().left - element.getBoundingClientRect().left, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+    element.scrollTo({ left: element.scrollLeft + card.getBoundingClientRect().left - element.getBoundingClientRect().left, behavior: scrollBehavior() });
+  }
+
+  function page(dir: 1 | -1) {
+    const element = track.current;
+    element?.scrollBy({ left: dir * element.clientWidth * 0.9, behavior: scrollBehavior() });
   }
 
   return (
@@ -45,7 +74,7 @@ export function ExploreCarousel() {
         if (event.target !== event.currentTarget) return;
         const destinations: Record<string, number> = { ArrowLeft: Math.max(0, position.index - 1), ArrowRight: Math.min(MODEL_DEMOS.length - 1, position.index + 1), Home: 0, End: MODEL_DEMOS.length - 1 };
         if (event.key in destinations) { event.preventDefault(); move(destinations[event.key]); }
-      }} className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 [scrollbar-width:none] focus-visible:outline-2 focus-visible:outline-ac">
+      }} className="flex snap-x snap-proximity scroll-smooth overscroll-x-contain gap-3 overflow-x-auto scroll-pr-4 pr-4 pb-2 [scrollbar-width:none]">
         {MODEL_DEMOS.map((demo, index) => (
           <article key={demo.title} aria-roledescription="slide" aria-label={`${index + 1} of ${MODEL_DEMOS.length}: ${demo.title}`} className="w-[86%] min-w-0 flex-none snap-start sm:w-[46%] xl:w-[30%] 2xl:w-[26%]">
             {demo.media.kind === "image" ? (
@@ -63,12 +92,12 @@ export function ExploreCarousel() {
           </article>
         ))}
       </div>
-      {!position.atEnd && <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-linear-to-r from-transparent to-black sm:w-40" />}
+      <div aria-hidden="true" className={`pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-linear-to-l from-transparent to-black transition-opacity duration-200 sm:w-40 ${position.atStart ? "opacity-0" : "opacity-100"}`} />
+      <div aria-hidden="true" className={`pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-linear-to-r from-transparent to-black transition-opacity duration-200 sm:w-40 ${position.atEnd ? "opacity-0" : "opacity-100"}`} />
       <div className="pointer-events-none absolute top-1/2 right-2 z-20 flex -translate-y-full items-center gap-2">
-        {!position.atStart && <Button className="pointer-events-auto rounded-full bg-black/80" variant="outline" size="icon-xl" aria-label="Previous demos" aria-controls={id} onClick={() => move(Math.max(0, position.index - 1))}><Icon d={SECTION_ICONS.chevronLeft} className="h-5 w-5" /></Button>}
-        <Button className="pointer-events-auto rounded-full bg-black/80" variant="outline" size="icon-xl" aria-label="Next demos" aria-controls={id} disabled={position.atEnd} onClick={() => move(Math.min(MODEL_DEMOS.length - 1, position.index + 1))}><Icon d={SECTION_ICONS.chevronRight} className="h-5 w-5" /></Button>
+        {!position.atStart && <Button className="pointer-events-auto rounded-full bg-black/80" variant="outline" size="icon-xl" aria-label="Previous demos" aria-controls={id} onClick={() => page(-1)}><Icon d={SECTION_ICONS.chevronLeft} className="h-5 w-5" /></Button>}
+        <Button className="pointer-events-auto rounded-full bg-black/80" variant="outline" size="icon-xl" aria-label="Next demos" aria-controls={id} disabled={position.atEnd} onClick={() => page(1)}><Icon d={SECTION_ICONS.chevronRight} className="h-5 w-5" /></Button>
       </div>
     </section>
   );
 }
-

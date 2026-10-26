@@ -20,14 +20,14 @@ export function EstimateCaption({
         href="https://comfy.org/pricing"
         target="_blank"
         rel="noreferrer"
-        className="text-xs text-t3 underline underline-offset-2 hover:text-t1"
+        className="text-caption text-t3 underline underline-offset-2 hover:text-t1"
       >
         Partner pricing
       </a>
     );
   }
   return (
-    <span className="text-xs text-t3" title={estimateTitle(stats)}>
+    <span className="text-caption text-t3" title={estimateTitle(stats)}>
       {formatEstimate(stats)}
     </span>
   );

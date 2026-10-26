@@ -110,7 +110,7 @@ export function WorkflowView({
               className="h-full w-full object-cover"
             />
           </div>
-          <h1 className="mt-3 font-display text-xl font-extrabold uppercase text-t1 [font-stretch:112.5%]">
+          <h1 className="mt-3 font-display text-h3 font-extrabold uppercase text-t1 font-stretch-[112.5%]">
             {preset.name}
           </h1>
           <p className="mt-0.5 text-caption text-t3">
@@ -184,14 +184,14 @@ export function WorkflowView({
                   className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-s2"
                 >
                   <span className="min-w-0">
-                    <span className="block truncate text-[13px] font-medium text-t1">
+                    <span className="block truncate text-body font-medium text-t1">
                       {t.label}
                     </span>
-                    <span className="block truncate text-[11px] text-t3">
+                    <span className="block truncate text-caption text-t3">
                       {targetTitle(workflow, t.path)}
                     </span>
                   </span>
-                  <span className="flex-none rounded bg-s2 px-1.5 py-0.5 text-[10px] font-medium uppercase text-t3">
+                  <span className="flex-none rounded bg-s2 px-1.5 py-0.5 text-caption font-medium uppercase text-t3">
                     {t.kind}
                   </span>
                 </button>
@@ -203,15 +203,15 @@ export function WorkflowView({
         {selection && (
           <div className="rounded-panel border border-line bg-s1 p-3">
             <h2 className="mb-2 text-caption font-medium text-t3">Node</h2>
-            <div className="text-[13px]">
+            <div className="text-body">
               <b className="block text-t1">
                 {selection.node.title ?? selection.node.type}
               </b>
               <dl className="mt-2 grid grid-cols-[72px_1fr] gap-y-1 text-t2">
                 <dt className="text-t3">Type</dt>
-                <dd className="truncate font-mono text-xs">{selection.node.type}</dd>
+                <dd className="truncate font-mono text-caption">{selection.node.type}</dd>
                 <dt className="text-t3">Id</dt>
-                <dd className="font-mono text-xs">
+                <dd className="font-mono text-caption">
                   {selection.subgraph
                     ? `${selection.subgraph.instanceId}:${selection.node.id}`
                     : selection.node.id}
@@ -232,18 +232,18 @@ export function WorkflowView({
             )}
             {selection.node.widgets.length > 0 && (
               <div className="mt-3">
-                <h3 className="mb-1 text-[11px] font-medium text-t3">Widgets</h3>
+                <h3 className="mb-1 text-caption font-medium text-t3">Widgets</h3>
                 <dl className="grid gap-1">
                   {selection.node.widgets.map((w) => (
-                    <div key={w.name} className="grid grid-cols-[110px_1fr] gap-2 text-[12px]">
+                    <div key={w.name} className="grid grid-cols-[110px_1fr] gap-2 text-caption">
                       <dt className="truncate text-t3">{w.name}</dt>
                       <dd className="min-w-0">
                         {typeof w.value === "string" && w.value.length > 60 ? (
-                          <pre className="max-h-28 overflow-y-auto rounded-md bg-s2 p-1.5 font-mono text-[11px] whitespace-pre-wrap text-t2">
+                          <pre className="max-h-28 overflow-y-auto rounded-md bg-s2 p-1.5 font-mono text-caption whitespace-pre-wrap text-t2">
                             {w.value}
                           </pre>
                         ) : (
-                          <span className="truncate font-mono text-[11px] text-t2">
+                          <span className="truncate font-mono text-caption text-t2">
                             {String(w.value)}
                           </span>
                         )}
@@ -257,8 +257,8 @@ export function WorkflowView({
               <div className="mt-3 grid gap-2">
                 {selection.node.inputs.length > 0 && (
                   <div>
-                    <h3 className="mb-1 text-[11px] font-medium text-t3">Inputs</h3>
-                    <ul className="grid gap-0.5 text-[11px] text-t2">
+                    <h3 className="mb-1 text-caption font-medium text-t3">Inputs</h3>
+                    <ul className="grid gap-0.5 text-caption text-t2">
                       {selection.node.inputs.map((s, i) => (
                         <li key={i} className="flex items-center gap-1.5">
                           <span
@@ -274,8 +274,8 @@ export function WorkflowView({
                 )}
                 {selection.node.outputs.length > 0 && (
                   <div>
-                    <h3 className="mb-1 text-[11px] font-medium text-t3">Outputs</h3>
-                    <ul className="grid gap-0.5 text-[11px] text-t2">
+                    <h3 className="mb-1 text-caption font-medium text-t3">Outputs</h3>
+                    <ul className="grid gap-0.5 text-caption text-t2">
                       {selection.node.outputs.map((s, i) => (
                         <li key={i} className="flex items-center gap-1.5">
                           <span

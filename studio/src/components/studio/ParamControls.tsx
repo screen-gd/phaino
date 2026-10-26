@@ -44,7 +44,13 @@ function ChipBody({
         d={SECTION_ICONS[KIND_ICON[paramKind(param)]]}
         className={variant === "panel" ? "h-4 w-4 text-t3" : "h-3.5 w-3.5 text-t3"}
       />
-      <span className="truncate">{formatted}</span>
+      {param.type === "seed" ? (
+        <span className="whitespace-nowrap">
+          Seed <span className="text-t3">· {formatted}</span>
+        </span>
+      ) : (
+        <span className="whitespace-nowrap">{formatted}</span>
+      )}
     </span>
   );
 }
@@ -70,10 +76,14 @@ export function ParamChip({
 }) {
   const [open, setOpen] = useState(false);
   const formatted = formatParamValue(param, value);
+  // Chips never truncate: choice labels drop any parenthetical qualifier
+  // (the popover list keeps the full label).
+  const chipLabel =
+    param.type === "choice" ? formatted.split(" (")[0] : formatted;
   const cls =
     variant === "panel"
-      ? "h-10 w-full rounded-lg bg-s2 text-body font-medium text-t1"
-      : "h-8 shrink-0 rounded-lg bg-white/5 text-sm font-medium text-t1 hover:bg-white/10";
+      ? "h-12 w-full rounded-xl bg-s2 text-body font-medium text-t1"
+      : "h-8 shrink-0 rounded-lg bg-s3 text-caption font-medium text-t1 hover:bg-[#2e2e2e]";
 
   const popover = (() => {
     if (param.type === "choice") {
@@ -92,7 +102,7 @@ export function ParamChip({
                     onChange(o.value);
                     setOpen(false);
                   }}
-                  className="flex h-9 w-full items-center justify-between rounded-lg px-2.5 text-left text-body text-t1 hover:bg-white/5"
+                  className="flex h-9 w-full items-center justify-between rounded-lg px-2.5 text-left text-body text-t1 hover:bg-s3"
                 >
                   {o.label}
                   {current === o.value && (
@@ -159,21 +169,51 @@ export function ParamChip({
     }
     if (param.type === "seed") {
       return (
-        <div className="grid w-[260px] gap-3 p-3.5">
-          <label className="flex items-center justify-between text-body text-t1">
-            <span>Random</span>
-            <Switch
-              checked={randomSeed}
-              onCheckedChange={(v) => onRandomSeed?.(v === true)}
-            />
-          </label>
-          <Input
-            type="number"
-            disabled={randomSeed}
-            value={randomSeed ? "" : Number(value ?? 0)}
-            placeholder="Random"
-            onChange={(e) => onChange(Number(e.target.value))}
-          />
+        <div className="w-[260px] p-3">
+          <div className="flex items-center justify-between">
+            <h5 className="text-body text-t1">Seed</h5>
+            <label className="flex items-center gap-2 text-caption text-t3">
+              Random
+              <Switch
+                checked={randomSeed}
+                onCheckedChange={(v) => {
+                  const on = v === true;
+                  if (!on && !Number(value)) {
+                    onChange(
+                      Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
+                    );
+                  }
+                  onRandomSeed?.(on);
+                }}
+              />
+            </label>
+          </div>
+          {!randomSeed && (
+            <div className="mt-3 flex items-center gap-1.5">
+              <Input
+                type="number"
+                inputMode="numeric"
+                value={Number(value ?? 0)}
+                placeholder="Any whole number"
+                onChange={(e) => onChange(Number(e.target.value))}
+                className="min-w-0 flex-1"
+              />
+              <button
+                type="button"
+                aria-label="New random seed"
+                title="New random seed"
+                onClick={() => {
+                  onChange(
+                    Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
+                  );
+                  onRandomSeed?.(false);
+                }}
+                className="grid h-8 w-8 flex-none place-items-center rounded-lg bg-s3 text-t2 hover:bg-[#2e2e2e] hover:text-t1"
+              >
+                <Icon d={SECTION_ICONS.dice} className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
       );
     }
@@ -202,7 +242,7 @@ export function ParamChip({
           />
         }
       >
-        <ChipBody param={param} formatted={formatted} variant={variant} />
+        <ChipBody param={param} formatted={chipLabel} variant={variant} />
       </PopoverTrigger>
       <PopoverPopup
         side={side}
@@ -347,12 +387,12 @@ export function AdvancedDisclosure(props: AdvancedProps) {
   const [open, setOpen] = useState(false);
   if (props.params.length === 0) return null;
   return (
-    <div className="rounded-lg bg-s2">
+    <div className="rounded-xl bg-s2">
       <button
         type="button"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
-        className="flex h-10 w-full items-center justify-between px-3 text-body font-medium text-t1"
+        className="flex h-12 w-full items-center justify-between px-3 text-body font-medium text-t1"
       >
         <span className="flex items-center gap-1.5">
           <Icon d={SECTION_ICONS.sliders} className="h-4 w-4 text-t3" />
@@ -378,7 +418,7 @@ export function AdvancedChip(props: AdvancedProps) {
           <button
             type="button"
             aria-label="Advanced options"
-            className="h-8 shrink-0 rounded-lg bg-white/5 text-sm font-medium text-t1 hover:bg-white/10"
+            className="h-8 shrink-0 rounded-lg bg-s3 text-caption font-medium text-t1 hover:bg-[#2e2e2e]"
           />
         }
       >

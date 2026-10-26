@@ -28,6 +28,34 @@ export function isVideoPath(rel: string) {
   return /\.(mp4|mov)$/i.test(rel);
 }
 
+/** A job's output thumb (video/image) or a placeholder tile. */
+export function JobMedia({
+  job,
+  className,
+}: {
+  job: StudioJob;
+  className?: string;
+}) {
+  const out = job.outputs[0];
+  if (job.status === "succeeded" && out) {
+    return isVideoPath(out) ? (
+      <video
+        src={outputUrl(out)}
+        muted
+        preload="metadata"
+        className={className}
+      />
+    ) : (
+      <img src={outputUrl(out)} alt="" className={className} />
+    );
+  }
+  return (
+    <span className={`grid place-items-center bg-s2 text-t3 ${className ?? ""}`}>
+      <Icon d={SECTION_ICONS.image} className="h-5 w-5" />
+    </span>
+  );
+}
+
 /** The active run: status, progress, cancel, then result actions. */
 export function CurrentJob({
   job,
@@ -153,36 +181,17 @@ export function RecentGrid({
               className={`relative block w-full overflow-hidden rounded-xl border text-left ${
                 activeId === r.id
                   ? "border-ac"
-                  : "border-line hover:border-t3"
+                  : "border-line hover:border-[#444]"
               }`}
             >
-              {r.status === "succeeded" && out ? (
-                isVid ? (
-                  <video
-                    src={outputUrl(out)}
-                    muted
-                    preload="metadata"
-                    className="aspect-video w-full object-cover"
-                  />
-                ) : (
-                  <img
-                    src={outputUrl(out)}
-                    alt=""
-                    className="aspect-video w-full object-cover"
-                  />
-                )
-              ) : (
-                <span className="grid aspect-video w-full place-items-center bg-s2 text-t3">
-                  <Icon d={SECTION_ICONS.image} className="h-5 w-5" />
-                </span>
-              )}
-              <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-1 bg-gradient-to-t from-black/80 to-transparent p-1.5 pt-6">
+              <JobMedia job={r} className="aspect-video w-full object-cover" />
+              <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-1 bg-linear-to-t from-black/80 to-transparent p-1.5 pt-6">
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[11px] font-semibold text-t1">
+                  <span className="block truncate text-caption font-semibold text-t1">
                     {presetName(r.presetId)}
                   </span>
                   {r.error && (
-                    <span className="block truncate text-[10px] text-destructive">
+                    <span className="block truncate text-caption text-destructive">
                       {r.error}
                     </span>
                   )}
@@ -201,7 +210,7 @@ export function RecentGrid({
             {r.status === "succeeded" && !isVid && out && (
               <Link
                 href={`/video?preset=ltx25-i2v&from=${encodeURIComponent(out)}`}
-                className="absolute top-1.5 left-1.5 rounded-md bg-black/70 px-2 py-1 text-[11px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100"
+                className="absolute top-1.5 left-1.5 rounded-md bg-black/70 px-2 py-1 text-caption font-medium text-white opacity-0 transition-opacity group-hover:opacity-100"
               >
                 Animate
               </Link>

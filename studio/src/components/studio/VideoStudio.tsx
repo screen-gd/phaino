@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { Composer } from "./Composer";
 import { EmptyStage } from "./EmptyStage";
 import { HistoryRail } from "./HistoryRail";
@@ -9,12 +9,14 @@ import { StageResult } from "./StageResult";
 import { useModelMaps } from "./modelRows";
 import { stackThumbs } from "./studioUtils";
 import { useStudio } from "./useStudio";
-import { MODE_LABELS, resolveVideoMode, type ModeKey } from "@/lib/modes";
+import { MODE_LABELS, type ModeKey } from "@/lib/modes";
 import type {
   StudioModel,
   StudioParam,
   StudioPreset,
 } from "@/components/toolStudioData";
+
+const MODE_ORDER: ModeKey[] = ["t2v", "i2v", "flf2v"];
 
 /** Stage-first tool page for video and camera moves. */
 export function VideoStudio({
@@ -37,59 +39,48 @@ export function VideoStudio({
   const model = preset ? modelOf.get(preset.id) : undefined;
   const activeMode = preset ? modeOf.get(preset.id) : undefined;
 
-  // Frame slots come from the model's modes, not the active preset.
-  const firstSlotKey = useMemo(() => {
-    if (!model) return undefined;
-    const pid = model.modes.i2v ?? model.modes.flf2v;
-    return presets.find((p) => p.id === pid)?.inputs[0]?.key;
-  }, [model, presets]);
-  const lastSlotKey = useMemo(() => {
-    if (!model?.modes.flf2v) return undefined;
-    return presets.find((p) => p.id === model.modes.flf2v)?.inputs[1]?.key;
-  }, [model, presets]);
-
+  // Upload slots come from the active preset's declared inputs; model modes
+  // get the First frame / Last frame labels.
   const slots = useMemo(() => {
     if (!preset) return [];
-    if (model) {
-      const out: { key: string; label: string; required: boolean }[] = [];
-      if (firstSlotKey) {
-        out.push({
-          key: firstSlotKey,
-          label: "First frame",
-          required: !model.modes.t2v,
-        });
-      }
-      if (lastSlotKey) {
-        out.push({ key: lastSlotKey, label: "Last frame", required: false });
-      }
-      return out;
-    }
-    return preset.inputs.map((i) => ({
+    return preset.inputs.map((i, index) => ({
       key: i.key,
-      label: i.label,
+      label: model
+        ? index === 0
+          ? "First frame"
+          : index === 1
+            ? "Last frame"
+            : i.label
+        : i.label,
       required: i.required,
     }));
-  }, [model, preset, firstSlotKey, lastSlotKey]);
+  }, [model, preset]);
 
-  // Live mode resolution: filled frames pick i2v/flf2v/t2v.
-  const modeRes =
-    model && preset
-      ? resolveVideoMode(
-          Object.keys(model.modes) as ModeKey[],
-          !!(firstSlotKey && s.uploads[firstSlotKey]),
-          !!(lastSlotKey && s.uploads[lastSlotKey]),
-        )
-      : null;
-  const modeError = modeRes?.error ?? null;
+  // Explicit mode switch for models with more than one mode.
+  const modeOptions = useMemo(
+    () =>
+      model
+        ? MODE_ORDER.filter((m) => model.modes[m]).map((m) => ({
+            key: m,
+            label: MODE_LABELS[m],
+          }))
+        : [],
+    [model],
+  );
 
-  useEffect(() => {
+  const switchMode = (mode: string) => {
     if (!model || !preset) return;
-    const target = modeRes?.mode ? model.modes[modeRes.mode] : undefined;
-    if (target && target !== preset.id) {
-      s.selectPreset(target, { keep: true });
+    const nextId = model.modes[mode as ModeKey];
+    if (!nextId || nextId === preset.id) return;
+    const next = presets.find((p) => p.id === nextId);
+    const oldFirstKey = preset.inputs[0]?.key;
+    const newFirstKey = next?.inputs[0]?.key;
+    const carried = oldFirstKey ? s.uploads[oldFirstKey] : undefined;
+    s.selectPreset(nextId, { keep: true });
+    if (carried && newFirstKey && newFirstKey !== oldFirstKey) {
+      s.setUploaded(newFirstKey, carried);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [model?.id, preset?.id, modeRes?.mode, s.uploads, firstSlotKey, lastSlotKey]);
+  };
 
   const textParams =
     preset?.params.filter(
@@ -132,7 +123,9 @@ export function VideoStudio({
               text={
                 category === "camera"
                   ? "Add a first frame to move the camera"
-                  : "Describe a shot or add a first frame"
+                  : activeMode === "t2v" || slots.length === 0
+                    ? "Describe a shot"
+                    : "Describe a shot or add a first frame"
               }
             />
           ) : null}
@@ -174,13 +167,23 @@ export function VideoStudio({
                   }
                 : undefined
             }
+            modes={
+              category !== "camera" && modeOptions.length > 1
+                ? {
+                    options: modeOptions,
+                    value: activeMode,
+                    onChange: switchMode,
+                  }
+                : undefined
+            }
             estimate={preset?.estimate}
+            unit="clip"
             partner={preset?.partner}
             submitLabel={s.demo ? "Preview sample" : "Generate"}
-            submitDisabled={!s.ready || !!modeError}
+            submitDisabled={!s.ready}
             submitting={s.submitting}
             onSubmit={() => void s.submit()}
-            error={s.error ?? modeError}
+            error={s.error}
             workflowHref={preset ? `/workflows/${preset.id}` : undefined}
             promptPlaceholder="Describe the shot"
           />

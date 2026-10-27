@@ -646,6 +646,11 @@
           "title": "Fix header dropdowns, redesign Edit, rework Editor timeline",
           "status": "done",
           "notes": "Header dropdowns: removed the custom pointer-leave close override so Base UI keeps click-opened menus pinned. Edit page: stage-first layout matching VideoStudio (tool strip, stage VideoPicker, bottom controls panel, HistoryRail). IconSource narrowed to RuneIcon | CustomPath so the IconName-as-path misuse type-errors. Editor: single coordinate origin with sticky lane labels and ruler, scrub with pointer capture, playhead follow, anchored zoom + clamp + wheel + auto-fit, drops insert at position, master-clock playback with image clips rendered as img, Home/End/T/Alt+arrows keys, duplicate/delete tools. stripMath helpers unit-tested. Lint/typecheck/build pass; tests pass except the known fcpxml drive-letter snapshot."
+        },
+        {
+          "id": "polish-pass-1",
+          "title": "Polish pass: nav, settings, workflow viewer, showcase, fixes",
+          "status": "doing"
         }
       ]
     }

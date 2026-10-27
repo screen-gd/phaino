@@ -464,6 +464,7 @@ export function EditStudio({
                   <div className="flex justify-end">
                     <EstimateCaption
                       stats={preset.estimate}
+                      unit="clip"
                       partner={preset.partner}
                     />
                   </div>

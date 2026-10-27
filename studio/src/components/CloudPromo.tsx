@@ -8,7 +8,7 @@ import { useDemo } from "./DemoProvider";
 
 const CHECKLIST = [
   "Open weights on Comfy Cloud",
-  "LTX 2.5, Wan 2.2, HunyuanVideo, FLUX 3 Klein, Qwen, Z-Image",
+  "LTX 2.5, Wan 2.2, HunyuanVideo, FLUX.2 Klein, Qwen, Z-Image",
   "Every shot opens as a workflow",
 ];
 

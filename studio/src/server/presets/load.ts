@@ -196,6 +196,20 @@ export function getPreset(id: string, env: StudioEnv = getEnv()): LoadedPreset |
   };
 }
 
+/** /workflows/<id> when the `preset` query param of a studio href resolves. */
+export function viewerHrefFor(
+  href: string,
+  env: StudioEnv = getEnv(),
+): string | undefined {
+  const presetId = new URLSearchParams(href.split("?")[1] ?? "").get("preset");
+  if (!presetId || !SLUG.test(presetId)) return undefined;
+  try {
+    return getPreset(presetId, env) ? `/workflows/${presetId}` : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * The thumb.webp file for any preset id: the preset folder for builtins and
  * forks, models/cache/<template>.webp for template-backed modes. Null when

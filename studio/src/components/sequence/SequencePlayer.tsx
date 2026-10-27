@@ -172,10 +172,10 @@ export function SequencePlayer({
                   </button>
                 )}
                 <Link
-                  href="/library"
+                  href="/video"
                   className="rounded-full border border-line px-3 py-1.5 text-[12px] text-t2 hover:bg-s2 hover:text-t1"
                 >
-                  Library
+                  Make a video
                 </Link>
               </div>
             </div>

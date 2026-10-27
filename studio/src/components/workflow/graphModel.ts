@@ -22,6 +22,8 @@ export type GNode = {
   collapsed: boolean;
   /** Subgraph id when this node is a subgraph instance. */
   subgraph?: string;
+  /** Definition name for subgraph instances (their type is the UUID). */
+  subgraphName?: string;
   /** Set on the Inputs/Outputs pseudo-nodes inside a subgraph view. */
   pseudo?: "inputs" | "outputs";
 };
@@ -40,6 +42,13 @@ export type GGroup = {
   bounding: [number, number, number, number];
   color?: string;
 };
+
+/** What a user should read for a node: title, subgraph name, then class. */
+export function nodeDisplayName(n: GNode): string {
+  if (n.title) return n.title;
+  if (n.subgraph) return n.subgraphName ?? "Subgraph";
+  return n.type;
+}
 
 export type GraphBounds = { x: number; y: number; w: number; h: number };
 
@@ -90,11 +99,14 @@ function asNode(raw: RawNode, subgraphs?: Record<string, unknown>[]): GNode | nu
   const widgets = Object.entries(raw.widgets_values_named ?? {}).map(
     ([name, value]) => ({ name, value }),
   );
-  const sub = subgraphs?.find((s) => s.id === raw.type)?.id as string | undefined;
+  const def = subgraphs?.find((s) => s.id === raw.type);
+  const sub = def?.id as string | undefined;
   return {
     id: raw.id,
     type: raw.type,
     title: typeof raw.title === "string" ? raw.title : undefined,
+    subgraphName:
+      sub && typeof def?.name === "string" ? def.name : undefined,
     pos: asPair(raw.pos),
     size: asPair(raw.size),
     inputs: (raw.inputs ?? []).map(asSlot).filter((s): s is GSlot => s !== null),

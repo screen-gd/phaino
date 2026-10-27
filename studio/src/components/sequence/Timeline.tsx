@@ -89,7 +89,7 @@ function Ruler({
           <span className="absolute bottom-0 h-2 w-px bg-line" />
           <span
             className={`absolute top-0.5 font-mono text-[11px] text-t3 ${
-              t === 0 ? "" : "w-16 -translate-x-1/2 text-center"
+              t === 0 ? "left-[6px]" : "w-16 -translate-x-1/2 text-center"
             }`}
           >
             {`${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`}
@@ -505,7 +505,7 @@ export function Timeline({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       {/* Toolbar */}
       <div className="flex h-9 shrink-0 items-center justify-between gap-2 px-3">
         <span className="font-mono text-[11px] text-t2">
@@ -567,7 +567,7 @@ export function Timeline({
 
       {/* Scroll area: sticky lane labels + one shared-origin track. */}
       <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto">
-        <div className="flex w-max min-w-full">
+        <div className="flex min-h-full w-max min-w-full">
           <div className="sticky left-0 z-40 w-12 shrink-0 border-r border-line bg-bg">
             <div className="h-6" />
             <div className="mt-1 flex h-7 items-center justify-center font-mono text-[10px] text-t3">

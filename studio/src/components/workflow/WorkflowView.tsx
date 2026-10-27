@@ -5,9 +5,16 @@ import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Icon, SECTION_ICONS } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { useDemo } from "@/components/DemoProvider";
+import { forkChanges } from "@/lib/forkChanges";
 import { presetPreview } from "@/lib/preset-preview";
 import { ForkEditor } from "./ForkEditor";
-import { bindingTargets, normalizeGraph, type GNode } from "./graphModel";
+import {
+  bindingTargets,
+  nodeDisplayName,
+  normalizeGraph,
+  type GNode,
+} from "./graphModel";
 import type { ListedPreset } from "@/server/presets/load";
 import {
   slotColor,
@@ -28,35 +35,45 @@ const MODE_LABELS: Record<number, string> = {
   4: "Bypassed",
 };
 
-function targetTitle(
-  workflow: unknown,
-  path: number[],
-): string {
+function targetNode(workflow: unknown, path: number[]): GNode | null {
   const top = normalizeGraph(workflow);
   const topNode = top?.nodes.find((n) => n.id === path[0]);
-  if (!topNode) return `node ${path[0]}`;
-  if (path.length < 2 || path[1] === undefined) {
-    return topNode.title ?? topNode.type;
-  }
+  if (!topNode) return null;
+  if (path.length < 2 || path[1] === undefined) return topNode;
   const inner = normalizeGraph(workflow, topNode.subgraph);
-  const node = inner?.nodes.find((n) => n.id === path[1]);
-  return node ? (node.title ?? node.type) : `node ${path[1]}`;
+  return inner?.nodes.find((n) => n.id === path[1]) ?? null;
 }
+
+/** The class label under a control name: node type, or Subgraph + name. */
+function targetClassText(node: GNode | null, path: number[]): string {
+  if (!node) return `node ${path.join(":")}`;
+  if (node.subgraph) return `Subgraph · ${node.subgraphName ?? "Subgraph"}`;
+  return node.type;
+}
+
+const samePath = (a: number[] | null, b: number[]) =>
+  !!a && a.length === b.length && a.every((v, i) => v === b[i]);
 
 /** The /workflows/[id] page body: graph canvas + right panel. */
 export function WorkflowView({
   preset,
   workflow,
   stats,
+  source,
 }: {
   preset: SerializablePreset;
   workflow: unknown;
   stats: { nodes: number; subgraphs: number };
+  /** The fork's source preset, resolved server-side. */
+  source?: { id: string; name: string; params: SerializablePreset["params"] } | null;
 }) {
   const router = useRouter();
+  const demo = useDemo();
   const [selection, setSelection] = useState<GraphSelection | null>(null);
   const [focus, setFocus] = useState<FocusRequest | null>(null);
+  const [hoverPath, setHoverPath] = useState<number[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [forkError, setForkError] = useState<string | null>(null);
   const focusSeq = useRef(0);
 
   const targets = useMemo(() => bindingTargets(preset), [preset]);
@@ -75,29 +92,45 @@ export function WorkflowView({
 
   const fork = async () => {
     setBusy(true);
+    setForkError(null);
     try {
       const res = await fetch("/api/forks", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ presetId: preset.id }),
       });
-      const body = (await res.json()) as { preset?: { id: string }; error?: string };
-      if (!res.ok || !body.preset) throw new Error(body.error ?? "Fork failed");
+      const body = (await res.json()) as { preset?: { id: string }; error?: string; message?: string };
+      if (!res.ok || !body.preset) {
+        throw new Error(body.error ?? body.message ?? "Fork failed");
+      }
       router.push(`/workflows/${body.preset.id}`);
       router.refresh();
+    } catch (error) {
+      setForkError(error instanceof Error ? error.message : "Fork failed");
     } finally {
       setBusy(false);
     }
   };
+
+  const changes = useMemo(
+    () =>
+      preset.origin === "fork" && source
+        ? forkChanges(preset, source)
+        : [],
+    [preset, source],
+  );
 
   return (
     <div className="grid h-full min-h-0 gap-3 p-3 lg:grid-cols-[minmax(0,1fr)_340px]">
       <WorkflowGraph
         workflow={workflow}
         preset={preset}
+        presetName={preset.name}
         selection={selection}
         onSelect={setSelection}
         focus={focus}
+        hoverPath={hoverPath}
+        onHoverPath={setHoverPath}
         registerApi={registerApi}
       />
 
@@ -134,6 +167,7 @@ export function WorkflowView({
                 variant="outline"
                 className="w-full"
                 loading={busy}
+                disabled={demo.enabled}
                 onClick={() => void fork()}
               >
                 Fork
@@ -169,34 +203,89 @@ export function WorkflowView({
           <p className="text-caption text-t3">
             Drag the downloaded file into ComfyUI to open it.
           </p>
+          {demo.enabled && preset.origin !== "fork" && (
+            <p className="text-caption text-t3">
+              Forking saves files, so it needs a local install.
+            </p>
+          )}
+          {forkError && (
+            <p className="text-caption text-destructive">{forkError}</p>
+          )}
         </div>
+
+        {preset.origin === "fork" && source && (
+          <div className="rounded-panel border border-line bg-s1 p-3">
+            <h2 className="mb-2 text-caption font-medium text-t3">
+              Forked from{" "}
+              <Link
+                href={`/workflows/${source.id}`}
+                className="text-t2 underline underline-offset-2 hover:text-t1"
+              >
+                {source.name}
+              </Link>
+            </h2>
+            {changes.length === 0 ? (
+              <p className="text-caption text-t3">
+                No changes yet. Edit the defaults below.
+              </p>
+            ) : (
+              <dl className="grid gap-1">
+                {changes.map((c) => (
+                  <div
+                    key={c.key}
+                    className="grid grid-cols-[110px_1fr] gap-2 text-caption"
+                  >
+                    <dt className="truncate text-t3">{c.label}</dt>
+                    <dd className="min-w-0 truncate font-mono text-t2">
+                      {String(c.from)} → {String(c.to)}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            )}
+          </div>
+        )}
 
         {preset.origin === "fork" && <ForkEditor preset={preset} />}
 
         <div className="rounded-panel border border-line bg-s1 p-3">
           <h2 className="mb-2 text-caption font-medium text-t3">Controls</h2>
           <ul className="grid gap-0.5">
-            {targets.map((t) => (
-              <li key={`${t.kind}-${t.key}`}>
-                <button
-                  type="button"
-                  onClick={() => focusTarget(t.path)}
-                  className="flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-s2"
-                >
-                  <span className="min-w-0">
-                    <span className="block truncate text-body font-medium text-t1">
-                      {t.label}
+            {targets.map((t) => {
+              const node = targetNode(workflow, t.path);
+              const classText = targetClassText(node, t.path);
+              const detail =
+                node?.title && node.title !== classText
+                  ? ` · ${node.title}`
+                  : "";
+              const hovered = samePath(hoverPath, t.path);
+              return (
+                <li key={`${t.kind}-${t.key}`}>
+                  <button
+                    type="button"
+                    onClick={() => focusTarget(t.path)}
+                    onMouseEnter={() => setHoverPath(t.path)}
+                    onMouseLeave={() => setHoverPath(null)}
+                    className={`flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left ${
+                      hovered ? "bg-acs" : "hover:bg-s2"
+                    }`}
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-body font-medium text-t1">
+                        {t.label}
+                      </span>
+                      <span className="block truncate font-mono text-caption text-t3">
+                        {classText}
+                        {detail}
+                      </span>
                     </span>
-                    <span className="block truncate text-caption text-t3">
-                      {targetTitle(workflow, t.path)}
+                    <span className="flex-none rounded bg-s2 px-1.5 py-0.5 text-caption font-medium uppercase text-t3">
+                      {t.kind}
                     </span>
-                  </span>
-                  <span className="flex-none rounded bg-s2 px-1.5 py-0.5 text-caption font-medium uppercase text-t3">
-                    {t.kind}
-                  </span>
-                </button>
-              </li>
-            ))}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </div>
 
@@ -205,11 +294,13 @@ export function WorkflowView({
             <h2 className="mb-2 text-caption font-medium text-t3">Node</h2>
             <div className="text-body">
               <b className="block text-t1">
-                {selection.node.title ?? selection.node.type}
+                {nodeDisplayName(selection.node)}
               </b>
               <dl className="mt-2 grid grid-cols-[72px_1fr] gap-y-1 text-t2">
                 <dt className="text-t3">Type</dt>
-                <dd className="truncate font-mono text-caption">{selection.node.type}</dd>
+                <dd className="truncate font-mono text-caption">
+                  {selection.node.subgraph ? "Subgraph" : selection.node.type}
+                </dd>
                 <dt className="text-t3">Id</dt>
                 <dd className="font-mono text-caption">
                   {selection.subgraph

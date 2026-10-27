@@ -3,17 +3,23 @@
 import {
   estimateTitle,
   formatEstimate,
+  type EstimateUnit,
   type RuntimeStats,
 } from "@/lib/credits";
+import { useDemo } from "@/components/DemoProvider";
 
 /** Small credit estimate next to Generate, from server-computed run stats. */
 export function EstimateCaption({
   stats,
+  unit,
   partner,
 }: {
   stats?: RuntimeStats;
+  unit: EstimateUnit;
   partner?: boolean;
 }) {
+  const demo = useDemo();
+  if (demo.enabled) return null;
   if (partner && stats?.kind !== "router") {
     return (
       <a
@@ -28,7 +34,7 @@ export function EstimateCaption({
   }
   return (
     <span className="text-caption text-t3" title={estimateTitle(stats)}>
-      {formatEstimate(stats)}
+      {formatEstimate(stats, unit)}
     </span>
   );
 }

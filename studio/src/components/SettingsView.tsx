@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { ComfyHealth } from "@/lib/health";
+import { healthLabel, type ComfyHealth } from "@/lib/health";
 import { Icon, SECTION_ICONS } from "@/components/icons";
 
 import { Button } from "@/components/ui/button";
@@ -19,9 +19,10 @@ type ComfyCreds = {
 };
 
 const API_KEYS_URL = "https://platform.comfy.org/profile/api-keys";
+const REPO_URL = "https://github.com/screen-gd/phaino";
 
 /** Comfy target status plus the BYOK key form. */
-export function SettingsView() {
+export function SettingsView({ version }: { version: string }) {
   const demo = useDemo();
   const [health, setHealth] = useState<ComfyHealth | null>(null);
   const [creds, setCreds] = useState<ComfyCreds | null>(null);
@@ -111,7 +112,7 @@ export function SettingsView() {
           onClick={() => void recheck()}
           className="inline-flex h-11 items-center rounded-full border border-line bg-s2 px-3.5 hover:border-[#444] hover:bg-s3"
         >
-          {checking ? "Checking..." : "Check again"}
+          {checking ? "Checking..." : "Recheck connection"}
         </button>
       </div>
 
@@ -127,16 +128,23 @@ export function SettingsView() {
             {health ? TARGET_LABELS[health.target] : "Comfy Cloud"}
           </span>
           <span className="font-mono text-caption font-normal text-t2">
-            {health?.status ?? "checking"}
+            {healthLabel(health)}
           </span>
         </div>
         <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
           <dt className="font-mono text-caption uppercase tracking-[0.06em] text-t3">Host</dt>
           <dd className="text-t2">{health?.host ?? "-"}</dd>
-          <dt className="font-mono text-caption uppercase tracking-[0.06em] text-t3">Latency</dt>
-          <dd className="text-t2">
-            {health?.latencyMs != null ? `${health.latencyMs} ms` : "-"}
-          </dd>
+          {health?.status === "ok" && (
+            <>
+              <dt className="font-mono text-caption uppercase tracking-[0.06em] text-t3">Latency</dt>
+              <dd
+                className="text-t2"
+                title={health.latencyMs == null ? "Not measured" : undefined}
+              >
+                {health.latencyMs != null ? `${health.latencyMs} ms` : "—"}
+              </dd>
+            </>
+          )}
           <dt className="font-mono text-caption uppercase tracking-[0.06em] text-t3">Key</dt>
           <dd className="text-t2">
             {creds?.source === "settings"
@@ -146,7 +154,7 @@ export function SettingsView() {
                 : "Not set"}
           </dd>
         </dl>
-        {health?.message && (
+        {!demo.enabled && health?.message && (
           <p className="font-mono text-caption text-ac">{health.message}</p>
         )}
 
@@ -201,10 +209,71 @@ export function SettingsView() {
               Get an API key ↗
             </a>
           </div>
-          <p className="text-caption text-t3">
-            Or set COMFY_API_KEY and COMFY_BASE_URL in studio/.env.local.
-          </p>
         </div>}
+      </div>
+
+      <div className="mt-4 grid gap-2 rounded-panel border border-line bg-s1 p-3.5">
+        <h2 className="text-caption font-medium text-t3">
+          How to connect Comfy Cloud
+        </h2>
+        <ol className="grid list-decimal gap-1 pl-5 text-body text-t2">
+          <li>
+            <a
+              href={API_KEYS_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-2 hover:text-t1"
+            >
+              Get an API key
+            </a>
+          </li>
+          <li>
+            Set <code className="font-mono text-caption">COMFY_API_KEY</code> in{" "}
+            <code className="font-mono text-caption">studio/.env.local</code>
+          </li>
+          <li>
+            Restart <code className="font-mono text-caption">pnpm dev</code>
+          </li>
+        </ol>
+        <a
+          href={`${REPO_URL}#comfy-cloud-setup`}
+          target="_blank"
+          rel="noreferrer"
+          className="text-caption text-t3 underline underline-offset-2 hover:text-t1"
+        >
+          Setup guide ↗
+        </a>
+      </div>
+
+      <div className="mt-4 rounded-panel border border-line bg-s1 p-3.5">
+        <h2 className="mb-2 text-caption font-medium text-t3">About</h2>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+          <dt className="font-mono text-caption uppercase tracking-[0.06em] text-t3">Version</dt>
+          <dd className="text-t2">{version}</dd>
+          <dt className="font-mono text-caption uppercase tracking-[0.06em] text-t3">License</dt>
+          <dd>
+            <a
+              href={`${REPO_URL}/blob/main/LICENSE`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-t2 underline underline-offset-2 hover:text-t1"
+            >
+              MIT
+            </a>
+          </dd>
+          <dt className="font-mono text-caption uppercase tracking-[0.06em] text-t3">Source</dt>
+          <dd>
+            <a
+              href={REPO_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="text-t2 underline underline-offset-2 hover:text-t1"
+            >
+              GitHub
+            </a>
+          </dd>
+        </dl>
+        <p className="mt-2 text-caption text-t3">Built on ComfyUI.</p>
       </div>
     </div>
   );

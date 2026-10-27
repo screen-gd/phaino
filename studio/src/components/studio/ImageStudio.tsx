@@ -148,6 +148,7 @@ export function ImageStudio({
                 : undefined
             }
             estimate={preset?.estimate}
+            unit="image"
             partner={preset?.partner}
             submitLabel={s.demo ? "Preview sample" : "Generate"}
             submitDisabled={!s.ready || !!modeError}

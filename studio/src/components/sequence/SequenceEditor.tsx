@@ -425,7 +425,7 @@ export function SequenceEditor() {
             </div>
           </div>
         </div>
-        <div className="col-span-full min-h-0 border-t border-line">
+        <div className="col-span-full flex min-h-0 flex-col border-t border-line">
           <Timeline
             sequence={sequence}
             layout={layout}

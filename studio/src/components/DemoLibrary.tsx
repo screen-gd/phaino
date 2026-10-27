@@ -25,7 +25,7 @@ export function DemoLibrary({ presets }: { presets: Pick<StudioPreset, "id" | "n
   return (
     <div className="px-4 py-6">
       <h1 className="mb-2 text-lead font-semibold">Library</h1>
-      <p className="mb-4 text-caption text-t3">Sample media. Your preview history lasts until you reload.</p>
+      <p className="mb-4 text-caption text-t3">Sample media. Your preview history is saved in this browser.</p>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {items.map((item) => (
           <div key={item.id} className="overflow-hidden rounded-xl border border-line bg-s2">

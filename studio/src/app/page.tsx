@@ -2,12 +2,14 @@ import Link from "next/link";
 import { CloudPromo } from "@/components/CloudPromo";
 import { CommunityGrid } from "@/components/CommunityGrid";
 import { ExploreBanner } from "@/components/ExploreBanner";
-import { Icon, SECTION_ICONS, type IconName } from "@/components/icons";
+import { Icon, SECTION_ICONS } from "@/components/icons";
 import { ExploreCarousel } from "@/components/ExploreCarousel";
 import { ExploreFooter } from "@/components/ExploreFooter";
 import { presetPreview } from "@/lib/preset-preview";
 import { EXPLORE_MEDIA } from "@/lib/explore-media";
+import { FEATURES, type Feature } from "@/lib/features";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { toStudioModels } from "@/server/models/view";
 import { listPresets } from "@/server/presets/load";
@@ -15,24 +17,8 @@ import type { Preset } from "@/server/presets/schema";
 
 export const dynamic = "force-dynamic";
 
-const TOOLS = [
-  { href: "/camera", name: "Camera moves", kind: "Video", badge: "New", desc: "7 moves on LTX 2.5", icon: "camera" },
-  { href: "/image", name: "Image", kind: "Image", badge: null, desc: "FLUX 3 Klein, Qwen, Z-Image", icon: "image" },
-  { href: "/video", name: "Video", kind: "Video", badge: null, desc: "LTX 2.5, Wan 2.2, HunyuanVideo, MiniMax H3", icon: "video" },
-  { href: "/effects", name: "Effects", kind: "Video", badge: "Soon", desc: "One-click VFX", icon: "effects" },
-  { href: "/characters", name: "Characters", kind: "Image", badge: "Soon", desc: "Consistent characters", icon: "characters" },
-  { href: "/avatars", name: "Avatars", kind: "Video", badge: "Soon", desc: "Lipsync", icon: "avatars" },
-  { href: "/edit", name: "Edit", kind: "Image", badge: "Soon", desc: "Upscale and inpaint", icon: "edit" },
-  { href: "/audio", name: "Audio", kind: "Audio", badge: "Soon", desc: "Music and sound effects", icon: "audio" },
-  { href: "/editor", name: "Editor", kind: null, badge: "New", desc: "Cut, titles and music", icon: "export" },
-] as const satisfies readonly {
-  href: string;
-  name: string;
-  kind: string | null;
-  badge: "New" | "Soon" | null;
-  desc: string;
-  icon: IconName;
-}[];
+// Tiles come from the feature directory; roadmap entries stay off the home page.
+const TOOLS = FEATURES.filter((f) => f.group !== "roadmap");
 
 /** Section heading: expanded accent title, optional subtitle and action buttons. */
 function SectionHead({
@@ -70,8 +56,8 @@ function SectionHead({
   );
 }
 
-/** Small tool tile: icon and kind chip on top, name, badge and description below. */
-function ToolTile({ tool }: { tool: (typeof TOOLS)[number] }) {
+/** Small tool tile: icon on top, name, status tag and description below. */
+function ToolTile({ tool }: { tool: Feature }) {
   return (
     <Link
       href={tool.href}
@@ -79,22 +65,13 @@ function ToolTile({ tool }: { tool: (typeof TOOLS)[number] }) {
     >
       <div className="flex items-center justify-between">
         <Icon d={SECTION_ICONS[tool.icon]} className="h-5 w-5 text-t2" />
-        {tool.kind && <Badge variant="outline">{tool.kind}</Badge>}
       </div>
       <div>
         <b className="text-body font-semibold">
-          {tool.name}
-          {tool.badge && (
-            <Badge
-              size="sm"
-              variant={tool.badge === "New" ? "default" : "secondary"}
-              className="ml-1.5 align-middle"
-            >
-              {tool.badge}
-            </Badge>
-          )}
+          {tool.label}
+          <StatusBadge status={tool.status} className="ml-1.5 align-middle" />
         </b>
-        <span className="mt-0.5 block text-caption text-t3">{tool.desc}</span>
+        <span className="mt-0.5 block text-caption text-t3">{tool.description}</span>
       </div>
     </Link>
   );
@@ -180,7 +157,7 @@ export default function Home() {
 
       <SectionHead
         title="Trending presets"
-        sub="Camera moves on LTX 2.5, images on FLUX 3 Klein"
+        sub="Camera moves on LTX 2.5, images on FLUX.2 Klein"
         actions={[
           { label: "Start generating", href: "/camera", accent: true },
           { label: "All workflows", href: "/workflows" },
@@ -216,7 +193,7 @@ export default function Home() {
 
       <SectionHead
         title="Made with Comfy"
-        actions={[{ label: "See the showcase", href: "/community" }]}
+        actions={[{ label: "See the showcase", href: "/showcase" }]}
       />
       <CommunityGrid items={EXPLORE_MEDIA.slice(0, 8)} />
       <ExploreFooter presets={catalog} models={models} />

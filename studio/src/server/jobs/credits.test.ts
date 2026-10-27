@@ -80,19 +80,22 @@ describe("runtimeStats", () => {
 });
 
 describe("formatEstimate", () => {
-  it("shows the rate with no runs and the estimate with runs", () => {
-    expect(formatEstimate(undefined)).toBe("0.27 credits/s");
-    expect(formatEstimate({ kind: "gpu", count: 0, medianSeconds: null })).toBe("0.27 credits/s");
-    expect(formatEstimate({ kind: "gpu", count: 3, medianSeconds: 60 })).toBe(
-      `≈ ${Math.round(60 * GPU_CREDITS_PER_SECOND)} credits`,
+  it("bills by GPU time with no runs and per unit with runs", () => {
+    expect(formatEstimate(undefined, "image")).toBe("Billed by GPU time");
+    expect(formatEstimate({ kind: "gpu", count: 0, medianSeconds: null }, "clip")).toBe("Billed by GPU time");
+    expect(formatEstimate({ kind: "gpu", count: 3, medianSeconds: 60 }, "image")).toBe(
+      `≈ ${Math.round(60 * GPU_CREDITS_PER_SECOND)} credits per image`,
+    );
+    expect(formatEstimate({ kind: "gpu", count: 3, medianSeconds: 60 }, "clip")).toBe(
+      `≈ ${Math.round(60 * GPU_CREDITS_PER_SECOND)} credits per clip`,
     );
     expect(estimateTitle({ kind: "gpu", count: 3, medianSeconds: 60 })).toContain("3 runs");
   });
 
   it("shows Router prices without converting them from GPU seconds", () => {
-    expect(formatEstimate({ kind: "router", count: 0, medianCredits: null })).toBe("Priced per run");
-    expect(formatEstimate({ kind: "router", count: 3, medianCredits: 4.5 })).toBe("≈ 5 credits");
-    expect(formatEstimate({ kind: "router", count: 1, medianCredits: 0 })).toBe("≈ 0 credits");
+    expect(formatEstimate({ kind: "router", count: 0, medianCredits: null }, "image")).toBe("Priced per run");
+    expect(formatEstimate({ kind: "router", count: 3, medianCredits: 4.5 }, "clip")).toBe("≈ 5 credits per clip");
+    expect(formatEstimate({ kind: "router", count: 1, medianCredits: 0 }, "image")).toBe("≈ 0 credits per image");
   });
 });
 

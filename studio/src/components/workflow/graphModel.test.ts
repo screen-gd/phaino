@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   bindingTargets,
   fitView,
+  nodeDisplayName,
   normalizeGraph,
   slotPosition,
 } from "./graphModel";
@@ -52,6 +53,16 @@ describe("normalizeGraph", () => {
 
   it("returns null for an unknown subgraph id", () => {
     expect(normalizeGraph(workflow, "nope")).toBeNull();
+  });
+
+  it("names subgraph instances after their definition, not the UUID", () => {
+    const g = normalizeGraph(workflow);
+    const inst = g!.nodes.find((n) => n.subgraph);
+    expect(inst).toBeDefined();
+    const defName = workflow.definitions.subgraphs[0].name as string;
+    expect(inst!.subgraphName).toBe(defName);
+    expect(nodeDisplayName(inst!)).not.toBe(inst!.type);
+    expect(nodeDisplayName(inst!)).not.toContain(subgraphId);
   });
 });
 

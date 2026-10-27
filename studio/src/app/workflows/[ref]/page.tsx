@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { WorkflowView } from "@/components/workflow/WorkflowView";
 import { getPreset } from "@/server/presets/load";
@@ -8,6 +9,20 @@ type UiGraph = {
   nodes?: unknown[];
   definitions?: { subgraphs?: { nodes?: unknown[] }[] };
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ ref: string }>;
+}): Promise<Metadata> {
+  const { ref: id } = await params;
+  try {
+    const loaded = getPreset(id);
+    return { title: loaded?.preset.name ?? "Workflow" };
+  } catch {
+    return { title: "Workflow" };
+  }
+}
 
 export default async function WorkflowPage({
   params,
@@ -24,11 +39,26 @@ export default async function WorkflowPage({
     (ui.nodes?.length ?? 0) +
     (ui.definitions?.subgraphs?.reduce((n, s) => n + (s.nodes?.length ?? 0), 0) ?? 0);
 
+  const { preset } = loaded;
+  const source = preset.forkOf
+    ? (() => {
+        try {
+          const s = getPreset(preset.forkOf);
+          return s
+            ? { id: s.preset.id, name: s.preset.name, params: s.preset.params }
+            : null;
+        } catch {
+          return null;
+        }
+      })()
+    : null;
+
   return (
     <WorkflowView
-      preset={loaded.preset}
+      preset={preset}
       workflow={loaded.workflowUi}
       stats={{ nodes, subgraphs }}
+      source={source}
     />
   );
 }

@@ -13,6 +13,7 @@ import { Icon, SECTION_ICONS } from "@/components/icons";
 import {
   bindingTargets,
   fitView,
+  nodeDisplayName,
   normalizeGraph,
   slotPosition,
   type GLink,
@@ -64,18 +65,27 @@ function truncate(value: unknown, max = 40): string {
 export function WorkflowGraph({
   workflow,
   preset,
+  presetName,
   selection,
   onSelect,
   focus,
+  hoverPath,
+  onHoverPath,
   registerApi,
 }: {
   workflow: unknown;
   /** The preset (or a value with inputs/params/outputs) for bindings. */
   preset: Parameters<typeof bindingTargets>[0];
+  /** Root label of the graph breadcrumb. */
+  presetName: string;
   selection: GraphSelection | null;
   onSelect: (sel: GraphSelection | null) => void;
   /** Set a new {seq} to centre a binding path: [topId] or [instId, innerId]. */
   focus: FocusRequest | null;
+  /** Binding path hovered in the panel; highlights and pans to the node. */
+  hoverPath?: number[] | null;
+  /** Node path hovered on the canvas; highlights the matching panel rows. */
+  onHoverPath?: (path: number[] | null) => void;
   /** The panel registers an opener so the inspector can drill into subgraphs. */
   registerApi?: (api: { openSubgraph: (node: GNode) => void }) => void;
 }) {
@@ -174,6 +184,24 @@ export function WorkflowGraph({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focus]);
 
+  // Panel-hover pan, debounced so sweeping the list doesn't thrash. Panning
+  // is instant (no animation), so reduced motion needs no special case.
+  useEffect(() => {
+    if (!hoverPath) return;
+    const timer = window.setTimeout(() => {
+      const [top, inner] = hoverPath;
+      if (top === undefined) return;
+      if (subgraph) {
+        if (subgraph.instanceId === top && inner !== undefined) {
+          centreOn(model, inner);
+        }
+      } else {
+        centreOn(model, top);
+      }
+    }, 120);
+    return () => window.clearTimeout(timer);
+  }, [hoverPath, subgraph, model, centreOn]);
+
   // Esc clears the selection.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -257,7 +285,7 @@ export function WorkflowGraph({
     drag.current = null;
   };
 
-  const title = (n: GNode) => n.title ?? n.type;
+  const title = nodeDisplayName;
 
   return (
     <div className="flex h-full min-h-0 flex-col rounded-panel border border-line bg-[#000] overflow-hidden">
@@ -271,7 +299,7 @@ export function WorkflowGraph({
             }}
             className={`truncate ${subgraph ? "text-t3 hover:text-t1" : "text-t1 font-medium"}`}
           >
-            Workflow
+            {presetName}
           </button>
           {subgraph && (
             <>
@@ -368,6 +396,11 @@ export function WorkflowGraph({
               const isSelected = selection?.node.id === n.id;
               const boundLabels = bound.get(n.id);
               const highlighted = showControls && !!boundLabels;
+              const hovered = hoverPath
+                ? subgraph
+                  ? hoverPath[0] === subgraph.instanceId && hoverPath[1] === n.id
+                  : hoverPath[0] === n.id
+                : false;
               const dimmed = n.mode === 2 || n.mode === 4;
               const slotCount = Math.max(n.inputs.length, n.outputs.length);
               const widgetsY = n.pos[1] + 10 + slotCount * 20 + 10;
@@ -380,6 +413,10 @@ export function WorkflowGraph({
                     e.stopPropagation();
                     onSelect({ node: n, subgraph });
                   }}
+                  onMouseEnter={() =>
+                    onHoverPath?.(subgraph ? [subgraph.instanceId, n.id] : [n.id])
+                  }
+                  onMouseLeave={() => onHoverPath?.(null)}
                   onDoubleClick={(e) => {
                     e.stopPropagation();
                     if (isSub) openSubgraphCb(n);
@@ -404,9 +441,9 @@ export function WorkflowGraph({
                     rx={8}
                     fill={n.pseudo ? "#151515" : "var(--color-s2, #161616)"}
                     stroke={
-                      isSelected ? "#fff" : highlighted ? "#FF5B22" : "var(--color-line, #2a2a2a)"
+                      isSelected ? "#fff" : highlighted || hovered ? "#FF5B22" : "var(--color-line, #2a2a2a)"
                     }
-                    strokeWidth={isSelected || highlighted ? 2.5 : 1}
+                    strokeWidth={isSelected || highlighted || hovered ? 2.5 : 1}
                     strokeDasharray={n.pseudo ? "6 4" : undefined}
                   />
                   <line

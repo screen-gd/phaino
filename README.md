@@ -91,7 +91,7 @@ All variables live in `studio/.env.local` (copy `studio/.env.example`). The old 
 | `TRACKER_FILE` | Tracker data file (default `../tracker/tasks.json` from `studio/`) |
 | `PHAINO_DATA_DIR` | Local data folder (default `./.data` under `studio/`) |
 | `PHAINO_USER` | Local user name (default `local`) |
-| `PHAINO_SITE_URL` | Public origin for OG metadata (default `http://localhost:3000`) |
+| `NEXT_PUBLIC_SITE_URL` | Public origin for OG metadata (default `https://app.phaino.us.ci`; `PHAINO_SITE_URL` still works as a legacy fallback) |
 | `FFMPEG_PATH` | ffmpeg binary for sequence export (default `ffmpeg` on PATH) |
 | `FFPROBE_PATH` | ffprobe binary for sequence export (default `ffprobe` on PATH) |
 

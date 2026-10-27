@@ -62,7 +62,7 @@ export function ClipTile({
   const begin = (side: "left" | "right") => (e: React.PointerEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    e.currentTarget.setPointerCapture(e.pointerId);
     onTrimStart();
     setDrag({
       side,
@@ -93,7 +93,9 @@ export function ClipTile({
     if (!drag) return;
     const d = drag;
     setDrag(null);
-    (e.target as HTMLElement).releasePointerCapture?.(d.pid);
+    if (e.currentTarget.hasPointerCapture(d.pid)) {
+      e.currentTarget.releasePointerCapture(d.pid);
+    }
     if (d.startIn !== clip.in || d.startOut !== clip.out) onCommitTrim();
   };
 
@@ -161,7 +163,7 @@ export function ClipTile({
           }
         }}
         className={`relative block h-full w-full cursor-grab overflow-hidden rounded-lg border text-left ${
-          selected ? "ring-2 ring-ac border-ac" : "border-line"
+          selected ? "border-ac" : "border-line"
         } ${isDragging ? "opacity-60" : ""}`}
         aria-label={`Clip ${media.name}`}
       >

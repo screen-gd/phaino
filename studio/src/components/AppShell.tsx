@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { NavigationMenu } from "@base-ui/react/navigation-menu";
 import {
   Fragment,
-  useCallback,
   useEffect,
   useRef,
   useState,
@@ -158,22 +157,6 @@ export function AppShell({
   const [scrolled, setScrolled] = useState(false);
   // Slim on every page except Explore, where it stays scroll-driven.
   const compact = pathname !== "/" || scrolled;
-  const [openMenu, setOpenMenu] = useState<string | null>(null);
-
-  // A click-pinned menu still closes when the pointer leaves both the
-  // trigger and the popup (after the same 150ms grace Base UI uses).
-  const closeTimer = useRef<number | null>(null);
-  const scheduleClose = useCallback(() => {
-    if (closeTimer.current) clearTimeout(closeTimer.current);
-    closeTimer.current = window.setTimeout(() => setOpenMenu(null), 150);
-  }, []);
-  const cancelClose = useCallback(() => {
-    if (closeTimer.current) {
-      clearTimeout(closeTimer.current);
-      closeTimer.current = null;
-    }
-  }, []);
-  useEffect(() => cancelClose, [cancelClose]);
 
   useEffect(() => {
     const root = mainRef.current;
@@ -204,8 +187,6 @@ export function AppShell({
         <NavigationMenu.Root
           aria-label="Sections"
           closeDelay={150}
-          value={openMenu}
-          onValueChange={(value) => setOpenMenu(value)}
           onWheel={(e) => {
             // A plain mouse wheel only sends deltaY; turn it into a sideways scroll.
             if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
@@ -231,8 +212,6 @@ export function AppShell({
                         key={s.href}
                         value={s.href}
                         className="relative z-10 flex h-9 shrink-0 items-stretch group-data-[compact=true]:h-7"
-                        onPointerEnter={cancelClose}
-                        onPointerLeave={scheduleClose}
                       >
                         {isMenu ? (
                           <>
@@ -304,8 +283,6 @@ export function AppShell({
             >
               <NavigationMenu.Popup
                 className="nav-popup rounded-2xl border border-line bg-s2"
-                onPointerEnter={cancelClose}
-                onPointerLeave={scheduleClose}
               >
                 <NavigationMenu.Viewport className="relative h-full w-full overflow-hidden" />
               </NavigationMenu.Popup>

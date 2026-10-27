@@ -227,6 +227,12 @@ export function useStudio(
     if (res.ok) setJob(((await res.json()) as { job: StudioJob }).job);
   }, [job]);
 
+  /** Dismiss the active job card back to the empty stage. */
+  const clearJob = useCallback(() => {
+    esRef.current?.close();
+    setJob(null);
+  }, []);
+
   // The main prompt must be non-empty unless a required image input can
   // drive the run on its own (camera moves).
   const promptKey = preset ? mainPromptKey(preset.params) : undefined;
@@ -255,6 +261,7 @@ export function useStudio(
     error,
     job,
     setJob: selectJob,
+    clearJob,
     recent: demo.enabled ? demo.jobs.filter((row) => row.category === category) : recent,
     submit,
     cancel,

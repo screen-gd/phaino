@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Icon, type IconName } from "../icons";
+import { Icon, SECTION_ICONS, type IconName } from "../icons";
 import { AddToSequence } from "@/components/sequence/AddToSequence";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EstimateCaption } from "../studio/CreditEstimate";
-import { RecentGrid, STATUS_BADGE, isVideoPath } from "../studio/JobViews";
+import { HistoryRail } from "../studio/HistoryRail";
+import { STATUS_BADGE, isVideoPath } from "../studio/JobViews";
 import { AdvancedDisclosure, ParamChip } from "../studio/ParamControls";
 import { UploadCard } from "../studio/UploadCard";
 import { useStudio } from "../studio/useStudio";
@@ -34,12 +35,14 @@ function EditJobCard({
   toolId,
   sourceUploadId,
   onCancel,
+  onNewEdit,
 }: {
   job: StudioJob;
   sourceUrl?: string;
   toolId: string;
   sourceUploadId?: string;
   onCancel: () => void;
+  onNewEdit: () => void;
 }) {
   const output = job.outputs[0];
   const isVideo = output ? isVideoPath(output) : false;
@@ -66,7 +69,7 @@ function EditJobCard({
   };
 
   return (
-    <div className="rounded-panel border border-line bg-s1 p-4">
+    <div className="w-full max-w-[1100px] rounded-panel border border-line bg-s1 p-4">
       <div className="flex items-center justify-between gap-3">
         <Badge variant={STATUS_BADGE[job.status].variant}>
           {STATUS_BADGE[job.status].label}
@@ -91,16 +94,28 @@ function EditJobCard({
         </div>
       )}
       {job.status === "failed" && (
-        <p className="mt-3 text-body text-destructive">
-          {job.error ?? "Generation failed"}
-        </p>
+        <div className="mt-3 flex items-start justify-between gap-3">
+          <p className="text-body text-destructive">
+            {job.error ?? "Generation failed"}
+          </p>
+          <Button variant="ghost" size="xs" onClick={onNewEdit}>
+            New edit
+          </Button>
+        </div>
+      )}
+      {job.status === "cancelled" && (
+        <div className="mt-3">
+          <Button variant="ghost" size="xs" onClick={onNewEdit}>
+            New edit
+          </Button>
+        </div>
       )}
       {job.status === "succeeded" && output && (
         <div className="mt-3">
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             {sourceUrl && (
               <div>
-                <span className="mb-1 block text-[10px] uppercase text-t3">
+                <span className="mb-1 block text-caption text-t3">
                   Source
                 </span>
                 <video
@@ -114,7 +129,7 @@ function EditJobCard({
               </div>
             )}
             <div>
-              <span className="mb-1 block text-[10px] uppercase text-t3">
+              <span className="mb-1 block text-caption text-t3">
                 Result
               </span>
               <video
@@ -139,6 +154,9 @@ function EditJobCard({
             <Button variant="ghost" size="xs" render={<Link href="/library" />}>
               Library
             </Button>
+            <Button variant="ghost" size="xs" onClick={onNewEdit}>
+              New edit
+            </Button>
             {toolId === "extend" && sourceUploadId && (
               <Button
                 variant="outline"
@@ -156,7 +174,7 @@ function EditJobCard({
   );
 }
 
-/** The /edit studio: tool list + form on the left, result + history right. */
+/** The /edit studio: stage-first layout matching the video studio. */
 export function EditStudio({
   tools,
   presets,
@@ -258,211 +276,222 @@ export function EditStudio({
     router.replace(`?tool=${id}`, { scroll: false });
   };
 
+  const imageInputs =
+    preset?.inputs.filter((i) => i.type === "image") ?? [];
+
   return (
-    <div className="grid h-full grid-cols-[320px_minmax(0,1fr)] gap-2 px-4 pb-4">
-      <aside className="flex max-h-full flex-col self-start overflow-hidden rounded-panel border border-line bg-s1">
-        <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
-          <div className="flex h-12 items-stretch px-1">
-            <span className="flex items-center text-body font-semibold text-t1">
-              Edit Video
-            </span>
+    <div className="grid h-full grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)_auto] lg:grid-cols-[minmax(0,1fr)_320px] lg:grid-rows-none">
+      <section className="flex min-h-0 min-w-0 flex-col px-6 pt-5 pb-5">
+        <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
+          {tool && (
+            <div>
+              <h1 className="font-display text-h3 font-extrabold uppercase text-t1 font-stretch-[112.5%]">
+                {tool.label}
+              </h1>
+              <p className="mt-1 text-body text-t3">{tool.description}</p>
+            </div>
+          )}
+
+          <div
+            className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto py-4"
+            style={{ containerType: "size" }}
+          >
+            {s.job ? (
+              <EditJobCard
+                job={s.job}
+                sourceUrl={video?.previewUrl}
+                toolId={tool?.id ?? ""}
+                sourceUploadId={video?.uploadId}
+                onCancel={() => void s.cancel()}
+                onNewEdit={s.clearJob}
+              />
+            ) : (
+              <div
+                className="flex flex-col items-center gap-2"
+                style={{
+                  width: "min(100cqw, 960px, calc((100cqh - 24px) * 16 / 9))",
+                }}
+              >
+                <VideoPicker
+                  uploaded={video}
+                  onUploaded={(u) => s.setUploaded("video", u)}
+                  onClear={() => s.clearUploaded("video")}
+                />
+                {tool?.maxSeconds != null && tool.maxSeconds > 0 && (
+                  <p className="text-caption text-t3">
+                    Uses the first {tool.maxSeconds}s.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
-          <div className="grid gap-1">
+          <div className="mb-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {tools.map((t) => (
               <button
                 key={t.id}
                 type="button"
                 onClick={() => selectTool(t.id)}
-                className={`flex items-center gap-2.5 rounded-xl border px-2.5 py-2 text-left transition-colors ${
+                aria-pressed={t.id === tool?.id}
+                className={`flex h-9 shrink-0 items-center gap-2 rounded-full border px-3 text-body whitespace-nowrap ${
                   t.id === tool?.id
-                    ? "border-ac bg-s2"
-                    : "border-transparent hover:bg-s2"
+                    ? "border-ac text-t1"
+                    : "border-line text-t2 hover:text-t1"
                 }`}
               >
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-s3 text-t2">
-                  <Icon d={t.icon} className="h-4 w-4" />
-                </span>
-                <span className="min-w-0">
-                  <span className="block truncate text-[13px] font-semibold text-t1">
-                    {t.label}
-                  </span>
-                  <span className="block truncate text-[11px] text-t3">
-                    {t.description}
-                  </span>
-                </span>
+                <Icon d={SECTION_ICONS[t.icon]} className="h-4 w-4" />
+                {t.label}
               </button>
             ))}
           </div>
 
-          {tool && (
-            <div className="flex flex-col gap-2 border-t border-line pt-2">
-              <VideoPicker
-                uploaded={video}
-                onUploaded={(u) => s.setUploaded("video", u)}
-                onClear={() => s.clearUploaded("video")}
-              />
-              {tool.maxSeconds && (
-                <p className="px-1 text-[11px] text-t3">
-                  Uses the first {tool.maxSeconds}s.
-                </p>
-              )}
-
-              {preset?.inputs
-                .filter((i) => i.type === "image")
-                .map((i) => (
-                  <UploadCard
-                    key={i.key}
-                    label={i.label}
-                    required={i.required}
-                    uploaded={s.uploads[i.key]}
-                    onUploaded={(u) => s.setUploaded(i.key, u)}
-                    onClear={() => s.clearUploaded(i.key)}
-                  />
-                ))}
-
-              {isExtend ? (
-                <>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {extendModels.map((m) => (
-                      <button
-                        key={m.id}
-                        type="button"
-                        onClick={() => setExtendModel(m.id)}
-                        className={`rounded-lg border px-2 py-1.5 text-left text-[12px] font-medium ${
-                          m.id === extendModel
-                            ? "border-ac text-t1"
-                            : "border-line text-t3 hover:text-t1"
-                        }`}
-                      >
-                        {m.label}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="rounded-xl bg-white/5 p-2.5">
-                    <label className="mb-1 block text-caption text-t3">
-                      Prompt
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={extendPrompt}
-                      placeholder="Continue the shot"
-                      onChange={(e) => setExtendPrompt(e.target.value)}
-                      className="w-full resize-none bg-transparent text-body text-t1 outline-none placeholder:text-t3"
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  {textParams.map((param) => (
-                    <div key={param.key} className="rounded-xl bg-white/5 p-2.5">
+          <div className="rounded-panel border border-line bg-s1 p-3">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
+              <div className="flex min-w-0 flex-1 flex-col gap-3">
+                {isExtend ? (
+                  <>
+                    <div className="flex flex-wrap gap-1.5">
+                      {extendModels.map((m) => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => setExtendModel(m.id)}
+                          className={`rounded-lg border px-2 py-1.5 text-left text-[12px] font-medium ${
+                            m.id === extendModel
+                              ? "border-ac text-t1"
+                              : "border-line text-t3 hover:text-t1"
+                          }`}
+                        >
+                          {m.label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="rounded-xl bg-white/5 p-2.5">
                       <label className="mb-1 block text-caption text-t3">
-                        {param.label}
+                        Prompt
                       </label>
                       <textarea
-                        rows={param.key.toLowerCase().includes("prompt") ? 3 : 1}
-                        value={String(s.values[param.key] ?? param.default)}
-                        placeholder={param.placeholder}
-                        onChange={(e) => s.setValue(param.key, e.target.value)}
+                        rows={3}
+                        value={extendPrompt}
+                        placeholder="Continue the shot"
+                        onChange={(e) => setExtendPrompt(e.target.value)}
                         className="w-full resize-none bg-transparent text-body text-t1 outline-none placeholder:text-t3"
                       />
                     </div>
-                  ))}
-                  {chipParams.length > 0 && (
-                    <div className="grid grid-cols-2 gap-2">
-                      {chipParams.map((param) => (
-                        <ParamChip
-                          key={param.key}
-                          param={param}
-                          value={
-                            param.type === "seed"
-                              ? s.randomSeed
-                                ? "random"
-                                : Number(s.values[param.key] ?? 0)
-                              : s.values[param.key]
-                          }
-                          randomSeed={s.randomSeed}
-                          onChange={(v) => s.setValue(param.key, v)}
-                          onRandomSeed={s.setRandomSeed}
-                          variant="panel"
-                          side="top"
+                  </>
+                ) : (
+                  <>
+                    {textParams.map((param) => (
+                      <div key={param.key} className="rounded-xl bg-white/5 p-2.5">
+                        <label className="mb-1 block text-caption text-t3">
+                          {param.label}
+                        </label>
+                        <textarea
+                          rows={param.key.toLowerCase().includes("prompt") ? 3 : 1}
+                          value={String(s.values[param.key] ?? param.default)}
+                          placeholder={param.placeholder}
+                          onChange={(e) => s.setValue(param.key, e.target.value)}
+                          className="w-full resize-none bg-transparent text-body text-t1 outline-none placeholder:text-t3"
                         />
-                      ))}
-                    </div>
-                  )}
-                  <AdvancedDisclosure
-                    params={advancedParams}
-                    values={s.values}
-                    randomSeed={s.randomSeed}
-                    onChange={(key, v) => s.setValue(key, v)}
-                    onRandomSeed={s.setRandomSeed}
-                  />
-                </>
-              )}
-            </div>
-          )}
-        </div>
+                      </div>
+                    ))}
+                    {imageInputs.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {imageInputs.map((i) => (
+                          <UploadCard
+                            key={i.key}
+                            label={i.label}
+                            required={i.required}
+                            uploaded={s.uploads[i.key]}
+                            onUploaded={(u) => s.setUploaded(i.key, u)}
+                            onClear={() => s.clearUploaded(i.key)}
+                            compact
+                          />
+                        ))}
+                      </div>
+                    )}
+                    {chipParams.length > 0 && (
+                      <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+                        {chipParams.map((param) => (
+                          <ParamChip
+                            key={param.key}
+                            param={param}
+                            value={
+                              param.type === "seed"
+                                ? s.randomSeed
+                                  ? "random"
+                                  : Number(s.values[param.key] ?? 0)
+                                : s.values[param.key]
+                            }
+                            randomSeed={s.randomSeed}
+                            onChange={(v) => s.setValue(param.key, v)}
+                            onRandomSeed={s.setRandomSeed}
+                            variant="panel"
+                            side="top"
+                          />
+                        ))}
+                      </div>
+                    )}
+                    <AdvancedDisclosure
+                      params={advancedParams}
+                      values={s.values}
+                      randomSeed={s.randomSeed}
+                      onChange={(key, v) => s.setValue(key, v)}
+                      onRandomSeed={s.setRandomSeed}
+                    />
+                  </>
+                )}
+              </div>
 
-        <div className="flex flex-col gap-1.5 border-t border-line p-2">
-          {health && health.status !== "ok" && (
-            <p className="text-xs text-t3">
-              Comfy Cloud is not connected.{" "}
-              <Link href="/settings" className="text-t1 underline underline-offset-2">
-                Settings
-              </Link>
-            </p>
-          )}
-          {(s.error || extendError) && (
-            <p className="text-xs text-destructive">{s.error ?? extendError}</p>
-          )}
-          {preset && (
-            <div className="flex justify-end">
-              <EstimateCaption stats={preset.estimate} partner={preset.partner} />
+              <div className="flex w-full flex-col gap-1.5 lg:w-[200px] lg:shrink-0">
+                {health && health.status !== "ok" && (
+                  <p className="text-xs text-t3">
+                    Comfy Cloud is not connected.{" "}
+                    <Link
+                      href="/settings"
+                      className="text-t1 underline underline-offset-2"
+                    >
+                      Settings
+                    </Link>
+                  </p>
+                )}
+                {(s.error || extendError) && (
+                  <p className="text-xs text-destructive">
+                    {s.error ?? extendError}
+                  </p>
+                )}
+                {preset && (
+                  <div className="flex justify-end">
+                    <EstimateCaption
+                      stats={preset.estimate}
+                      partner={preset.partner}
+                    />
+                  </div>
+                )}
+                <Button
+                  className="h-12 w-full rounded-xl text-[15px] font-semibold"
+                  loading={s.submitting || extendBusy}
+                  disabled={!ready || s.submitting || extendBusy}
+                  onClick={() =>
+                    isExtend ? void submitExtend() : void s.submit()
+                  }
+                >
+                  Generate
+                </Button>
+              </div>
             </div>
-          )}
-          <Button
-            className="h-12 w-full rounded-xl text-[15px] font-semibold"
-            loading={s.submitting || extendBusy}
-            disabled={!ready || s.submitting || extendBusy}
-            onClick={() =>
-              isExtend ? void submitExtend() : void s.submit()
-            }
-          >
-            Generate
-          </Button>
-        </div>
-      </aside>
-
-      <section className="flex min-h-0 flex-col overflow-hidden rounded-panel border border-line bg-s1">
-        <div className="min-h-0 flex-1 overflow-y-auto p-3">
-          {s.job ? (
-            <EditJobCard
-              job={s.job}
-              sourceUrl={video?.previewUrl}
-              toolId={tool?.id ?? ""}
-              sourceUploadId={video?.uploadId}
-              onCancel={() => void s.cancel()}
-            />
-          ) : (
-            <div className="grid h-full place-items-center">
-              <p className="text-center text-t3">
-                Pick a tool, drop a video, Generate.
-              </p>
-            </div>
-          )}
-          {s.recent.length > 0 && (
-            <div className="mt-4">
-              <span className="mb-2 block text-caption text-t3">History</span>
-              <RecentGrid
-                recent={s.recent}
-                presets={presets}
-                activeId={s.job?.id}
-                onSelect={(row) => s.setJob(row)}
-              />
-            </div>
-          )}
+          </div>
         </div>
       </section>
+
+      <HistoryRail
+        jobs={s.recent}
+        job={s.job}
+        presets={presets}
+        activeId={s.job?.id}
+        onSelect={s.setJob}
+        aspect="wide"
+      />
     </div>
   );
 }

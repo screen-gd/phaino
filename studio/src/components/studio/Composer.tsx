@@ -132,6 +132,7 @@ export function Composer({
             <button
               key={o.key}
               type="button"
+              aria-pressed={o.key === modes.value}
               onClick={() => modes.onChange(o.key)}
               className={`rounded-[6px] px-2.5 py-1 text-caption font-medium whitespace-nowrap ${
                 o.key === modes.value

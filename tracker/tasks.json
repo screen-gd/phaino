@@ -650,7 +650,13 @@
         {
           "id": "polish-pass-1",
           "title": "Polish pass: nav, settings, workflow viewer, showcase, fixes",
-          "status": "doing"
+          "status": "done"
+        },
+        {
+          "id": "explore-home",
+          "title": "Explore homepage: workbench hero, filmstrip, controls-graph, forks, pipeline, models",
+          "status": "done",
+          "notes": "Phase 2: replaced home page with darkroom/editorial Explore. New components/home: GraphPreview (server SVG), HeroReveal (split video/graph reveal + drop-a-still composer), MoveFilmstrip (7 motion-path frames), ControlsToGraph (mock controls -> subgraph node highlight), ForkList, Pipeline (FCPXML sample), ModelSheet, HomeFooter. pendingStill/uploadStill share the upload path; useStudio consumes it on mount. Removed ExploreCarousel/ExploreBanner/CloudPromo/ExploreFooter/FooterDither/FooterWordmark/ToolPreview. WorkflowView memoizes graph lookups; Composer mode buttons are aria-pressed. Lint/typecheck/build pass; tests pass except known fcpxml drive-letter snapshot."
         }
       ]
     }

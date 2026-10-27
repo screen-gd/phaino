@@ -3,6 +3,7 @@
 import { useRef, useState, type DragEvent } from "react";
 import { Icon, SECTION_ICONS } from "../icons";
 import type { Uploaded } from "./useStudio";
+import { uploadStill } from "./uploadStill";
 import { useDemo } from "@/components/DemoProvider";
 
 /** Drop card for one image input: 120px default, 64px tile with compact. */
@@ -27,32 +28,12 @@ export function UploadCard({
   const [drag, setDrag] = useState(false);
 
   async function upload(file: File) {
-    if (demo.enabled) {
-      if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          onUploaded({ uploadId: crypto.randomUUID(), previewUrl: reader.result, name: file.name });
-        }
-      };
-      reader.readAsDataURL(file);
-      return;
-    }
-    setBusy(true);
+    if (!demo.enabled) setBusy(true);
     try {
-      const form = new FormData();
-      form.append("file", file);
-      const res = await fetch("/api/uploads", { method: "POST", body: form });
-      const data = await res.json();
-      if (res.ok) {
-        onUploaded({
-          uploadId: data.uploadId,
-          previewUrl: data.previewUrl,
-          name: file.name,
-        });
-      }
+      const u = await uploadStill(file, { demo: demo.enabled });
+      if (u) onUploaded(u);
     } finally {
-      setBusy(false);
+      if (!demo.enabled) setBusy(false);
     }
   }
 

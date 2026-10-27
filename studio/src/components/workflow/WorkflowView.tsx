@@ -14,6 +14,7 @@ import {
   nodeDisplayName,
   normalizeGraph,
   type GNode,
+  type GraphModel,
 } from "./graphModel";
 import type { ListedPreset } from "@/server/presets/load";
 import {
@@ -35,13 +36,22 @@ const MODE_LABELS: Record<number, string> = {
   4: "Bypassed",
 };
 
-function targetNode(workflow: unknown, path: number[]): GNode | null {
-  const top = normalizeGraph(workflow);
-  const topNode = top?.nodes.find((n) => n.id === path[0]);
+type GraphCache = {
+  top: GraphModel | null;
+  /** Subgraph models keyed by definition id, filled once per workflow. */
+  inner: Map<string, GraphModel | null>;
+};
+
+function targetNode(cache: GraphCache, path: number[]): GNode | null {
+  const topNode = cache.top?.nodes.find((n) => n.id === path[0]);
   if (!topNode) return null;
-  if (path.length < 2 || path[1] === undefined) return topNode;
-  const inner = normalizeGraph(workflow, topNode.subgraph);
-  return inner?.nodes.find((n) => n.id === path[1]) ?? null;
+  if (path.length < 2 || path[1] === undefined || !topNode.subgraph) {
+    return topNode;
+  }
+  return (
+    cache.inner.get(topNode.subgraph)?.nodes.find((n) => n.id === path[1]) ??
+    null
+  );
 }
 
 /** The class label under a control name: node type, or Subgraph + name. */
@@ -77,6 +87,20 @@ export function WorkflowView({
   const focusSeq = useRef(0);
 
   const targets = useMemo(() => bindingTargets(preset), [preset]);
+
+  // The top graph plus every subgraph the controls point into, normalized
+  // once per workflow so row renders and hovers only do Map lookups.
+  const graphs = useMemo<GraphCache>(() => {
+    const top = normalizeGraph(workflow);
+    const inner = new Map<string, GraphModel | null>();
+    for (const t of targets) {
+      const node = top?.nodes.find((n) => n.id === t.path[0]);
+      if (node?.subgraph && !inner.has(node.subgraph)) {
+        inner.set(node.subgraph, normalizeGraph(workflow, node.subgraph));
+      }
+    }
+    return { top, inner };
+  }, [workflow, targets]);
 
   const focusTarget = (path: number[]) => {
     focusSeq.current += 1;
@@ -252,7 +276,7 @@ export function WorkflowView({
           <h2 className="mb-2 text-caption font-medium text-t3">Controls</h2>
           <ul className="grid gap-0.5">
             {targets.map((t) => {
-              const node = targetNode(workflow, t.path);
+              const node = targetNode(graphs, t.path);
               const classText = targetClassText(node, t.path);
               const detail =
                 node?.title && node.title !== classText

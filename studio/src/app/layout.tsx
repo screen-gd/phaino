@@ -7,8 +7,11 @@ import type { ReactNode } from "react";
 import { AppShell } from "@/components/AppShell";
 import { DemoProvider } from "@/components/DemoProvider";
 import { isDemoMode } from "@/lib/demo-mode";
+import { buildNavMenus } from "@/components/navMenus";
 import { getEnv } from "@/server/env";
 import { getGitHubStars } from "@/server/github";
+import { toStudioModels } from "@/server/models/view";
+import { listPresets } from "@/server/presets/load";
 
 const DESCRIPTION =
   "Open-source AI video and image studio on Comfy Cloud. Every shot opens as a ComfyUI workflow.";
@@ -27,12 +30,16 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
+  const menus = buildNavMenus(listPresets(), [
+    ...toStudioModels("image"),
+    ...toStudioModels("video"),
+  ]);
   const stars = await getGitHubStars();
   return (
     <html lang="en" className="dark">
       <body>
         <DemoProvider enabled={isDemoMode()}>
-          <AppShell stars={stars}>{children}</AppShell>
+          <AppShell menus={menus} stars={stars}>{children}</AppShell>
         </DemoProvider>
       </body>
     </html>

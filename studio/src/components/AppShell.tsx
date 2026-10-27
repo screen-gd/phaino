@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NavigationMenu } from "@base-ui/react/navigation-menu";
 import {
+  Fragment,
   useEffect,
   useRef,
   useState,
@@ -14,7 +15,8 @@ import { MobileNav } from "./MobileNav";
 import { GitHubIcon, Icon, SECTION_ICONS } from "./icons";
 import { formatStars } from "@/lib/stars";
 import { PhainoMark } from "./Logo";
-import { featuresIn } from "@/lib/features";
+import type { MenuRow, NavMenus, TwoColumnMenu } from "./navMenus";
+import { SECTIONS } from "./sections";
 import { StatusBadge } from "./StatusBadge";
 import { Button } from "@/components/ui/button";
 import { useDemo } from "./DemoProvider";
@@ -24,46 +26,126 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+const GROUPS = ["core", "studio"] as const;
+const MENU_HREFS = new Set(["/image", "/video", "/camera"]);
+
 const GROW =
   "transition-[height,padding,font-size] duration-200 ease-out motion-reduce:transition-none";
 
-const CREATE_FEATURES = featuresIn("create");
-const PRIMARY_FEATURES = featuresIn("primary");
-/** Create dropdown: the create features with icon, description and status. */
-function CreatePanel() {
+/** One Features row: 16px icon + title, 36px tall. Soon rows stay muted. */
+function FeatureRowLink({ row }: { row: MenuRow }) {
+  const soon = row.status === "soon";
   return (
-    <ul className="grid w-[320px] max-w-[calc(100vw-24px)] gap-0.5 p-2">
-      {CREATE_FEATURES.map((f) => (
-        <li key={f.id}>
-          <NavigationMenu.Link
-            render={<Link href={f.href} />}
-            closeOnClick
-            className="flex items-center gap-2.5 rounded-lg p-2 text-left hover:bg-s3 focus-visible:bg-s3"
-          >
-            <span className="flex h-4 w-4 flex-none items-center justify-center text-t3">
-              <Icon d={SECTION_ICONS[f.icon]} className="h-4 w-4" />
-            </span>
-            <span className="min-w-0">
-              <span className="flex items-center gap-1.5 text-body font-medium text-t1">
-                {f.label}
-                <StatusBadge status={f.status} />
-              </span>
-              <span className="block truncate text-caption text-t3">
-                {f.description}
-              </span>
-            </span>
-          </NavigationMenu.Link>
-        </li>
-      ))}
-    </ul>
+    <li>
+      <NavigationMenu.Link
+        render={<Link href={row.href} />}
+        closeOnClick
+        className={`flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-left text-body ${
+          soon
+            ? "text-t3 hover:text-t2"
+            : "text-t2 hover:bg-s3 hover:text-t1 focus-visible:bg-s3 focus-visible:text-t1"
+        }`}
+      >
+        <span className="flex h-4 w-4 flex-none items-center justify-center text-t3">
+          {row.icon && <Icon d={SECTION_ICONS[row.icon]} className="h-4 w-4" />}
+        </span>
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span className="truncate">{row.title}</span>
+          {row.status && <StatusBadge status={row.status} />}
+        </span>
+      </NavigationMenu.Link>
+    </li>
   );
+}
+
+/** One Models row: title only, 32px tall. */
+function ModelRowLink({ row }: { row: MenuRow }) {
+  return (
+    <li>
+      <NavigationMenu.Link
+        render={<Link href={row.href} />}
+        closeOnClick
+        className="flex h-8 items-center rounded-lg px-2.5 text-body text-t2 hover:bg-s3 hover:text-t1 focus-visible:bg-s3 focus-visible:text-t1"
+      >
+        <span className="truncate">{row.title}</span>
+      </NavigationMenu.Link>
+    </li>
+  );
+}
+
+/** Image/Video dropdown: compact Features + Models columns. */
+function TwoColumnPanel({ menu }: { menu: TwoColumnMenu }) {
+  const models = menu.models.slice(0, 8);
+  return (
+    <div className="grid max-h-[420px] w-[520px] max-w-[calc(100vw-24px)] grid-cols-[180px_1fr] gap-x-2 overflow-y-auto p-3">
+      <div>
+        <h4 className="mb-1 px-2 text-caption text-t3">Features</h4>
+        <ul className="grid gap-0.5">
+          {menu.features.map((row) => (
+            <FeatureRowLink key={row.title} row={row} />
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h4 className="mb-1 px-2 text-caption text-t3">Models</h4>
+        <ul className="grid gap-0.5">
+          {models.map((row) => (
+            <ModelRowLink key={row.title} row={row} />
+          ))}
+          {menu.models.length > models.length && (
+            <ModelRowLink
+              row={{ title: "All models", href: "/workflows", description: "" }}
+            />
+          )}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+/** Camera moves dropdown: 2-column grid of compact thumb rows. */
+function CameraPanel({ items }: { items: MenuRow[] }) {
+  return (
+    <div className="grid w-[520px] max-w-[calc(100vw-24px)] grid-cols-2 gap-1 p-3">
+      {items.map((row) => (
+        <NavigationMenu.Link
+          key={row.href}
+          render={<Link href={row.href} />}
+          closeOnClick
+          className="group/row flex items-center gap-2.5 rounded-lg p-1.5 text-left hover:bg-s3 focus-visible:bg-s3"
+        >
+          {row.thumb && (
+            <img
+              src={row.thumb}
+              alt=""
+              className="aspect-video w-16 flex-none rounded-md border border-line object-cover"
+            />
+          )}
+          <span className="min-w-0 self-center">
+            <b className="block truncate text-body font-semibold text-t1">
+              {row.title}
+            </b>
+          </span>
+        </NavigationMenu.Link>
+      ))}
+    </div>
+  );
+}
+
+function menuContent(href: string, menus: NavMenus): ReactNode {
+  if (href === "/image") return <TwoColumnPanel menu={menus.image} />;
+  if (href === "/video") return <TwoColumnPanel menu={menus.video} />;
+  if (href === "/camera") return <CameraPanel items={menus.camera} />;
+  return null;
 }
 
 export function AppShell({
   children,
+  menus,
   stars,
 }: {
   children: ReactNode;
+  menus: NavMenus;
   stars?: number | null;
 }) {
   const demo = useDemo();
@@ -73,9 +155,6 @@ export function AppShell({
   const [scrolled, setScrolled] = useState(false);
   // Slim on every page except Explore, where it stays scroll-driven.
   const compact = pathname !== "/" || scrolled;
-  const createActive = CREATE_FEATURES.some((f) =>
-    isActive(pathname, f.href),
-  );
 
   useEffect(() => {
     const root = mainRef.current;
@@ -115,53 +194,73 @@ export function AppShell({
         >
           <div className="relative w-max min-w-full">
             <NavigationMenu.List className="flex list-none gap-0.5 p-0">
-              <NavigationMenu.Item
-                value="create"
-                className="relative z-10 flex h-9 shrink-0 items-stretch group-data-[compact=true]:h-7"
-              >
-                <NavigationMenu.Trigger
-                  className={`flex h-full items-center gap-1.5 px-3 font-wordmark font-semibold text-body whitespace-nowrap ${GROW} ${
-                    createActive
-                      ? "text-ac"
-                      : "text-t2 hover:text-t1 data-[popup-open]:text-t1"
-                  }`}
-                >
-                  Create
-                  <NavigationMenu.Icon className="flex items-center transition-transform duration-200 ease-out motion-reduce:transition-none data-[popup-open]:rotate-180">
-                    <Icon
-                      d={SECTION_ICONS.chevronDown}
-                      className="h-3 w-3"
+              {GROUPS.map((g, gi) => (
+                <Fragment key={g}>
+                  {gi > 0 && (
+                    <li
+                      aria-hidden="true"
+                      className="mx-1.5 h-4 w-px shrink-0 self-center bg-line"
                     />
-                  </NavigationMenu.Icon>
-                </NavigationMenu.Trigger>
-                <NavigationMenu.Content className="nav-content">
-                  <CreatePanel />
-                </NavigationMenu.Content>
-              </NavigationMenu.Item>
-              {PRIMARY_FEATURES.map((f) => {
-                const active = isActive(pathname, f.href);
-                return (
-                  <NavigationMenu.Item
-                    key={f.id}
-                    value={f.id}
-                    className="relative z-10 flex h-9 shrink-0 items-stretch group-data-[compact=true]:h-7"
-                  >
-                    <NavigationMenu.Link
-                      render={<Link href={f.href} />}
-                      closeOnClick
-                      aria-current={active ? "page" : undefined}
-                      className={`flex h-full items-center px-3 font-wordmark font-semibold text-body whitespace-nowrap ${GROW} ${
-                        active
-                          ? "text-ac"
-                          : "text-t2 hover:text-t1"
-                      }`}
-                    >
-                      {f.label}
-                      <StatusBadge status={f.status} className="ml-1.5" />
-                    </NavigationMenu.Link>
-                  </NavigationMenu.Item>
-                );
-              })}
+                  )}
+                  {SECTIONS.filter((s) => s.group === g).map((s) => {
+                    const soon = s.status === "soon";
+                    const active = !soon && isActive(pathname, s.href);
+                    const isMenu = MENU_HREFS.has(s.href);
+                    return (
+                      <NavigationMenu.Item
+                        key={s.label}
+                        value={s.label}
+                        className="relative z-10 flex h-9 shrink-0 items-stretch group-data-[compact=true]:h-7"
+                      >
+                        {isMenu ? (
+                          <>
+                            <NavigationMenu.Trigger
+                              className={`flex h-full items-center gap-1.5 px-3 font-wordmark font-semibold text-body whitespace-nowrap ${GROW} ${
+                                active
+                                  ? "text-ac"
+                                  : "text-t2 hover:text-t1 data-[popup-open]:text-t1"
+                              }`}
+                            >
+                              {s.label}
+                              {s.status && <StatusBadge status={s.status} />}
+                              <NavigationMenu.Icon className="flex items-center transition-transform duration-200 ease-out motion-reduce:transition-none data-[popup-open]:rotate-180">
+                                <Icon
+                                  d={SECTION_ICONS.chevronDown}
+                                  className="h-3 w-3"
+                                />
+                              </NavigationMenu.Icon>
+                            </NavigationMenu.Trigger>
+                            <NavigationMenu.Content className="nav-content">
+                              {menuContent(s.href, menus)}
+                            </NavigationMenu.Content>
+                          </>
+                        ) : (
+                          <NavigationMenu.Link
+                            render={<Link href={s.href} />}
+                            closeOnClick
+                            aria-current={active ? "page" : undefined}
+                            className={`flex h-full items-center px-3 font-wordmark font-semibold text-body whitespace-nowrap ${GROW} ${
+                              soon
+                                ? "text-t3 hover:text-t2"
+                                : active
+                                  ? "text-ac"
+                                  : "text-t2 hover:text-t1"
+                            }`}
+                          >
+                            {s.label}
+                            {s.status && (
+                              <StatusBadge
+                                status={s.status}
+                                className="ml-1.5"
+                              />
+                            )}
+                          </NavigationMenu.Link>
+                        )}
+                      </NavigationMenu.Item>
+                    );
+                  })}
+                </Fragment>
+              ))}
             </NavigationMenu.List>
           </div>
           <NavigationMenu.Portal>
@@ -170,7 +269,7 @@ export function AppShell({
               className="nav-positioner z-50"
             >
               <NavigationMenu.Popup
-                className="nav-popup rounded-2xl border border-line bg-s2"
+                className="nav-popup rounded-2xl border border-line bg-s1"
               >
                 <NavigationMenu.Viewport className="relative h-full w-full overflow-hidden" />
               </NavigationMenu.Popup>
@@ -178,7 +277,7 @@ export function AppShell({
           </NavigationMenu.Portal>
         </NavigationMenu.Root>
         <div className="ml-auto flex shrink-0 items-center gap-1.5">
-          <MobileNav />
+          <MobileNav menus={menus} />
           <CloudStatus />
           <a
             href="https://github.com/screen-gd/phaino"

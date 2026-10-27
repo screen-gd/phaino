@@ -657,6 +657,12 @@
           "title": "Explore homepage: workbench hero, filmstrip, controls-graph, forks, pipeline, models",
           "status": "done",
           "notes": "Phase 2: replaced home page with darkroom/editorial Explore. New components/home: GraphPreview (server SVG), HeroReveal (split video/graph reveal + drop-a-still composer), MoveFilmstrip (7 motion-path frames), ControlsToGraph (mock controls -> subgraph node highlight), ForkList, Pipeline (FCPXML sample), ModelSheet, HomeFooter. pendingStill/uploadStill share the upload path; useStudio consumes it on mount. Removed ExploreCarousel/ExploreBanner/CloudPromo/ExploreFooter/FooterDither/FooterWordmark/ToolPreview. WorkflowView memoizes graph lookups; Composer mode buttons are aria-pressed. Lint/typecheck/build pass; tests pass except known fcpxml drive-letter snapshot."
+        },
+        {
+          "id": "restore-header-home",
+          "title": "Restore header and Explore home, restyle",
+          "status": "done",
+          "notes": "Restored efa0f63 header (sections.ts + navMenus.ts + full AppShell/MobileNav with mega menus) and 5bbd240 Explore home (carousel, CloudPromo, tools grid, ExploreBanner, Trending presets, Made with Comfy, ExploreFooter). Status everywhere reads features.ts (sections/navMenus/TOOLS derive via featureById); Soon items render muted and link to /roadmap; Community is now Showcase; GitHub pill never shows 0 stars; Phase-1 DemoNotice wiring kept. Bring-it-to-light reveal became the first ExploreCarousel slide (RevealSlide + GraphPreview of the Orbit top graph, server-computed). Restyle: rounded-md, s1/black surfaces, mono for chips/models/kind/credits, plain white section headings, no scale hovers, lighter scrims. Deleted phase-2 home components and lib/pendingStill; useStudio pending-still effect removed; uploadStill kept. Lint/typecheck/build pass; tests pass except known fcpxml drive-letter snapshot."
         }
       ]
     }

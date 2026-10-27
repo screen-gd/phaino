@@ -46,7 +46,7 @@ export function ExploreVideo({ media, title, source, portrait = false, natural =
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-xl border border-line bg-s2 ${natural ? "" : portrait ? "aspect-[4/5]" : "aspect-video"}`}
+      className={`group relative overflow-hidden rounded-md border border-line bg-black ${natural ? "" : portrait ? "aspect-[4/5]" : "aspect-video"}`}
       style={natural ? { aspectRatio: `${media.w} / ${media.h}` } : undefined}
     >
       <img src={media.poster} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />

@@ -1,243 +1,223 @@
-import { ControlsToGraph, type ControlSpec } from "@/components/home/ControlsToGraph";
-import { ForkList, type ForkRow } from "@/components/home/ForkList";
-import { HeroReveal } from "@/components/home/HeroReveal";
-import { HomeFooter } from "@/components/home/HomeFooter";
-import { ModelSheet, type ModelRow } from "@/components/home/ModelSheet";
-import { MoveFilmstrip } from "@/components/home/MoveFilmstrip";
-import { Pipeline } from "@/components/home/Pipeline";
+import Link from "next/link";
+import { CloudPromo } from "@/components/CloudPromo";
+import { CommunityGrid } from "@/components/CommunityGrid";
+import { ExploreBanner } from "@/components/ExploreBanner";
+import { Icon, SECTION_ICONS, type IconName } from "@/components/icons";
+import { ExploreCarousel } from "@/components/ExploreCarousel";
+import { ExploreFooter } from "@/components/ExploreFooter";
+import { StatusBadge } from "@/components/StatusBadge";
+import { presetPreview } from "@/lib/preset-preview";
+import { EXPLORE_MEDIA } from "@/lib/explore-media";
+import { featureById, type FeatureStatus } from "@/lib/features";
 import { normalizeGraph } from "@/components/workflow/graphModel";
-import { forkChanges } from "@/lib/forkChanges";
-import { getEnv } from "@/server/env";
+import { Button } from "@/components/ui/button";
+import { toStudioModels } from "@/server/models/view";
 import { getPreset, listPresets } from "@/server/presets/load";
+import type { Preset } from "@/server/presets/schema";
 
 export const dynamic = "force-dynamic";
 
+// Soon tiles stay listed but go to the roadmap, not the stub pages.
+const TOOLS = [
+  { id: "camera", href: "/camera", name: "Camera moves", kind: "Video", desc: "7 moves on LTX 2.5", icon: "camera" },
+  { id: "image", href: "/image", name: "Image", kind: "Image", desc: "FLUX.2 Klein, Qwen Image, Z-Image", icon: "image" },
+  { id: "video", href: "/video", name: "Video", kind: "Video", desc: "LTX 2.5, Wan 2.2, HunyuanVideo, MiniMax H3", icon: "video" },
+  { id: "effects", href: "/roadmap", name: "Effects", kind: "Video", desc: "One-click VFX", icon: "effects" },
+  { id: "characters", href: "/roadmap", name: "Characters", kind: "Image", desc: "Consistent characters", icon: "characters" },
+  { id: "avatars", href: "/roadmap", name: "Avatars", kind: "Video", desc: "Lipsync", icon: "avatars" },
+  { id: "edit", href: "/edit", name: "Edit", kind: "Image", desc: "Upscale and inpaint", icon: "edit" },
+  { id: "audio", href: "/roadmap", name: "Audio", kind: "Audio", desc: "Music and sound effects", icon: "audio" },
+  { id: "editor", href: "/editor", name: "Editor", kind: null, desc: "Cut, titles and music", icon: "export" },
+] as const satisfies readonly {
+  id: string;
+  href: string;
+  name: string;
+  kind: string | null;
+  desc: string;
+  icon: IconName;
+}[];
+
+/** Section heading: white title, optional subtitle and action buttons. */
+function SectionHead({
+  title,
+  sub,
+  actions,
+}: {
+  title: string;
+  sub?: string;
+  actions?: readonly { label: string; href: string; accent?: boolean }[];
+}) {
+  return (
+    <div className="mt-14 mb-5 flex items-end justify-between gap-4">
+      <div>
+        <h2 className="text-h2 font-semibold tracking-tight text-t1">
+          {title}
+        </h2>
+        {sub && <p className="mt-1.5 text-caption text-t3">{sub}</p>}
+      </div>
+      {actions && (
+        <div className="flex gap-2">
+          {actions.map((a) => (
+            <Button
+              key={a.label}
+              size="lg"
+              variant={a.accent ? "default" : "outline"}
+              render={<Link href={a.href} />}
+            >
+              {a.label}
+            </Button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Small tool tile: icon and kind tag on top, name, status and description below. */
+function ToolTile({
+  tool,
+  status,
+}: {
+  tool: (typeof TOOLS)[number];
+  status: FeatureStatus;
+}) {
+  const soon = status === "soon";
+  return (
+    <Link
+      href={tool.href}
+      className={`flex min-h-24 flex-col justify-between rounded-md border border-line bg-s1 p-3 ${
+        soon ? "" : "hover:border-[#444]"
+      }`}
+    >
+      <div className="flex items-center justify-between">
+        <Icon d={SECTION_ICONS[tool.icon]} className="h-5 w-5 text-t2" />
+        {tool.kind && (
+          <span className="font-mono text-caption text-t3">{tool.kind}</span>
+        )}
+      </div>
+      <div>
+        <b className={`text-body font-semibold ${soon ? "text-t3" : ""}`}>
+          {tool.name}
+          <StatusBadge status={status} className="ml-1.5 align-middle" />
+        </b>
+        <span className="mt-0.5 block text-caption text-t3">{tool.desc}</span>
+      </div>
+    </Link>
+  );
+}
+
+/** The whole preset card opens its studio with the preset selected. */
+function PresetCard({ preset }: { preset: Preset }) {
+  const tryHref = `/${preset.category}?preset=${preset.id}`;
+  const imageIn = preset.inputs.some((i) => i.required && i.key === "image");
+  const outKind = preset.outputs[0]?.kind ?? "video";
+  const inLabel = imageIn ? "Image" : "Text";
+  const outLabel = outKind === "image" ? "Image" : "Video";
+  return (
+    <Link href={tryHref} aria-label={`Try ${preset.name}`} className="group relative block aspect-video overflow-hidden rounded-md border border-line bg-black hover:border-[#444]">
+      <img
+        src={presetPreview(preset)}
+        alt=""
+        className="h-full w-full object-cover"
+      />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-linear-to-t from-black/80 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-3 top-2.5 flex items-center justify-between font-mono text-caption text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
+        <span>{preset.chip ?? ""}</span>
+        <span>{preset.model.label}</span>
+      </div>
+      <div className="pointer-events-none absolute inset-x-3 bottom-3 flex items-center justify-between">
+        <b className="text-body font-semibold">{preset.name}</b>
+        <span
+          aria-label={`${inLabel} to ${outLabel}`}
+          className="flex items-center gap-1 text-t2"
+        >
+          <Icon d={imageIn ? SECTION_ICONS.image : SECTION_ICONS.pencil} className="h-3 w-3" />
+          <Icon d={SECTION_ICONS.chevronRight} className="h-2.5 w-2.5 text-t3" />
+          <Icon d={outKind === "image" ? SECTION_ICONS.image : SECTION_ICONS.video} className="h-3 w-3" />
+        </span>
+      </div>
+    </Link>
+  );
+}
+
 export default function Home() {
-  const catalog = listPresets();
-  const builtins = catalog.filter((p) => p.origin === "builtin");
-  const moves = builtins
-    .filter((p) => p.category === "camera")
-    .map((p) => ({ id: p.id, name: p.name, chip: p.chip }));
+  // Trending stays on folder presets; template-backed modes appear on
+  // /workflows and in the model pickers.
+  const catalog = listPresets().filter((p) => p.origin !== "model");
+  const models = [
+    ...toStudioModels("image"),
+    ...toStudioModels("video"),
+  ];
 
+  const presets = catalog.slice(0, 8);
   const orbit = getPreset("orbit");
-  const orbitTop = orbit ? normalizeGraph(orbit.workflowUi) : null;
-  const orbitSubgraph = orbitTop?.nodes.find((n) => n.subgraph)?.subgraph;
-  const orbitInner =
-    orbit && orbitSubgraph
-      ? normalizeGraph(orbit.workflowUi, orbitSubgraph)
-      : null;
-
-  // Mock composer rows: preset labels and defaults, each bound to a node.
-  const controls: ControlSpec[] = (() => {
-    if (!orbit || !orbitTop || !orbitInner) return [];
-    const { preset } = orbit;
-    const paramByKey = new Map(preset.params.map((p) => [p.key, p]));
-    const topById = new Map(orbitTop.nodes.map((n) => [n.id, n]));
-    const innerById = new Map(orbitInner.nodes.map((n) => [n.id, n]));
-    const node = (path: number[]) => {
-      const top = topById.get(path[0]);
-      if (!top) return { innerId: null, classText: "node" };
-      if (path.length < 2 || path[1] === undefined || !top.subgraph) {
-        return {
-          innerId: null,
-          classText: `${top.type} → subgraph input`,
-        };
-      }
-      return {
-        innerId: path[1],
-        classText: innerById.get(path[1])?.type ?? "node",
-      };
-    };
-    const choiceLabel = (key: string) => {
-      const param = paramByKey.get(key);
-      if (!param || param.type !== "choice") return "";
-      return (
-        param.options.find((o) => o.value === param.default)?.label ??
-        String(param.default)
-      );
-    };
-    const label = (key: string) => paramByKey.get(key)?.label ?? key;
-    const promptParam = paramByKey.get("prompt");
-    return [
-      {
-        key: "image",
-        label: preset.inputs[0]?.label ?? "First frame",
-        value: "",
-        tile: true,
-        ...node([395]),
-      },
-      {
-        key: "prompt",
-        label: label("prompt"),
-        value:
-          promptParam?.type === "text" ? (promptParam.placeholder ?? "") : "",
-        dimValue: true,
-        ...node([398, 376]),
-      },
-      {
-        key: "seed",
-        label: label("seed"),
-        value: "random",
-        ...node([398, 339]),
-      },
-      {
-        key: "duration",
-        label: label("duration"),
-        value: choiceLabel("duration"),
-        ...node([398, 362]),
-      },
-      {
-        key: "fps",
-        label: label("fps"),
-        value: choiceLabel("fps"),
-        ...node([398, 361]),
-      },
-      {
-        key: "aspect",
-        label: label("aspect"),
-        value: choiceLabel("aspect"),
-        ...node([403]),
-      },
-    ];
-  })();
-
-  const forkRows: ForkRow[] = (() => {
-    const forks = catalog.filter((p) => p.origin === "fork");
-    if (forks.length === 0) {
-      return [
-        {
-          href: "/workflows/orbit",
-          from: "Orbit",
-          to: "Orbit (slow, 120°)",
-          changed: 2,
-          example: true,
-        },
-        {
-          href: "/workflows/dolly-in",
-          from: "Dolly in",
-          to: "Dolly in (long, 8s)",
-          changed: 1,
-          example: true,
-        },
-        {
-          href: "/workflows/whip-pan",
-          from: "Whip pan",
-          to: "Whip pan (portrait)",
-          changed: 1,
-          example: true,
-        },
-      ];
-    }
-    const user = getEnv().user;
-    return forks.map((fork) => {
-      let sourceName = fork.forkOf ?? "Preset";
-      let changed = 0;
-      try {
-        const source = fork.forkOf ? getPreset(fork.forkOf) : null;
-        if (source) {
-          sourceName = source.preset.name;
-          changed = forkChanges(fork, source.preset).length;
-        }
-      } catch {
-        /* Source preset gone; the row still links to the fork. */
-      }
-      return {
-        href: `/workflows/${fork.id}`,
-        from: sourceName,
-        to: fork.name,
-        changed,
-        author: user,
-      };
-    });
-  })();
-
-  const modelRows: ModelRow[] = (() => {
-    const byModel = new Map<string, typeof builtins>();
-    for (const p of builtins) {
-      const list = byModel.get(p.model.id) ?? [];
-      list.push(p);
-      byModel.set(p.model.id, list);
-    }
-    return [...byModel.values()].map((ps) => {
-      const model = ps[0].model;
-      const tasks = new Set<string>();
-      const cam = ps.filter((p) => p.category === "camera");
-      if (cam.length) tasks.add(`Camera moves (${cam.length})`);
-      for (const p of ps.filter((p) => p.category === "video")) {
-        tasks.add(
-          p.inputs.some((i) => i.required)
-            ? "Image to video"
-            : "Text to video",
-        );
-      }
-      for (const p of ps.filter((p) => p.category === "image")) {
-        tasks.add(p.inputs.length === 0 ? "Text to image" : "Image edit");
-      }
-      if (ps.some((p) => p.category === "edit")) tasks.add("Edit");
-      // Camera presets share the i2v template; surface the canonical preset.
-      const templatePreset =
-        (model.id === "ltx-2.5"
-          ? ps.find((p) => p.id === "ltx25-i2v")
-          : undefined) ??
-        ps.find((p) => p.category !== "camera") ??
-        ps[0];
-      return {
-        label: model.label,
-        task: [...tasks].join(", "),
-        license: model.license,
-        template: templatePreset.source.template,
-      };
-    });
-  })();
+  const orbitGraph = orbit ? normalizeGraph(orbit.workflowUi) : null;
 
   return (
-    <div className="mx-auto max-w-[1280px] px-4 sm:px-6">
-      {orbitTop && (
-        <HeroReveal
-          topGraph={orbitTop}
-          moves={moves}
-          defaultMoveId="orbit"
-        />
+    <div className="px-4 pt-3 pb-10">
+      <h1 className="sr-only">Explore</h1>
+
+      <ExploreCarousel orbitGraph={orbitGraph ?? undefined} />
+
+      <div className="mt-14 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+        <CloudPromo />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {TOOLS.map((t) => (
+            <ToolTile
+              key={t.id}
+              tool={t}
+              status={featureById(t.id)?.status ?? "live"}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-14">
+        <ExploreBanner />
+      </div>
+
+      <SectionHead
+        title="Trending presets"
+        sub="Camera moves on LTX 2.5, images on FLUX.2 Klein"
+        actions={[
+          { label: "Start generating", href: "/camera", accent: true },
+          { label: "All workflows", href: "/workflows" },
+        ]}
+      />
+      {presets.length === 0 ? (
+        <p className="text-t3">No presets yet</p>
+      ) : (
+        <div className="relative">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            {presets.map((p) => (
+              <PresetCard key={p.id} preset={p} />
+            ))}
+          </div>
+          {presets.length > 4 && (
+            <>
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[48%] bg-linear-to-b from-transparent via-black/50 to-black/90" />
+              <div className="pointer-events-none absolute inset-x-0 bottom-5 z-20 flex justify-center">
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  className="pointer-events-auto"
+                  render={<Link href="/workflows" />}
+                >
+                  View all presets
+                  <Icon d={SECTION_ICONS.arrowUpRight} />
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
       )}
 
-      <section className="border-t border-line py-20">
-        <h2 className="mb-8 text-h2 font-semibold tracking-tight text-t1">
-          Pick a move
-        </h2>
-        <MoveFilmstrip moves={moves} />
-      </section>
-
-      {orbitInner && controls.length > 0 && (
-        <section className="border-t border-line py-20">
-          <h2 className="mb-8 text-h2 font-semibold tracking-tight text-t1">
-            Every control is a node
-          </h2>
-          <ControlsToGraph controls={controls} graph={orbitInner} />
-        </section>
-      )}
-
-      <section className="border-t border-line py-20">
-        <h2 className="mb-8 text-h2 font-semibold tracking-tight text-t1">
-          Fork it
-        </h2>
-        <ForkList rows={forkRows} />
-      </section>
-
-      <section className="border-t border-line py-20">
-        <h2 className="mb-8 text-h2 font-semibold tracking-tight text-t1">
-          The pipeline
-        </h2>
-        <Pipeline />
-      </section>
-
-      <section className="border-t border-line py-20">
-        <h2 className="mb-8 text-h2 font-semibold tracking-tight text-t1">
-          Models
-        </h2>
-        <ModelSheet rows={modelRows} />
-      </section>
-
-      <HomeFooter />
+      <SectionHead
+        title="Made with Comfy"
+        actions={[{ label: "See the showcase", href: "/showcase" }]}
+      />
+      <CommunityGrid items={EXPLORE_MEDIA.slice(0, 8)} />
+      <ExploreFooter presets={catalog} models={models} />
     </div>
   );
 }

@@ -4,9 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDemo } from "@/components/DemoProvider";
 import { createDemoJob } from "@/lib/demo";
-import { takePendingStill } from "@/lib/pendingStill";
 import { mainPromptKey } from "./studioUtils";
-import { uploadStill } from "./uploadStill";
 import type {
   StudioJob,
   StudioPreset,
@@ -71,24 +69,6 @@ export function useStudio(
       .catch(() => {});
     return () => esRef.current?.close();
   }, [category, demo.enabled]);
-
-  // A still dropped on the home composer uploads into the preset's first
-  // required image input (or opts.prefillKey) once on mount.
-  useEffect(() => {
-    const file = takePendingStill();
-    if (!file) return;
-    void uploadStill(file, { demo: demo.enabled }).then((u) => {
-      if (!u) return;
-      const key =
-        opts.prefillKey ??
-        preset?.inputs.find((i) => i.required && i.type === "image")?.key ??
-        preset?.inputs[0]?.key;
-      if (key) {
-        setUploads((prev) => (prev[key] ? prev : { ...prev, [key]: u }));
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // ?from=<output path> pre-fills the first required image input with a copy
   // of an existing output (used by "Animate" on image results).

@@ -158,6 +158,6 @@ export function featuresIn(group: FeatureGroup) {
   return FEATURES.filter((f) => f.group === group);
 }
 
-export function featureById(id: FeatureId) {
+export function featureById(id: string) {
   return FEATURES.find((f) => f.id === id);
 }

@@ -640,6 +640,12 @@
           "title": "Review fixes, compact menus, header text states, rail restyle",
           "status": "done",
           "notes": "Bug fixes: progress 0..1 -> percent clamp (progressPct), StageResult demo.enabled and per-job key reset, click-pinned nav menu closes on pointer leave, ModelPicker hover timer removed (drill-in rewrite), rail 60s re-render tick, EmptyStage stray tab stop removed. Header: capsule removed, wordmark 600 items, compact 520px Image/Video and Camera dropdowns. Picker: single-column 340px drill-in. Rail: no fill/border, dashed placeholders, no fade. Back row pinned above scroll area."
+        },
+        {
+          "id": "ui-editor-fixes",
+          "title": "Fix header dropdowns, redesign Edit, rework Editor timeline",
+          "status": "done",
+          "notes": "Header dropdowns: removed the custom pointer-leave close override so Base UI keeps click-opened menus pinned. Edit page: stage-first layout matching VideoStudio (tool strip, stage VideoPicker, bottom controls panel, HistoryRail). IconSource narrowed to RuneIcon | CustomPath so the IconName-as-path misuse type-errors. Editor: single coordinate origin with sticky lane labels and ruler, scrub with pointer capture, playhead follow, anchored zoom + clamp + wheel + auto-fit, drops insert at position, master-clock playback with image clips rendered as img, Home/End/T/Alt+arrows keys, duplicate/delete tools. stripMath helpers unit-tested. Lint/typecheck/build pass; tests pass except the known fcpxml drive-letter snapshot."
         }
       ]
     }

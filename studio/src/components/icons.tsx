@@ -13,6 +13,8 @@ const CUSTOM_PATHS = {
   scissors: "M6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.5 7.5L20 19M8.5 16.5L20 5",
   redo: "M21 12c0 5.5-4 9-9 9s-9-3.5-9-9 4-9 9-9c3.6 0 6.6 2 8.3 5M21 3v5h-5",
   type: "M5 6V4h14v2M12 4v16m-3 0h6",
+  toStart: "M5 5v14M17 5L7 12l10 7z",
+  toEnd: "M19 5v14M7 5l10 7-10 7z",
 } as const;
 
 export type IconName = keyof typeof RUNE_ICONS | keyof typeof CUSTOM_PATHS;

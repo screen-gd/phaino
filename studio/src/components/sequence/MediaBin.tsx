@@ -154,18 +154,29 @@ export function MediaBin({
   onAddMedia,
   onUpload,
   onRemoveMedia,
+  pickRef,
 }: {
   media: Media[];
   onAddOutput: (path: string) => Promise<boolean | void>;
   onAddMedia: (mediaId: string) => void;
   onUpload: (file: File) => Promise<boolean | void>;
   onRemoveMedia: (id: string) => void;
+  /** Lets the empty stage trigger this bin's file picker. */
+  pickRef?: React.RefObject<(() => void) | null>;
 }) {
   const [tab, setTab] = useState<"outputs" | "media">("outputs");
   const [items, setItems] = useState<OutputItem[] | null>(null);
   const [dropHint, setDropHint] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!pickRef) return;
+    pickRef.current = () => fileRef.current?.click();
+    return () => {
+      pickRef.current = null;
+    };
+  }, [pickRef]);
 
   useEffect(() => {
     let cancelled = false;

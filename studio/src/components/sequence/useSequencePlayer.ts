@@ -3,7 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AudioClip, Clip, Media } from "@/server/sequence/model";
 import type { Fps } from "@/server/sequence/timecode";
-import { layoutClips, locate, type StripLayout } from "./stripMath";
+import {
+  clockFrame,
+  layoutClips,
+  locate,
+  type StripLayout,
+} from "./stripMath";
 
 export function mediaUrl(mediaId: string): string {
   return `/api/sequence/media/${mediaId}`;
@@ -44,8 +49,10 @@ export function crossfadeAt(
 
 /**
  * Two video elements: the visible one plus a second that fades in over
- * crossfades. A hidden audio element follows the A1 lane. Frame is a record
- * frame; J/L shuttle at 1x/2x/4x.
+ * crossfades. A hidden audio element follows the A1 lane. Forward playback
+ * runs on a master wall-clock (clockFrame); the video element is slaved to
+ * the clip under the playhead and image clips just let the clock run.
+ * Frame is a record frame; J/L shuttle at 1x/2x/4x.
  */
 export function useSequencePlayer({
   clips,
@@ -75,6 +82,12 @@ export function useSequencePlayer({
   const [dir, setDir] = useState<Dir>(1);
   const frameRef = useRef(0);
   const rateRef = useRef(1);
+  // Forward playback clock: null while paused or reversing.
+  const clockRef = useRef<{
+    startFrame: number;
+    startTs: number;
+    rate: number;
+  } | null>(null);
 
   const layoutRef = useRef<StripLayout<Clip>>(layoutClips(clips));
 
@@ -145,6 +158,12 @@ export function useSequencePlayer({
       return;
     }
     const b = layoutRef.current.clips[xf.bIndex];
+    // A still B is rendered by SequencePlayer's image layer at `alpha`.
+    if (mediaRef.current.get(b.clip.mediaId)?.kind === "image") {
+      if (v2.style.opacity !== "0") v2.style.opacity = "0";
+      v2.pause();
+      return;
+    }
     const url = urlOf(b.clip);
     if (url && !v2.src.endsWith(url)) v2.src = url;
     const want =
@@ -172,10 +191,24 @@ export function useSequencePlayer({
         entry.clip.in + (clamped - entry.recordIn),
         entry.clip.out,
       );
-      const url = urlOf(entry.clip);
-      if (url && !v.src.endsWith(url)) v.src = url;
-      v.currentTime = clipFrame / fpsRef.current + 0.0005;
+      const m = mediaRef.current.get(entry.clip.mediaId);
+      if (m?.kind === "image") {
+        // The still is rendered by the <img> layer, not the video element.
+        v.pause();
+      } else {
+        const url = urlOf(entry.clip);
+        if (url && !v.src.endsWith(url)) v.src = url;
+        v.currentTime = clipFrame / fpsRef.current + 0.0005;
+      }
       applyVolume(entry.clip);
+      // A seek re-anchors the playback clock to the new frame.
+      if (clockRef.current) {
+        clockRef.current = {
+          startFrame: clamped,
+          startTs: performance.now(),
+          rate: rateRef.current,
+        };
+      }
       setFrame(clamped);
       setCrossfade(clamped);
       syncAudio(clamped, !v.paused);
@@ -187,38 +220,65 @@ export function useSequencePlayer({
   const forwardTickRef = useRef<FrameRequestCallback | null>(null);
   const reverseTickRef = useRef<FrameRequestCallback | null>(null);
 
-  /** Forward rAF loop: read currentTime, cut to the next clip at `out`. */
+  /**
+   * Forward rAF loop: the master clock owns the frame; the video element is
+   * re-slaved when the clip under the playhead changes and drift-corrected
+   * past 0.25s. Image clips pause the element and let the clock run.
+   */
   useEffect(() => {
-    forwardTickRef.current = () => {
+    forwardTickRef.current = (ts) => {
       const v = videoRef.current;
       const layout = layoutRef.current;
-      if (!v || layout.clips.length === 0) return;
-      const i = idxRef.current;
-      const entry = layout.clips[i];
-      if (!entry) return;
-      const f = entry.recordIn + Math.floor(v.currentTime * fpsRef.current + 1e-4) - entry.clip.in;
-      setFrame(Math.min(f, entry.recordOut));
-      setCrossfade(Math.min(f, entry.recordOut));
-      syncAudio(Math.min(f, entry.recordOut), true);
-      if (v.currentTime >= entry.clip.out / fpsRef.current || v.ended) {
-        const next = layout.clips[i + 1];
-        if (!next) {
-          setPlaying(false);
-          v.pause();
-          if (nextRef.current) {
-            nextRef.current.style.opacity = "0";
-            nextRef.current.pause();
-          }
-          return;
+      const clock = clockRef.current;
+      if (!v || !clock || layout.clips.length === 0) return;
+      const fps = fpsRef.current;
+      const raw = clockFrame({
+        startFrame: clock.startFrame,
+        startTs: clock.startTs,
+        now: ts,
+        fps,
+        rate: clock.rate,
+      });
+      if (raw >= layout.totalFrames) {
+        setFrame(layout.totalFrames);
+        setPlaying(false);
+        clockRef.current = null;
+        v.pause();
+        const v2 = nextRef.current;
+        if (v2) {
+          v2.style.opacity = "0";
+          v2.pause();
         }
-        idxRef.current = i + 1;
-        const url = urlOf(next.clip);
-        if (url) v.src = url;
-        v.currentTime = next.clip.in / fpsRef.current;
-        v.playbackRate = rateRef.current;
-        applyVolume(next.clip);
-        void v.play().catch(() => setPlaying(false));
+        syncAudio(layout.totalFrames, false);
+        return;
       }
+      // The first rAF timestamp can predate startTs by a tick; never step
+      // back below the frame the clock started on.
+      const f = Math.max(0, Math.max(clock.startFrame, raw));
+      setFrame(f);
+      const { index, entry } = locate(layout, f);
+      const isImage =
+        mediaRef.current.get(entry.clip.mediaId)?.kind === "image";
+      if (index !== idxRef.current) {
+        idxRef.current = index;
+        if (isImage) {
+          v.pause();
+        } else {
+          const url = urlOf(entry.clip);
+          if (url && !v.src.endsWith(url)) v.src = url;
+          v.playbackRate = clock.rate;
+          v.currentTime =
+            entry.clip.in / fps + (f - entry.recordIn) / fps;
+          applyVolume(entry.clip);
+          void v.play().catch(() => setPlaying(false));
+        }
+      } else if (!isImage) {
+        const want = entry.clip.in / fps + (f - entry.recordIn) / fps;
+        if (Math.abs(v.currentTime - want) > 0.25) v.currentTime = want;
+        if (v.paused) void v.play().catch(() => setPlaying(false));
+      }
+      setCrossfade(f);
+      syncAudio(f, true);
       if (forwardTickRef.current) {
         rafRef.current = requestAnimationFrame(forwardTickRef.current);
       }
@@ -246,8 +306,10 @@ export function useSequencePlayer({
   }, [applyVolume, seek, setCrossfade, setFrame, syncAudio, urlOf]);
 
   const pause = useCallback(() => {
+    clockRef.current = null;
     stopLoop();
     videoRef.current?.pause();
+    nextRef.current?.pause();
     audioRef.current?.pause();
     setPlaying(false);
   }, [stopLoop]);
@@ -265,15 +327,36 @@ export function useSequencePlayer({
       setPlaying(true);
       stopLoop();
       if (frameRef.current >= layout.totalFrames) seek(0);
-      v.playbackRate = next;
-      void v.play().catch(() => setPlaying(false));
+      // (Re)start the master clock from the current frame at the new rate.
+      clockRef.current = {
+        startFrame: frameRef.current,
+        startTs: performance.now(),
+        rate: next,
+      };
+      const { index, entry } = locate(
+        layout,
+        Math.min(frameRef.current, Math.max(0, layout.totalFrames - 1)),
+      );
+      idxRef.current = index;
+      if (mediaRef.current.get(entry.clip.mediaId)?.kind === "image") {
+        v.pause();
+      } else {
+        const url = urlOf(entry.clip);
+        if (url && !v.src.endsWith(url)) v.src = url;
+        v.playbackRate = next;
+        v.currentTime =
+          entry.clip.in / fpsRef.current +
+          (frameRef.current - entry.recordIn) / fpsRef.current;
+        applyVolume(entry.clip);
+        void v.play().catch(() => setPlaying(false));
+      }
       syncAudio(frameRef.current, true);
       lastTickRef.current = 0;
       if (forwardTickRef.current) {
         rafRef.current = requestAnimationFrame(forwardTickRef.current);
       }
     },
-    [dir, playing, rate, seek, stopLoop, syncAudio],
+    [applyVolume, dir, playing, rate, seek, stopLoop, syncAudio, urlOf],
   );
 
   const playReverse = useCallback(() => {
@@ -281,6 +364,7 @@ export function useSequencePlayer({
     if (layout.clips.length === 0) return;
     const v = videoRef.current;
     v?.pause();
+    clockRef.current = null;
     const next = dir === -1 && playing ? Math.min(rate * 2, 4) : 1;
     setRate(next);
     rateRef.current = next;

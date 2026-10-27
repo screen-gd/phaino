@@ -172,10 +172,6 @@ export function ExportPanel({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="border-b border-line px-3 py-2.5">
-        <h3 className="text-[13px] font-semibold">Export</h3>
-      </div>
-
       <div className="min-h-0 flex-1 overflow-y-auto py-1.5">
         <Row label="Frame rate">
           <Seg<Fps>

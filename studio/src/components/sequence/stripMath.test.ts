@@ -1,13 +1,18 @@
 import { describe, expect, it } from "vitest";
 import type { Clip } from "@/server/sequence/model";
 import {
+  clampZoom,
+  clockFrame,
+  followScroll,
   frameAtX,
+  insertIndexAt,
   layoutClips,
   locate,
   moveFromDrag,
   nextZoomToFit,
   tickStep,
   trimFromDrag,
+  zoomAnchorScroll,
 } from "./stripMath";
 
 function clip(id: string, inF: number, outF: number, extra: Partial<Clip> = {}): Clip {
@@ -151,5 +156,80 @@ describe("tickStep", () => {
     expect(tickStep(40)).toBe(2); // 2*40 = 80
     expect(tickStep(100)).toBe(1); // 1*100 = 100
     expect(tickStep(5)).toBe(10); // 10*5 = 50 <64 -> still 10 (the largest)
+  });
+});
+
+describe("clampZoom", () => {
+  it("clamps to [10, 200] and passes values inside through", () => {
+    expect(clampZoom(5)).toBe(10);
+    expect(clampZoom(60)).toBe(60);
+    expect(clampZoom(400)).toBe(200);
+  });
+});
+
+describe("insertIndexAt", () => {
+  // a: [0,48), b: [48,72), c: [72,84)
+  const l = layoutClips(clips);
+  it("inserts before the first entry whose midpoint is past the frame", () => {
+    expect(insertIndexAt(l, 0)).toBe(0);
+    expect(insertIndexAt(l, 23)).toBe(0); // a midpoint is 24
+    expect(insertIndexAt(l, 24)).toBe(1);
+    expect(insertIndexAt(l, 59)).toBe(1); // b midpoint is 60
+    expect(insertIndexAt(l, 60)).toBe(2);
+    expect(insertIndexAt(l, 83)).toBe(3);
+    expect(insertIndexAt(l, 9999)).toBe(3);
+    expect(insertIndexAt(layoutClips([]), 10)).toBe(0);
+  });
+});
+
+describe("followScroll", () => {
+  const view = { scrollLeft: 100, viewWidth: 500, margin: 48 };
+  it("returns null while the playhead is inside the view", () => {
+    expect(followScroll({ ...view, playheadX: 100 })).toBeNull();
+    expect(followScroll({ ...view, playheadX: 300 })).toBeNull();
+    expect(followScroll({ ...view, playheadX: 552 })).toBeNull();
+  });
+  it("repositions the playhead at 10% of the view when it leaves", () => {
+    expect(followScroll({ ...view, playheadX: 553 })).toBe(503);
+    expect(followScroll({ ...view, playheadX: 99 })).toBe(49);
+    // never negative
+    expect(
+      followScroll({ scrollLeft: 0, viewWidth: 500, margin: 48, playheadX: -5 }),
+    ).toBe(0);
+  });
+});
+
+describe("zoomAnchorScroll", () => {
+  it("keeps the anchor frame at the same screen x", () => {
+    // frame 48 at 100px/s = 200px; keep it 50px from the left edge -> 150
+    expect(
+      zoomAnchorScroll({
+        anchorFrame: 48,
+        anchorScreenX: 50,
+        fps: 24,
+        nextPxPerSec: 100,
+      }),
+    ).toBe(150);
+    // anchor near the start clamps at 0
+    expect(
+      zoomAnchorScroll({
+        anchorFrame: 0,
+        anchorScreenX: 50,
+        fps: 24,
+        nextPxPerSec: 100,
+      }),
+    ).toBe(0);
+  });
+});
+
+describe("clockFrame", () => {
+  it("advances whole frames from the start, scaled by rate", () => {
+    const base = { startFrame: 10, startTs: 1000, fps: 24 };
+    expect(clockFrame({ ...base, now: 1000, rate: 1 })).toBe(10);
+    expect(clockFrame({ ...base, now: 2000, rate: 1 })).toBe(34); // +24
+    expect(clockFrame({ ...base, now: 1500, rate: 1 })).toBe(22); // +12
+    expect(clockFrame({ ...base, now: 2000, rate: 2 })).toBe(58); // +48
+    // floors partial frames
+    expect(clockFrame({ ...base, now: 1020, rate: 1 })).toBe(10);
   });
 });

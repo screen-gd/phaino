@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { EditStudio } from "@/components/edit/EditStudio";
+import { EditStudio, type EditToolMeta } from "@/components/edit/EditStudio";
 import { availableEffects } from "@/components/effects/effects";
 import { toStudioPreset } from "@/components/toolStudioData";
 import { presetEstimates } from "@/server/jobs/credits";
@@ -18,7 +18,14 @@ export default function EffectsPage() {
   });
   const effects = availableEffects(presets);
   const effectPresets = presets.filter((preset) => effects.some((effect) => effect.presetId === preset.id));
-  const tools = listed.map(({ tool, presetId }) => ({ ...tool, presetId }));
+  const tools: EditToolMeta[] = listed.map(({ tool, presetId }) => ({
+    id: tool.id,
+    label: tool.label,
+    description: tool.description,
+    icon: tool.icon,
+    presetId,
+    maxSeconds: tool.maxSeconds,
+  }));
 
   return (
     <Suspense>

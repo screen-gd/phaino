@@ -20,10 +20,7 @@ const TOOLS = [
   { id: "image", href: "/image", name: "Image", kind: "Image", desc: "FLUX.2 Klein, Qwen Image, Z-Image", icon: "image" },
   { id: "video", href: "/video", name: "Video", kind: "Video", desc: "LTX 2.5, Wan 2.2, HunyuanVideo, MiniMax H3", icon: "video" },
   { id: "effects", href: "/effects", name: "Effects", kind: "Video", desc: "One-click reframe, upscale and smooth motion", icon: "effects" },
-  { id: "characters", href: "/characters", name: "Characters", kind: "Image", desc: "Consistent characters", icon: "characters" },
-  { id: "avatars", href: "/avatars", name: "Avatars", kind: "Video", desc: "Lipsync", icon: "avatars" },
   { id: "edit", href: "/edit", name: "Edit", kind: "Image", desc: "Upscale and inpaint", icon: "edit" },
-  { id: "audio", href: "/audio", name: "Audio", kind: "Audio", desc: "Music and sound effects", icon: "audio" },
   { id: "editor", href: "/editor", name: "Editor", kind: null, desc: "Cut, titles and music", icon: "export" },
 ] as const satisfies readonly {
   id: string;

@@ -49,12 +49,6 @@ export function buildNavMenus(
           ...featureLink("image"),
         },
         {
-          title: "Characters",
-          description: "Consistent characters across shots",
-          icon: "characters",
-          ...featureLink("characters"),
-        },
-        {
           title: "Workflows",
           description: "Open any image as a workflow",
           icon: "workflows",
@@ -91,12 +85,6 @@ export function buildNavMenus(
           description: "One-click reframe, upscale and smooth motion",
           icon: "effects",
           ...featureLink("effects"),
-        },
-        {
-          title: "Avatars",
-          description: "Lipsync",
-          icon: "avatars",
-          ...featureLink("avatars"),
         },
         {
           title: "Edit Video",

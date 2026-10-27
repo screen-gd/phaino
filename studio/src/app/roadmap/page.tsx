@@ -1,14 +1,15 @@
 import { Icon, SECTION_ICONS } from "@/components/icons";
 import { StatusBadge } from "@/components/StatusBadge";
-import { featuresIn } from "@/lib/features";
+import { FEATURES } from "@/lib/features";
 
 export default function RoadmapPage() {
-  const items = featuresIn("roadmap");
+  const items = FEATURES.filter((feature) => feature.status === "soon");
   return (
     <div className="px-4 py-6">
       <h1 className="font-display text-h3 font-extrabold uppercase text-ac font-stretch-[112.5%]">
         Roadmap
       </h1>
+      {items.length === 0 && <p className="mt-6 text-sm text-t3">Nothing planned yet.</p>}
       <ul className="mt-6 grid max-w-2xl gap-2">
         {items.map((f) => (
           <li

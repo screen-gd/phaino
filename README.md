@@ -77,6 +77,16 @@ comfy-api-proxy
 
 ComfyUI keeps serving on `127.0.0.1:8188`; the proxy serves the Comfy API v2 on `127.0.0.1:8189`. Set `COMFY_BASE_URL=http://127.0.0.1:8189` in `studio/.env.local`.
 
+## MCP
+
+Connect an MCP client to your local Phaino install at `http://127.0.0.1:3000/api/mcp`:
+
+```bash
+claude mcp add --transport http phaino http://127.0.0.1:3000/api/mcp
+```
+
+Tools: `list_presets`, `get_preset`, `get_workflow`, `run_preset`, `get_job`. Runs use your configured Comfy account and credits. Upload inputs through the HTTP API first, then pass upload ids to `run_preset`. This local, single-user endpoint has no authentication; do not expose it publicly. The hosted demo blocks MCP POST requests and cannot run jobs. See `/mcp` for client configuration and `/developers` for the HTTP API reference.
+
 ## Environment variables
 
 All variables live in `studio/.env.local` (copy `studio/.env.example`). The old `CUTAWAY_DATA_DIR` and `CUTAWAY_USER` names still work as fallbacks.

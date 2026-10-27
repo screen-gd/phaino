@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-27",
+  "updated": "2026-10-28",
   "milestones": [
     {
       "id": "m1",
@@ -663,6 +663,36 @@
           "title": "Restore header and Explore home, restyle",
           "status": "done",
           "notes": "Restored efa0f63 header (sections.ts + navMenus.ts + full AppShell/MobileNav with mega menus) and 5bbd240 Explore home (carousel, CloudPromo, tools grid, ExploreBanner, Trending presets, Made with Comfy, ExploreFooter). Status everywhere reads features.ts (sections/navMenus/TOOLS derive via featureById); Soon items render muted and link to /roadmap; Community is now Showcase; GitHub pill never shows 0 stars; Phase-1 DemoNotice wiring kept. Bring-it-to-light reveal became the first ExploreCarousel slide (RevealSlide + GraphPreview of the Orbit top graph, server-computed). Restyle: rounded-md, s1/black surfaces, mono for chips/models/kind/credits, plain white section headings, no scale hovers, lighter scrims. Deleted phase-2 home components and lib/pendingStill; useStudio pending-still effect removed; uploadStill kept. Lint/typecheck/build pass; tests pass except known fcpxml drive-letter snapshot."
+        },
+        {
+          "id": "workflow-viewer-hover",
+          "title": "Workflow viewer hover fixes and sidebar",
+          "status": "done"
+        },
+        {
+          "id": "edit-empty-state",
+          "title": "Edit page empty state",
+          "status": "done"
+        },
+        {
+          "id": "home-comfy-banner",
+          "title": "ComfyUI home banner, remove Made with Comfy",
+          "status": "done"
+        },
+        {
+          "id": "api-docs-page",
+          "title": "API docs page",
+          "status": "done"
+        },
+        {
+          "id": "mcp-server",
+          "title": "MCP server",
+          "status": "done"
+        },
+        {
+          "id": "effects-page",
+          "title": "Effects page (reframe, upscale, smooth motion)",
+          "status": "done"
         }
       ]
     }

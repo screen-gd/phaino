@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { ExploreVideo } from "@/components/ExploreVideo";
-import { RevealSlide } from "@/components/home/RevealSlide";
 import { Icon, SECTION_ICONS } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import type { GraphModel } from "@/components/workflow/graphModel";
 import { MODEL_DEMOS } from "@/lib/explore-media";
 
 function scrollBehavior(): ScrollBehavior {
@@ -15,11 +13,11 @@ function scrollBehavior(): ScrollBehavior {
     : "smooth";
 }
 
-export function ExploreCarousel({ orbitGraph }: { orbitGraph?: GraphModel }) {
+export function ExploreCarousel() {
   const id = useId();
   const track = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ index: 0, atStart: true, atEnd: false });
-  const slideCount = MODEL_DEMOS.length + (orbitGraph ? 1 : 0);
+  const slideCount = MODEL_DEMOS.length;
 
   useEffect(() => {
     const element = track.current;
@@ -78,19 +76,8 @@ export function ExploreCarousel({ orbitGraph }: { orbitGraph?: GraphModel }) {
         const destinations: Record<string, number> = { ArrowLeft: Math.max(0, position.index - 1), ArrowRight: Math.min(slideCount - 1, position.index + 1), Home: 0, End: slideCount - 1 };
         if (event.key in destinations) { event.preventDefault(); move(destinations[event.key]); }
       }} className="flex snap-x snap-proximity motion-safe:scroll-smooth overscroll-x-contain gap-3 overflow-x-auto scroll-pr-4 pr-4 pb-2 [scrollbar-width:none]">
-        {orbitGraph && (
-          <article
-            aria-roledescription="slide"
-            aria-label={`1 of ${slideCount}: Orbit workflow reveal`}
-            className="w-[86%] min-w-0 flex-none snap-start sm:w-[70%] xl:w-[46%]"
-          >
-            <RevealSlide graph={orbitGraph} />
-          </article>
-        )}
-        {MODEL_DEMOS.map((demo, index) => {
-          const n = index + (orbitGraph ? 2 : 1);
-          return (
-          <article key={demo.title} aria-roledescription="slide" aria-label={`${n} of ${slideCount}: ${demo.title}`} className="w-[86%] min-w-0 flex-none snap-start sm:w-[46%] xl:w-[30%] 2xl:w-[26%]">
+        {MODEL_DEMOS.map((demo, index) => (
+          <article key={demo.title} aria-roledescription="slide" aria-label={`${index + 1} of ${slideCount}: ${demo.title}`} className="w-[86%] min-w-0 flex-none snap-start sm:w-[46%] xl:w-[30%] 2xl:w-[26%]">
             {demo.media.kind === "image" ? (
               <div className="relative overflow-hidden rounded-md border border-line bg-black aspect-video">
                 <img src={demo.media.src} alt={demo.title} loading="lazy" className="absolute inset-0 size-full object-cover" />
@@ -104,8 +91,7 @@ export function ExploreCarousel({ orbitGraph }: { orbitGraph?: GraphModel }) {
             <p className="mt-1 text-caption text-t2">{demo.description}</p>
             <a href={demo.source} target="_blank" rel="noreferrer" className="mt-2 inline-block font-mono text-caption text-t3 hover:underline underline-offset-4">{demo.credit} ↗</a>
           </article>
-          );
-        })}
+        ))}
       </div>
       <div aria-hidden="true" className={`pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-linear-to-l from-transparent to-black transition-opacity duration-200 motion-reduce:transition-none sm:w-40 ${position.atStart ? "opacity-0" : "opacity-100"}`} />
       <div aria-hidden="true" className={`pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-linear-to-r from-transparent to-black transition-opacity duration-200 motion-reduce:transition-none sm:w-40 ${position.atEnd ? "opacity-0" : "opacity-100"}`} />

@@ -48,9 +48,9 @@ export function ExploreFooter({
       links: [
         { label: "All workflows", href: "/workflows" },
         { label: "Connect Comfy Cloud", href: "/settings" },
-        { label: "GitHub Γåù", href: REPO, external: true },
-        { label: "Documentation Γåù", href: `${REPO}#readme`, external: true },
-        { label: "Report an issue Γåù", href: `${REPO}/issues`, external: true },
+        { label: "GitHub ↗", href: REPO, external: true },
+        { label: "Documentation ↗", href: `${REPO}#readme`, external: true },
+        { label: "Report an issue ↗", href: `${REPO}/issues`, external: true },
       ],
     },
   ];
@@ -129,7 +129,7 @@ export function ExploreFooter({
           </section>
           <FooterWordmark />
           <div className="flex flex-wrap items-center justify-between gap-[30px] px-4 py-[30px] text-caption text-[#d4d4d4] max-[800px]:gap-[15px] max-[480px]:pt-[22px] sm:px-6">
-            <span className="max-[480px]:w-full">┬⌐ 2026 Phaino</span>
+            <span className="max-[480px]:w-full">© 2026 Phaino</span>
             <span className="max-[800px]:hidden">Built on ComfyUI.</span>
             <div className="flex gap-[26px] text-[#e6e6e6] max-[800px]:gap-[18px] max-[480px]:gap-[23px]">
               <a

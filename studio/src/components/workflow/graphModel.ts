@@ -281,6 +281,35 @@ export function fitView(
   };
 }
 
+export function nodeIsVisible(
+  node: Pick<GNode, "pos" | "size">,
+  view: ReturnType<typeof fitView>,
+  viewport: { w: number; h: number },
+): boolean {
+  const left = node.pos[0] * view.scale + view.x;
+  const top = (node.pos[1] - 30) * view.scale + view.y;
+  const right = left + node.size[0] * view.scale;
+  const bottom = (node.pos[1] + node.size[1]) * view.scale + view.y;
+  return left >= 0 && top >= 0 && right <= viewport.w && bottom <= viewport.h;
+}
+
+export function nodeIdForPath(
+  path: readonly number[],
+  instanceId: number | null,
+): number | undefined {
+  return instanceId === null
+    ? path[0]
+    : path[0] === instanceId ? path[1] : undefined;
+}
+
+export function bindingMatchesHover(
+  binding: readonly number[],
+  hovered: readonly number[] | null,
+): boolean {
+  return !!hovered?.length && hovered.length <= binding.length &&
+    hovered.every((id, index) => id === binding[index]);
+}
+
 export type BindingTarget = {
   /** [topId] for top-level nodes, [topId, innerId] inside a subgraph instance. */
   path: number[];

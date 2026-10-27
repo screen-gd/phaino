@@ -1,6 +1,6 @@
 import type { Preset } from "@/server/presets/schema";
 import type { StudioModel } from "@/components/toolStudioData";
-import { featureById, type FeatureStatus } from "@/lib/features";
+import { featureById, type FeatureId, type FeatureStatus } from "@/lib/features";
 import type { IconName } from "./icons";
 
 export type MenuRow = {
@@ -23,11 +23,15 @@ export type NavMenus = {
   camera: MenuRow[];
 };
 
-/** Status from the feature directory; live renders no tag. */
-const statusOf = (id: string) => featureById(id)?.status;
-
-// Soon rows stay listed but point at the roadmap, not stub pages.
-const SOON_HREF = "/roadmap";
+/** Feature links follow release status in the shared directory. */
+function featureLink(id: FeatureId) {
+  const feature = featureById(id);
+  if (!feature) throw new Error(`Unknown feature "${id}"`);
+  return {
+    href: feature.status === "soon" ? "/roadmap" : feature.href,
+    status: feature.status,
+  };
+}
 
 /** Header mega-menu data built from the preset catalog and model registry. */
 export function buildNavMenus(
@@ -40,24 +44,21 @@ export function buildNavMenus(
       features: [
         {
           title: "Create Image",
-          href: "/image",
           description: "Generate images from a prompt",
           icon: "image",
-          status: statusOf("image"),
+          ...featureLink("image"),
         },
         {
           title: "Characters",
-          href: SOON_HREF,
           description: "Consistent characters across shots",
           icon: "characters",
-          status: statusOf("characters"),
+          ...featureLink("characters"),
         },
         {
           title: "Workflows",
-          href: "/workflows",
           description: "Open any image as a workflow",
           icon: "workflows",
-          status: statusOf("workflows"),
+          ...featureLink("workflows"),
         },
       ],
       models: models
@@ -75,45 +76,39 @@ export function buildNavMenus(
       features: [
         {
           title: "Create Video",
-          href: "/video",
           description: "Image or text to video",
           icon: "video",
-          status: statusOf("video"),
+          ...featureLink("video"),
         },
         {
           title: "Camera moves",
-          href: "/camera",
           description: `${cameraPresets.length} cinematic moves`,
           icon: "camera",
-          status: statusOf("camera"),
+          ...featureLink("camera"),
         },
         {
           title: "Effects",
-          href: SOON_HREF,
-          description: "One-click VFX",
+          description: "One-click reframe, upscale and smooth motion",
           icon: "effects",
-          status: statusOf("effects"),
+          ...featureLink("effects"),
         },
         {
           title: "Avatars",
-          href: SOON_HREF,
           description: "Lipsync",
           icon: "avatars",
-          status: statusOf("avatars"),
+          ...featureLink("avatars"),
         },
         {
           title: "Edit Video",
-          href: "/edit",
           description: "Upscale, reframe, relight",
           icon: "edit",
-          status: statusOf("edit"),
+          ...featureLink("edit"),
         },
         {
           title: "Editor",
-          href: "/editor",
           description: "Cut, titles and music",
           icon: "export",
-          status: statusOf("editor"),
+          ...featureLink("editor"),
         },
       ],
       models: models

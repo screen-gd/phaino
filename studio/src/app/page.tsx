@@ -1,18 +1,15 @@
 import Link from "next/link";
 import { CloudPromo } from "@/components/CloudPromo";
-import { CommunityGrid } from "@/components/CommunityGrid";
-import { ExploreBanner } from "@/components/ExploreBanner";
+import { ComfyBanner } from "@/components/home/ComfyBanner";
 import { Icon, SECTION_ICONS, type IconName } from "@/components/icons";
 import { ExploreCarousel } from "@/components/ExploreCarousel";
 import { ExploreFooter } from "@/components/ExploreFooter";
 import { StatusBadge } from "@/components/StatusBadge";
 import { presetPreview } from "@/lib/preset-preview";
-import { EXPLORE_MEDIA } from "@/lib/explore-media";
 import { featureById, type FeatureStatus } from "@/lib/features";
-import { normalizeGraph } from "@/components/workflow/graphModel";
 import { Button } from "@/components/ui/button";
 import { toStudioModels } from "@/server/models/view";
-import { getPreset, listPresets } from "@/server/presets/load";
+import { listPresets } from "@/server/presets/load";
 import type { Preset } from "@/server/presets/schema";
 
 export const dynamic = "force-dynamic";
@@ -22,11 +19,11 @@ const TOOLS = [
   { id: "camera", href: "/camera", name: "Camera moves", kind: "Video", desc: "7 moves on LTX 2.5", icon: "camera" },
   { id: "image", href: "/image", name: "Image", kind: "Image", desc: "FLUX.2 Klein, Qwen Image, Z-Image", icon: "image" },
   { id: "video", href: "/video", name: "Video", kind: "Video", desc: "LTX 2.5, Wan 2.2, HunyuanVideo, MiniMax H3", icon: "video" },
-  { id: "effects", href: "/roadmap", name: "Effects", kind: "Video", desc: "One-click VFX", icon: "effects" },
-  { id: "characters", href: "/roadmap", name: "Characters", kind: "Image", desc: "Consistent characters", icon: "characters" },
-  { id: "avatars", href: "/roadmap", name: "Avatars", kind: "Video", desc: "Lipsync", icon: "avatars" },
+  { id: "effects", href: "/effects", name: "Effects", kind: "Video", desc: "One-click reframe, upscale and smooth motion", icon: "effects" },
+  { id: "characters", href: "/characters", name: "Characters", kind: "Image", desc: "Consistent characters", icon: "characters" },
+  { id: "avatars", href: "/avatars", name: "Avatars", kind: "Video", desc: "Lipsync", icon: "avatars" },
   { id: "edit", href: "/edit", name: "Edit", kind: "Image", desc: "Upscale and inpaint", icon: "edit" },
-  { id: "audio", href: "/roadmap", name: "Audio", kind: "Audio", desc: "Music and sound effects", icon: "audio" },
+  { id: "audio", href: "/audio", name: "Audio", kind: "Audio", desc: "Music and sound effects", icon: "audio" },
   { id: "editor", href: "/editor", name: "Editor", kind: null, desc: "Cut, titles and music", icon: "export" },
 ] as const satisfies readonly {
   id: string;
@@ -84,7 +81,7 @@ function ToolTile({
   const soon = status === "soon";
   return (
     <Link
-      href={tool.href}
+      href={soon ? "/roadmap" : tool.href}
       className={`flex min-h-24 flex-col justify-between rounded-md border border-line bg-s1 p-3 ${
         soon ? "" : "hover:border-[#444]"
       }`}
@@ -150,14 +147,12 @@ export default function Home() {
   ];
 
   const presets = catalog.slice(0, 8);
-  const orbit = getPreset("orbit");
-  const orbitGraph = orbit ? normalizeGraph(orbit.workflowUi) : null;
 
   return (
     <div className="px-4 pt-3 pb-10">
       <h1 className="sr-only">Explore</h1>
 
-      <ExploreCarousel orbitGraph={orbitGraph ?? undefined} />
+      <ExploreCarousel />
 
       <div className="mt-14 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <CloudPromo />
@@ -173,7 +168,7 @@ export default function Home() {
       </div>
 
       <div className="mt-14">
-        <ExploreBanner />
+        <ComfyBanner />
       </div>
 
       <SectionHead
@@ -212,11 +207,6 @@ export default function Home() {
         </div>
       )}
 
-      <SectionHead
-        title="Made with Comfy"
-        actions={[{ label: "See the showcase", href: "/showcase" }]}
-      />
-      <CommunityGrid items={EXPLORE_MEDIA.slice(0, 8)} />
       <ExploreFooter presets={catalog} models={models} />
     </div>
   );

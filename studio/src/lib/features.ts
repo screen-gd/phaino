@@ -111,7 +111,7 @@ export const FEATURES = [
     href: "/mcp",
     description: "Generate from an MCP client",
     icon: "fork",
-    status: "soon",
+    status: "new",
     group: "roadmap",
   },
   {
@@ -120,16 +120,16 @@ export const FEATURES = [
     href: "/developers",
     description: "REST access to presets and jobs",
     icon: "workflows",
-    status: "soon",
+    status: "new",
     group: "roadmap",
   },
   {
     id: "effects",
     label: "Effects",
     href: "/effects",
-    description: "One-click VFX",
+    description: "One-click reframe, upscale and smooth motion",
     icon: "effects",
-    status: "soon",
+    status: "new",
     group: "roadmap",
   },
   {

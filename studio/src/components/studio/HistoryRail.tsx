@@ -129,7 +129,6 @@ export function HistoryRail({
   const rows =
     job && !jobs.some((j) => j.id === job.id) ? [job, ...jobs] : jobs;
   const wide = aspect === "wide";
-  const shape = wide ? "aspect-video" : "aspect-square";
   return (
     <aside className="relative flex max-h-[38vh] min-h-0 flex-col border-t border-line pt-5 pr-6 pl-2 lg:max-h-none lg:h-full lg:border-t-0">
       <div className="flex items-baseline justify-between">
@@ -140,21 +139,7 @@ export function HistoryRail({
       </div>
       <div className="mt-3 min-h-0 flex-1 overflow-x-auto overflow-y-hidden pb-2 lg:overflow-y-auto lg:overflow-x-hidden">
         {rows.length === 0 ? (
-          <div className="grid gap-3">
-            <p className="text-caption text-t3">No runs yet</p>
-            <div
-              className={`flex gap-3 lg:grid ${
-                wide ? "lg:grid-cols-1" : "lg:grid-cols-2"
-              }`}
-            >
-              {[0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  className={`${shape} w-[200px] flex-none rounded-xl border border-dashed border-line lg:w-full`}
-                />
-              ))}
-            </div>
-          </div>
+          <p className="text-caption text-t3">No runs yet</p>
         ) : (
           <div
             className={`flex snap-x snap-proximity gap-3 lg:grid lg:snap-none ${

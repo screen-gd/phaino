@@ -51,11 +51,14 @@ export function useStudio(
 
   const loadRecent = useCallback(async () => {
     if (demo.enabled) return;
-    const res = await fetch(`/api/jobs?category=${category}&limit=12`);
-    if (res.ok) {
+    try {
+      const res = await fetch(`/api/jobs?category=${category}&limit=12`);
+      if (!res.ok) throw new Error(String(res.status));
       const data = (await res.json()) as { jobs: StudioJob[] };
       setRecent(data.jobs);
       setRecentFailed(false);
+    } catch {
+      setRecentFailed(true);
     }
   }, [category, demo.enabled]);
 

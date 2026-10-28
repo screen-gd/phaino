@@ -118,7 +118,7 @@ export function UploadCard({
       <button
         type="button"
         disabled={busy}
-        aria-label={`${label} (upload ${kind}, ${required ? "required" : "optional"})`}
+        aria-label={`${label} (upload ${kind}, ${required ? "required" : "optional"})${failed ? ". Upload failed, try again" : ""}`}
         title={failed ? "Upload failed. Try again." : `${label}${required ? "" : " (optional)"}`}
         onClick={() => inputRef.current?.click()}
         onDragOver={(e) => {

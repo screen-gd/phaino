@@ -90,6 +90,18 @@ describe("genericAdapter buildInput", () => {
     });
   });
 
+  it("drops a duration veo does not accept", () => {
+    const a = genericAdapter(spec("veo-3-1"));
+    const body = a.buildInput({ params: { prompt: "p", duration: 5 }, images: {} });
+    expect(body.parameters).toEqual({ sampleCount: 1 });
+  });
+
+  it("accepts a numeric-string duration", () => {
+    const a = genericAdapter(spec("veo-3-1"));
+    const body = a.buildInput({ params: { prompt: "p", duration: "6" }, images: {} });
+    expect(body.parameters).toEqual({ durationSeconds: 6, sampleCount: 1 });
+  });
+
   it("builds the gemini contents/parts shape", () => {
     const a = genericAdapter(spec("gemini-3-pro-image"));
     expect(
@@ -173,6 +185,18 @@ describe("readGenericOutputs", () => {
   it("finds nested media urls", () => {
     const out = readGenericOutputs(
       jsonResult({ data: { task_result: { videos: [{ url: "https://x/v.mp4" }] } } }),
+      "video",
+    );
+    expect(out).toEqual([{ kind: "url", url: "https://x/v.mp4" }]);
+  });
+
+  it("skips status and callback links", () => {
+    const out = readGenericOutputs(
+      jsonResult({
+        status_url: "https://x/status",
+        callback_url: "https://x/cb",
+        video_url: "https://x/v.mp4",
+      }),
       "video",
     );
     expect(out).toEqual([{ kind: "url", url: "https://x/v.mp4" }]);

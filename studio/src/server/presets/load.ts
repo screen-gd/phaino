@@ -311,7 +311,8 @@ export function viewerHrefFor(
   env: StudioEnv = getEnv(),
 ): string | undefined {
   const presetId = new URLSearchParams(href.split("?")[1] ?? "").get("preset");
-  if (!presetId || !SLUG.test(presetId)) return undefined;
+  // Router catalog presets have no ComfyUI graph to view.
+  if (!presetId || !SLUG.test(presetId) || routerSpecFor(presetId)) return undefined;
   try {
     return getPreset(presetId, env) ? `/workflows/${presetId}` : undefined;
   } catch {

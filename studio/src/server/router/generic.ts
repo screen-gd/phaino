@@ -23,7 +23,8 @@ function textParam(params: RouterParams, key: string): string {
 
 function intParam(params: RouterParams, key: string): number | undefined {
   const value = params[key];
-  return typeof value === "number" && Number.isInteger(value) ? value : undefined;
+  const n = typeof value === "string" && value.trim() !== "" ? Number(value) : value;
+  return typeof n === "number" && Number.isInteger(n) ? n : undefined;
 }
 
 function bareBase64(dataUrl: string): string {
@@ -37,13 +38,10 @@ function aspectParam(params: RouterParams): string | undefined {
     : undefined;
 }
 
-/** Merge the user's raw Options (JSON) object into the request body. */
-function mergeOptions(
-  body: Record<string, unknown>,
-  params: RouterParams,
-): Record<string, unknown> {
+/** Parse the raw Options (JSON) param; throws unless it is a JSON object. */
+export function parseOptions(params: RouterParams): Record<string, unknown> {
   const raw = textParam(params, "options").trim();
-  if (raw === "") return body;
+  if (raw === "") return {};
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -53,7 +51,15 @@ function mergeOptions(
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
     throw new RouterInputError("Options must be a JSON object");
   }
-  return { ...body, ...(parsed as Record<string, unknown>) };
+  return parsed as Record<string, unknown>;
+}
+
+/** Merge the user's raw Options (JSON) object into the request body. */
+function mergeOptions(
+  body: Record<string, unknown>,
+  params: RouterParams,
+): Record<string, unknown> {
+  return { ...body, ...parseOptions(params) };
 }
 
 function buildBody(spec: RouterModelSpec, params: RouterParams, images: Record<string, string>): Record<string, unknown> {
@@ -78,6 +84,7 @@ function buildBody(spec: RouterModelSpec, params: RouterParams, images: Record<s
       return {
         prompt,
         ...(duration !== undefined ? { duration: String(duration) } : {}),
+        ...(aspect !== undefined ? { aspect_ratio: aspect } : {}),
         ...(image
           ? { image_list: [{ image_url: bareBase64(image), type: "first_frame" }] }
           : {}),
@@ -92,7 +99,10 @@ function buildBody(spec: RouterModelSpec, params: RouterParams, images: Record<s
         ],
         parameters: {
           ...(aspect !== undefined ? { aspectRatio: aspect } : {}),
-          ...(duration !== undefined ? { durationSeconds: duration } : {}),
+          // Veo accepts 4, 6 or 8 seconds; anything else uses its default.
+          ...(duration === 4 || duration === 6 || duration === 8
+            ? { durationSeconds: duration }
+            : {}),
           sampleCount: 1,
         },
       };
@@ -158,6 +168,8 @@ const URLISH_KEY = /(url|uri|video|image|sample|output|result|poster|file|mp4|we
 const B64_KEY = /(b64|base64|bytes|inline|blob|^data$)/i;
 const MIME_KEY = /^(mime_?type|content_?type|media_?type)$/i;
 const MEDIA_EXT = /\.(png|jpe?g|webp|mp4|mov|webm|gif)(\?|$)/i;
+/** Polling and callback links, never media. */
+const CONTROL_KEY = /(status|cancel|callback|response|webhook|poll)_?ur[il]/i;
 
 function scanMedia(
   node: unknown,
@@ -180,6 +192,7 @@ function scanMedia(
   for (const [key, value] of Object.entries(obj)) {
     if (typeof value !== "string") continue;
     if (
+      !CONTROL_KEY.test(key) &&
       (URLISH_KEY.test(key) || MEDIA_EXT.test(value)) &&
       /^https?:\/\//.test(value) &&
       !seen.has(value)

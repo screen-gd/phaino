@@ -126,6 +126,7 @@ export function ParamChip({
             <span className="text-body font-semibold text-t1">{current}</span>
           </div>
           <Slider
+            getAriaLabel={() => param.label}
             min={param.min}
             max={param.max}
             step={1}
@@ -147,6 +148,7 @@ export function ParamChip({
             </h5>
             <Input
               type="number"
+              aria-label={param.label}
               min={param.min}
               max={param.max}
               step={param.step}
@@ -156,6 +158,7 @@ export function ParamChip({
             />
           </div>
           <Slider
+            getAriaLabel={() => param.label}
             min={param.min}
             max={param.max}
             step={param.step}
@@ -192,6 +195,7 @@ export function ParamChip({
             <div className="mt-3 flex items-center gap-1.5">
               <Input
                 type="number"
+                aria-label="Seed"
                 inputMode="numeric"
                 value={Number(value ?? 0)}
                 placeholder="Any whole number"
@@ -223,6 +227,7 @@ export function ParamChip({
       <div className="grid w-[260px] gap-2 p-3.5">
         <h5 className="text-caption text-t3">{param.label}</h5>
         <Input
+          aria-label={param.label}
           value={current}
           placeholder={param.placeholder}
           onChange={(e) => onChange(e.target.value)}
@@ -311,6 +316,7 @@ function AdvancedField({ param, value, randomSeed, onChange, onRandomSeed }: {
         </Select>
       ) : param.type === "int" ? (
         <Slider
+          getAriaLabel={() => param.label}
           min={param.min}
           max={param.max}
           step={1}
@@ -319,6 +325,7 @@ function AdvancedField({ param, value, randomSeed, onChange, onRandomSeed }: {
         />
       ) : param.type === "float" ? (
         <Slider
+          getAriaLabel={() => param.label}
           min={param.min}
           max={param.max}
           step={param.step}

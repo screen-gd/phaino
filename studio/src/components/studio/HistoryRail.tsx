@@ -107,6 +107,7 @@ export function HistoryRail({
   activeId,
   onSelect,
   aspect,
+  failed = false,
 }: {
   jobs: StudioJob[];
   /** Active job; leads the list while it is not in recent yet. */
@@ -116,6 +117,8 @@ export function HistoryRail({
   onSelect: (row: StudioJob) => void;
   /** Tile shape: 16:9 for video/camera, square for image. */
   aspect: "wide" | "square";
+  /** History could not be loaded. */
+  failed?: boolean;
 }) {
   // Re-render once a minute so relative times stay fresh.
   const [, setTick] = useState(0);
@@ -139,7 +142,9 @@ export function HistoryRail({
       </div>
       <div className="mt-3 min-h-0 flex-1 overflow-x-auto overflow-y-hidden pb-2 lg:overflow-y-auto lg:overflow-x-hidden">
         {rows.length === 0 ? (
-          <p className="text-caption text-t3">No runs yet</p>
+          <p className="text-caption text-t3">
+            {failed ? "Couldn't load history" : "No runs yet"}
+          </p>
         ) : (
           <div
             className={`flex snap-x snap-proximity gap-3 lg:grid lg:snap-none ${

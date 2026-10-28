@@ -9,7 +9,16 @@ export async function uploadStill(
   { demo }: { demo: boolean },
 ): Promise<Uploaded | null> {
   if (demo) {
-    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+    if (
+      ![
+        "image/png",
+        "image/jpeg",
+        "image/webp",
+        "video/mp4",
+        "video/quicktime",
+        "video/webm",
+      ].includes(file.type)
+    ) {
       return null;
     }
     return await new Promise((resolve) => {

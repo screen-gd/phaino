@@ -9,12 +9,23 @@ import { comfyTarget, getComfy } from "@/server/comfy/client";
 import { getRouter } from "@/server/comfy/router";
 import type { StudioEnv } from "@/server/env";
 import { getEnv } from "@/server/env";
-import { PresetBindError, applyPreset, type WorkflowApi } from "@/server/presets/bind";
+import {
+  PresetBindError,
+  applyPreset,
+  validatePresetValues,
+  type WorkflowApi,
+} from "@/server/presets/bind";
 import { getPreset } from "@/server/presets/load";
 import type { Preset } from "@/server/presets/schema";
 import { applyDerived, prepareEditJob } from "@/server/edits/prepare";
 import { resolveUpload } from "@/server/uploads";
-import { RouterOutputError, routerAdapterFor, type RouterAdapter } from "@/server/router/adapters";
+import {
+  RouterInputError,
+  RouterOutputError,
+  routerAdapterFor,
+  type RouterAdapter,
+} from "@/server/router/adapters";
+import { parseOptions } from "@/server/router/generic";
 import { extForMime, saveRouterOutput, uploadDataUrl } from "@/server/router/media";
 import { getStore, type JobRecord, type JobStore } from "./store";
 
@@ -209,14 +220,26 @@ export class JobRunner {
     }
 
     try {
-      applyPreset(
-        loaded.workflowApi as WorkflowApi,
-        preset,
-        { inputs: values, params: input.params },
-        { seed: this.freshSeed() },
-      );
+      // Router presets have no workflow to write into; validate values only.
+      if (this.deps.adapterFor(input.presetId)) {
+        validatePresetValues(
+          preset,
+          { inputs: values, params: input.params },
+          { seed: this.freshSeed() },
+        );
+        parseOptions(input.params);
+      } else {
+        applyPreset(
+          loaded.workflowApi as WorkflowApi,
+          preset,
+          { inputs: values, params: input.params },
+          { seed: this.freshSeed() },
+        );
+      }
     } catch (err) {
-      if (err instanceof PresetBindError) throw new JobInputError(err.message);
+      if (err instanceof PresetBindError || err instanceof RouterInputError) {
+        throw new JobInputError(err.message);
+      }
       throw err;
     }
 

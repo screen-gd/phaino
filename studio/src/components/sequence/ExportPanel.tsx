@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { JobRecord } from "@/server/jobs/store";
 import type { Sequence } from "@/server/sequence/model";
@@ -81,24 +81,61 @@ export function ExportPanel({
   const [summary, setSummary] = useState<{ id: string; text: string } | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const esRef = useRef<EventSource | null>(null);
+  const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Bumped on every subscribe and on unmount so stale polls drop their result.
+  const genRef = useRef(0);
 
-  const subscribe = (id: string) => {
+  // Watch a job until a terminal status: SSE for live updates, then a poll
+  // fallback once the stream dies (e.g. dev recompile or a dropped
+  // connection), which otherwise leaves the panel stuck on the last status.
+  const subscribe = useCallback((id: string) => {
     esRef.current?.close();
+    if (pollRef.current) clearTimeout(pollRef.current);
+    const gen = ++genRef.current;
+
+    const apply = (j?: JobRecord) => {
+      if (!j || gen !== genRef.current) return;
+      setJob(j);
+      if (!["queued", "running"].includes(j.status)) {
+        esRef.current?.close();
+        if (pollRef.current) clearTimeout(pollRef.current);
+      }
+    };
+
+    const poll = function pollOnce() {
+      fetch(`/api/jobs/${id}`)
+        .then((r) => {
+          // Server errors are transient; a 404 means the job is gone.
+          if (r.status >= 500) throw new Error(String(r.status));
+          return r.ok ? r.json() : null;
+        })
+        .then((d: { job?: JobRecord } | null) => {
+          if (gen !== genRef.current) return;
+          apply(d?.job);
+          if (d?.job && ["queued", "running"].includes(d.job.status)) {
+            pollRef.current = setTimeout(pollOnce, 2000);
+          }
+        })
+        .catch(() => {
+          if (gen === genRef.current) pollRef.current = setTimeout(pollOnce, 3000);
+        });
+    };
+
     const es = new EventSource(`/api/jobs/${id}/events`);
     esRef.current = es;
     es.onmessage = (ev) => {
       try {
-        const data = JSON.parse(ev.data) as { job?: JobRecord };
-        if (data.job) {
-          setJob(data.job);
-          if (!["queued", "running"].includes(data.job.status)) es.close();
-        }
+        // The events route streams bare job rows.
+        apply(JSON.parse(ev.data) as JobRecord);
       } catch {
         /* keep listening */
       }
     };
-    es.onerror = () => es.close();
-  };
+    es.onerror = () => {
+      es.close();
+      poll();
+    };
+  }, []);
 
   // Re-attach to the last export after a reload.
   useEffect(() => {
@@ -113,8 +150,12 @@ export function ExportPanel({
         })
         .catch(() => undefined);
     }
-    return () => esRef.current?.close();
-  }, []);
+    return () => {
+      genRef.current++;
+      esRef.current?.close();
+      if (pollRef.current) clearTimeout(pollRef.current);
+    };
+  }, [subscribe]);
 
   // Fetch summary.txt once an NLE package succeeds.
   useEffect(() => {
@@ -151,7 +192,15 @@ export function ExportPanel({
   };
 
   const cancel = async () => {
-    if (job) await fetch(`/api/jobs/${job.id}/cancel`, { method: "POST" });
+    if (!job) return;
+    const res = await fetch(`/api/jobs/${job.id}/cancel`, { method: "POST" }).catch(
+      () => null,
+    );
+    const data = res?.ok
+      ? ((await res.json().catch(() => null)) as { job?: JobRecord } | null)
+      : null;
+    const updated = data?.job;
+    if (updated) setJob((cur) => (cur?.id === updated.id ? updated : cur));
   };
 
   const exportId = job?.params?.exportId as string | undefined;

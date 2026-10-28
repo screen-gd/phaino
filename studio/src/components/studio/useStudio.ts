@@ -46,14 +46,19 @@ export function useStudio(
   const [error, setError] = useState<string | null>(null);
   const [job, setJob] = useState<StudioJob | null>(null);
   const [recent, setRecent] = useState<StudioJob[]>([]);
+  const [recentFailed, setRecentFailed] = useState(false);
   const esRef = useRef<EventSource | null>(null);
 
   const loadRecent = useCallback(async () => {
     if (demo.enabled) return;
-    const res = await fetch(`/api/jobs?category=${category}&limit=12`);
-    if (res.ok) {
+    try {
+      const res = await fetch(`/api/jobs?category=${category}&limit=12`);
+      if (!res.ok) throw new Error(String(res.status));
       const data = (await res.json()) as { jobs: StudioJob[] };
       setRecent(data.jobs);
+      setRecentFailed(false);
+    } catch {
+      setRecentFailed(true);
     }
   }, [category, demo.enabled]);
 
@@ -65,8 +70,9 @@ export function useStudio(
       )
       .then((data) => {
         if (data) setRecent(data.jobs);
+        setRecentFailed(!data);
       })
-      .catch(() => {});
+      .catch(() => setRecentFailed(true));
     return () => esRef.current?.close();
   }, [category, demo.enabled]);
 
@@ -263,6 +269,7 @@ export function useStudio(
     setJob: selectJob,
     clearJob,
     recent: demo.enabled ? demo.jobs.filter((row) => row.category === category) : recent,
+    recentFailed: !demo.enabled && recentFailed,
     submit,
     cancel,
     subscribe,

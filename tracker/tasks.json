@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-28",
+  "updated": "2026-10-29",
   "milestones": [
     {
       "id": "m1",
@@ -580,8 +580,14 @@
         {
           "id": "m11-live",
           "title": "Live Router run for each partner preset",
-          "status": "blocked",
-          "notes": "The saved Comfy key gets 401 from api.comfy.org (catalog and balance). Needs a Router-enabled key in Settings."
+          "status": "doing",
+          "notes": "New Comfy key works on Router: Nano Banana 2 ran live. Kling and Seedance still need a live run each. Note: Cloud API workflow submission needs a paid Comfy plan (free tier is Router-only)."
+        },
+        {
+          "id": "m11-catalog",
+          "title": "Router catalog presets: all image/video gen, edit and upscale models",
+          "status": "done",
+          "notes": "Generic adapter (per-family payload shapes + options JSON + media-scanning output reader) and ~110 catalog presets synthesized in load.ts. Forking blocked, workflows index filtered, validate-only submit path. Video edit/upscale slots take video uploads; Runway Aleph sends the source video."
         }
       ]
     },

@@ -63,43 +63,6 @@
   }
 }
 
-/* Two identical groups keep the demo marquee continuous using only transforms. */
-.demo-notice-track {
-  display: flex;
-  width: max-content;
-  animation: demo-notice-scroll 48s linear infinite;
-  will-change: transform;
-}
-.demo-notice-group {
-  display: flex;
-  min-width: 100vw;
-  flex-shrink: 0;
-  justify-content: space-around;
-}
-.demo-notice-track[data-paused="true"] {
-  animation-play-state: paused;
-}
-.demo-notice-static {
-  display: none;
-}
-@keyframes demo-notice-scroll {
-  to { transform: translateX(-50%); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .demo-notice-track {
-    display: none;
-    animation: none;
-    will-change: auto;
-  }
-  .demo-notice-toggle {
-    display: none;
-  }
-  .demo-notice-static {
-    display: block;
-    text-align: center;
-  }
-}
-
 /* Mega-menu morph (Base UI NavigationMenu): the positioner slides between
    triggers, the popup resizes to the next content, and content direction-
    slides with a fade. 220ms, off under reduced motion. */

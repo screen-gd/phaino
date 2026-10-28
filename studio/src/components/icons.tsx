@@ -2,8 +2,8 @@ import { RUNE_ICONS, type RuneIcon } from "./icons/rune";
 
 /**
  * Icon set: Rune Icons (duotone, Apache-2.0 — see THIRD_PARTY_NOTICES.md).
- * A name resolves to a RuneIcon (two-tone layers in currentColor); a plain
- * string still works as a single-path fallback for custom glyphs.
+ * A name resolves to a RuneIcon (two-tone layers in currentColor); custom
+ * glyphs below render as a single stroked path.
  */
 const CUSTOM_PATHS = {
   gem: "M6 3h12l4 6-10 13L2 9l4-6zM2 9h20",
@@ -13,11 +13,15 @@ const CUSTOM_PATHS = {
   scissors: "M6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM8.5 7.5L20 19M8.5 16.5L20 5",
   redo: "M21 12c0 5.5-4 9-9 9s-9-3.5-9-9 4-9 9-9c3.6 0 6.6 2 8.3 5M21 3v5h-5",
   type: "M5 6V4h14v2M12 4v16m-3 0h6",
+  toStart: "M5 5v14M17 5L7 12l10 7z",
+  toEnd: "M19 5v14M7 5l10 7-10 7z",
 } as const;
 
 export type IconName = keyof typeof RUNE_ICONS | keyof typeof CUSTOM_PATHS;
 
-export type IconSource = RuneIcon | string;
+type CustomPath = (typeof CUSTOM_PATHS)[keyof typeof CUSTOM_PATHS];
+
+export type IconSource = RuneIcon | CustomPath;
 
 export const SECTION_ICONS: Record<IconName, IconSource> = {
   ...RUNE_ICONS,

@@ -22,6 +22,8 @@ export type GNode = {
   collapsed: boolean;
   /** Subgraph id when this node is a subgraph instance. */
   subgraph?: string;
+  /** Definition name for subgraph instances (their type is the UUID). */
+  subgraphName?: string;
   /** Set on the Inputs/Outputs pseudo-nodes inside a subgraph view. */
   pseudo?: "inputs" | "outputs";
 };
@@ -40,6 +42,13 @@ export type GGroup = {
   bounding: [number, number, number, number];
   color?: string;
 };
+
+/** What a user should read for a node: title, subgraph name, then class. */
+export function nodeDisplayName(n: GNode): string {
+  if (n.title) return n.title;
+  if (n.subgraph) return n.subgraphName ?? "Subgraph";
+  return n.type;
+}
 
 export type GraphBounds = { x: number; y: number; w: number; h: number };
 
@@ -90,11 +99,14 @@ function asNode(raw: RawNode, subgraphs?: Record<string, unknown>[]): GNode | nu
   const widgets = Object.entries(raw.widgets_values_named ?? {}).map(
     ([name, value]) => ({ name, value }),
   );
-  const sub = subgraphs?.find((s) => s.id === raw.type)?.id as string | undefined;
+  const def = subgraphs?.find((s) => s.id === raw.type);
+  const sub = def?.id as string | undefined;
   return {
     id: raw.id,
     type: raw.type,
     title: typeof raw.title === "string" ? raw.title : undefined,
+    subgraphName:
+      sub && typeof def?.name === "string" ? def.name : undefined,
     pos: asPair(raw.pos),
     size: asPair(raw.size),
     inputs: (raw.inputs ?? []).map(asSlot).filter((s): s is GSlot => s !== null),
@@ -267,6 +279,35 @@ export function fitView(
     x: viewport.w / 2 - (bounds.x + bounds.w / 2) * scale,
     y: viewport.h / 2 - (bounds.y + bounds.h / 2) * scale,
   };
+}
+
+export function nodeIsVisible(
+  node: Pick<GNode, "pos" | "size">,
+  view: ReturnType<typeof fitView>,
+  viewport: { w: number; h: number },
+): boolean {
+  const left = node.pos[0] * view.scale + view.x;
+  const top = (node.pos[1] - 30) * view.scale + view.y;
+  const right = left + node.size[0] * view.scale;
+  const bottom = (node.pos[1] + node.size[1]) * view.scale + view.y;
+  return left >= 0 && top >= 0 && right <= viewport.w && bottom <= viewport.h;
+}
+
+export function nodeIdForPath(
+  path: readonly number[],
+  instanceId: number | null,
+): number | undefined {
+  return instanceId === null
+    ? path[0]
+    : path[0] === instanceId ? path[1] : undefined;
+}
+
+export function bindingMatchesHover(
+  binding: readonly number[],
+  hovered: readonly number[] | null,
+): boolean {
+  return !!hovered?.length && hovered.length <= binding.length &&
+    hovered.every((id, index) => id === binding[index]);
 }
 
 export type BindingTarget = {

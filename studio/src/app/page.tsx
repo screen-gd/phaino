@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { CloudPromo } from "@/components/CloudPromo";
-import { CommunityGrid } from "@/components/CommunityGrid";
-import { ExploreBanner } from "@/components/ExploreBanner";
+import { ComfyBanner } from "@/components/home/ComfyBanner";
 import { Icon, SECTION_ICONS, type IconName } from "@/components/icons";
 import { ExploreCarousel } from "@/components/ExploreCarousel";
 import { ExploreFooter } from "@/components/ExploreFooter";
+import { StatusBadge } from "@/components/StatusBadge";
 import { presetPreview } from "@/lib/preset-preview";
-import { EXPLORE_MEDIA } from "@/lib/explore-media";
-import { Badge } from "@/components/ui/badge";
+import { featureById, type FeatureStatus } from "@/lib/features";
 import { Button } from "@/components/ui/button";
 import { toStudioModels } from "@/server/models/view";
 import { listPresets } from "@/server/presets/load";
@@ -15,26 +14,24 @@ import type { Preset } from "@/server/presets/schema";
 
 export const dynamic = "force-dynamic";
 
+// Soon tiles stay listed but go to the roadmap, not the stub pages.
 const TOOLS = [
-  { href: "/camera", name: "Camera moves", kind: "Video", badge: "New", desc: "7 moves on LTX 2.5", icon: "camera" },
-  { href: "/image", name: "Image", kind: "Image", badge: null, desc: "FLUX 3 Klein, Qwen, Z-Image", icon: "image" },
-  { href: "/video", name: "Video", kind: "Video", badge: null, desc: "LTX 2.5, Wan 2.2, HunyuanVideo, MiniMax H3", icon: "video" },
-  { href: "/effects", name: "Effects", kind: "Video", badge: "Soon", desc: "One-click VFX", icon: "effects" },
-  { href: "/characters", name: "Characters", kind: "Image", badge: "Soon", desc: "Consistent characters", icon: "characters" },
-  { href: "/avatars", name: "Avatars", kind: "Video", badge: "Soon", desc: "Lipsync", icon: "avatars" },
-  { href: "/edit", name: "Edit", kind: "Image", badge: "Soon", desc: "Upscale and inpaint", icon: "edit" },
-  { href: "/audio", name: "Audio", kind: "Audio", badge: "Soon", desc: "Music and sound effects", icon: "audio" },
-  { href: "/editor", name: "Editor", kind: null, badge: "New", desc: "Cut, titles and music", icon: "export" },
+  { id: "camera", href: "/camera", name: "Camera moves", kind: "Video", desc: "7 moves on LTX 2.5", icon: "camera" },
+  { id: "image", href: "/image", name: "Image", kind: "Image", desc: "FLUX.2 Klein, Qwen Image, Z-Image", icon: "image" },
+  { id: "video", href: "/video", name: "Video", kind: "Video", desc: "LTX 2.5, Wan 2.2, HunyuanVideo, MiniMax H3", icon: "video" },
+  { id: "effects", href: "/effects", name: "Effects", kind: "Video", desc: "One-click reframe, upscale and smooth motion", icon: "effects" },
+  { id: "edit", href: "/edit", name: "Edit", kind: "Image", desc: "Upscale and inpaint", icon: "edit" },
+  { id: "editor", href: "/editor", name: "Editor", kind: null, desc: "Cut, titles and music", icon: "export" },
 ] as const satisfies readonly {
+  id: string;
   href: string;
   name: string;
   kind: string | null;
-  badge: "New" | "Soon" | null;
   desc: string;
   icon: IconName;
 }[];
 
-/** Section heading: expanded accent title, optional subtitle and action buttons. */
+/** Section heading: white title, optional subtitle and action buttons. */
 function SectionHead({
   title,
   sub,
@@ -45,9 +42,9 @@ function SectionHead({
   actions?: readonly { label: string; href: string; accent?: boolean }[];
 }) {
   return (
-    <div className="mt-12 mb-4 flex items-end justify-between gap-4">
+    <div className="mt-14 mb-5 flex items-end justify-between gap-4">
       <div>
-        <h2 className="font-display font-extrabold uppercase text-h3 tracking-tight text-ac font-stretch-[112.5%]">
+        <h2 className="text-h2 font-semibold tracking-tight text-t1">
           {title}
         </h2>
         {sub && <p className="mt-1.5 text-caption text-t3">{sub}</p>}
@@ -70,29 +67,32 @@ function SectionHead({
   );
 }
 
-/** Small tool tile: icon and kind chip on top, name, badge and description below. */
-function ToolTile({ tool }: { tool: (typeof TOOLS)[number] }) {
+/** Small tool tile: icon and kind tag on top, name, status and description below. */
+function ToolTile({
+  tool,
+  status,
+}: {
+  tool: (typeof TOOLS)[number];
+  status: FeatureStatus;
+}) {
+  const soon = status === "soon";
   return (
     <Link
-      href={tool.href}
-      className="flex min-h-24 flex-col justify-between rounded-xl border border-line bg-s2 p-3 hover:border-[#444] hover:bg-s3"
+      href={soon ? "/roadmap" : tool.href}
+      className={`flex min-h-24 flex-col justify-between rounded-md border border-line bg-s1 p-3 ${
+        soon ? "" : "hover:border-[#444]"
+      }`}
     >
       <div className="flex items-center justify-between">
         <Icon d={SECTION_ICONS[tool.icon]} className="h-5 w-5 text-t2" />
-        {tool.kind && <Badge variant="outline">{tool.kind}</Badge>}
+        {tool.kind && (
+          <span className="font-mono text-caption text-t3">{tool.kind}</span>
+        )}
       </div>
       <div>
-        <b className="text-body font-semibold">
+        <b className={`text-body font-semibold ${soon ? "text-t3" : ""}`}>
           {tool.name}
-          {tool.badge && (
-            <Badge
-              size="sm"
-              variant={tool.badge === "New" ? "default" : "secondary"}
-              className="ml-1.5 align-middle"
-            >
-              {tool.badge}
-            </Badge>
-          )}
+          <StatusBadge status={status} className="ml-1.5 align-middle" />
         </b>
         <span className="mt-0.5 block text-caption text-t3">{tool.desc}</span>
       </div>
@@ -108,36 +108,22 @@ function PresetCard({ preset }: { preset: Preset }) {
   const inLabel = imageIn ? "Image" : "Text";
   const outLabel = outKind === "image" ? "Image" : "Video";
   return (
-    <Link href={tryHref} aria-label={`Try ${preset.name}`} className="group relative block aspect-video overflow-hidden rounded-xl border border-line bg-s3 hover:border-[#444]">
+    <Link href={tryHref} aria-label={`Try ${preset.name}`} className="group relative block aspect-video overflow-hidden rounded-md border border-line bg-black hover:border-[#444]">
       <img
         src={presetPreview(preset)}
         alt=""
-        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+        className="h-full w-full object-cover"
       />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-linear-to-t from-black/80 to-transparent" />
-      <div className="pointer-events-none absolute inset-x-3 top-2 flex items-center justify-between">
-        {preset.chip ? (
-          <Badge
-            variant="secondary"
-            className="bg-black/70 font-mono text-caption text-t2"
-          >
-            {preset.chip}
-          </Badge>
-        ) : (
-          <span />
-        )}
-        <Badge
-          variant="secondary"
-          className="bg-black/70 font-mono text-caption text-t2"
-        >
-          {preset.model.label}
-        </Badge>
+      <div className="pointer-events-none absolute inset-x-3 top-2.5 flex items-center justify-between font-mono text-caption text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">
+        <span>{preset.chip ?? ""}</span>
+        <span>{preset.model.label}</span>
       </div>
       <div className="pointer-events-none absolute inset-x-3 bottom-3 flex items-center justify-between">
         <b className="text-body font-semibold">{preset.name}</b>
         <span
           aria-label={`${inLabel} to ${outLabel}`}
-          className="flex items-center gap-1 rounded-full bg-black/70 px-2 py-1 text-t2"
+          className="flex items-center gap-1 text-t2"
         >
           <Icon d={imageIn ? SECTION_ICONS.image : SECTION_ICONS.pencil} className="h-3 w-3" />
           <Icon d={SECTION_ICONS.chevronRight} className="h-2.5 w-2.5 text-t3" />
@@ -165,22 +151,26 @@ export default function Home() {
 
       <ExploreCarousel />
 
-      <div className="mt-12 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+      <div className="mt-14 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <CloudPromo />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {TOOLS.map((t) => (
-            <ToolTile key={t.href} tool={t} />
+            <ToolTile
+              key={t.id}
+              tool={t}
+              status={featureById(t.id)?.status ?? "live"}
+            />
           ))}
         </div>
       </div>
 
-      <div className="mt-12">
-        <ExploreBanner />
+      <div className="mt-14">
+        <ComfyBanner />
       </div>
 
       <SectionHead
         title="Trending presets"
-        sub="Camera moves on LTX 2.5, images on FLUX 3 Klein"
+        sub="Camera moves on LTX 2.5, images on FLUX.2 Klein"
         actions={[
           { label: "Start generating", href: "/camera", accent: true },
           { label: "All workflows", href: "/workflows" },
@@ -197,7 +187,7 @@ export default function Home() {
           </div>
           {presets.length > 4 && (
             <>
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[48%] bg-linear-to-b from-transparent via-black/70 to-black" />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[48%] bg-linear-to-b from-transparent via-black/50 to-black/90" />
               <div className="pointer-events-none absolute inset-x-0 bottom-5 z-20 flex justify-center">
                 <Button
                   variant="secondary"
@@ -214,11 +204,6 @@ export default function Home() {
         </div>
       )}
 
-      <SectionHead
-        title="Made with Comfy"
-        actions={[{ label: "See the showcase", href: "/community" }]}
-      />
-      <CommunityGrid items={EXPLORE_MEDIA.slice(0, 8)} />
       <ExploreFooter presets={catalog} models={models} />
     </div>
   );

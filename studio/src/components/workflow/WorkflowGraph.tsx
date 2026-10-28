@@ -7,12 +7,14 @@ import {
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
-  type WheelEvent as ReactWheelEvent,
 } from "react";
 import { Icon, SECTION_ICONS } from "@/components/icons";
 import {
   bindingTargets,
   fitView,
+  nodeDisplayName,
+  nodeIdForPath,
+  nodeIsVisible,
   normalizeGraph,
   slotPosition,
   type GLink,
@@ -64,18 +66,27 @@ function truncate(value: unknown, max = 40): string {
 export function WorkflowGraph({
   workflow,
   preset,
+  presetName,
   selection,
   onSelect,
   focus,
+  panelHoverPath,
+  onCanvasHoverPath,
   registerApi,
 }: {
   workflow: unknown;
   /** The preset (or a value with inputs/params/outputs) for bindings. */
   preset: Parameters<typeof bindingTargets>[0];
+  /** Root label of the graph breadcrumb. */
+  presetName: string;
   selection: GraphSelection | null;
   onSelect: (sel: GraphSelection | null) => void;
   /** Set a new {seq} to centre a binding path: [topId] or [instId, innerId]. */
   focus: FocusRequest | null;
+  /** Binding path hovered in the panel; highlights and pans to the node. */
+  panelHoverPath?: number[] | null;
+  /** Node path hovered on the canvas; highlights the matching panel rows. */
+  onCanvasHoverPath?: (path: number[] | null) => void;
   /** The panel registers an opener so the inspector can drill into subgraphs. */
   registerApi?: (api: { openSubgraph: (node: GNode) => void }) => void;
 }) {
@@ -84,24 +95,30 @@ export function WorkflowGraph({
   const [view, setView] = useState<View>({ x: 0, y: 0, scale: 0.2 });
   const [subgraph, setSubgraph] = useState<SubgraphFrame | null>(null);
   const [showControls, setShowControls] = useState(true);
-  const drag = useRef<{ px: number; py: number; x: number; y: number } | null>(null);
+  const drag = useRef<{ pointerId: number; px: number; py: number; x: number; y: number } | null>(null);
   const fittedFor = useRef<SubgraphFrame | null | "init">("init");
+  const pendingFocus = useRef<number | null>(null);
   const seenFocus = useRef(0);
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const canvasHover = useRef<number | null>(null);
+
+  const cancelHoverPan = useCallback(() => {
+    if (hoverTimer.current !== null) {
+      clearTimeout(hoverTimer.current);
+      hoverTimer.current = null;
+    }
+  }, []);
+
+  const clearCanvasHover = useCallback(() => {
+    canvasHover.current = null;
+    onCanvasHoverPath?.(null);
+  }, [onCanvasHoverPath]);
 
   const targets = useMemo(() => bindingTargets(preset), [preset]);
+  const topModel = useMemo(() => normalizeGraph(workflow), [workflow]);
   const model = useMemo(
-    () => normalizeGraph(workflow, subgraph?.id),
-    [workflow, subgraph],
-  );
-  const subgraphDefs = useMemo(
-    () =>
-      new Map(
-        (
-          ((workflow as { definitions?: { subgraphs?: unknown[] } })
-            ?.definitions?.subgraphs ?? []) as { id: string; name?: string }[]
-        ).map((s) => [s.id, s]),
-      ),
-    [workflow],
+    () => subgraph ? normalizeGraph(workflow, subgraph.id) : topModel,
+    [workflow, subgraph, topModel],
   );
 
   useEffect(() => {
@@ -124,55 +141,87 @@ export function WorkflowGraph({
     [size],
   );
 
-  // Fit on first layout and whenever the current subgraph changes.
-  useEffect(() => {
-    if (fittedFor.current !== subgraph && model) {
-      fittedFor.current = subgraph;
-      doFit(model);
-    }
-  }, [model, subgraph, doFit]);
-
   // Centre a node in the current view.
   const centreOn = useCallback(
-    (m: GraphModel | null, nodeId: number) => {
+    (m: GraphModel | null, nodeId: number, onlyIfOutside = false) => {
       const node = m?.nodes.find((n) => n.id === nodeId);
       if (!m || !node) return;
-      setView((v) => ({
-        scale: Math.max(v.scale, 0.5),
-        x: size.w / 2 - (node.pos[0] + node.size[0] / 2) * Math.max(v.scale, 0.5),
-        y: size.h / 2 - (node.pos[1] + node.size[1] / 2) * Math.max(v.scale, 0.5),
-      }));
+      setView((v) => {
+        if (onlyIfOutside && nodeIsVisible(node, v, size)) return v;
+        const scale = onlyIfOutside ? v.scale : Math.max(v.scale, 0.5);
+        return {
+          scale,
+          x: size.w / 2 - (node.pos[0] + node.size[0] / 2) * scale,
+          y: size.h / 2 - (node.pos[1] + (node.size[1] - 30) / 2) * scale,
+        };
+      });
     },
     [size],
   );
 
+  // Fit on entry, unless a row click requested a specific node.
+  useEffect(() => {
+    if (fittedFor.current !== subgraph && model) {
+      fittedFor.current = subgraph;
+      if (pendingFocus.current !== null) {
+        centreOn(model, pendingFocus.current);
+        pendingFocus.current = null;
+      } else {
+        doFit(model);
+      }
+    }
+  }, [model, subgraph, doFit, centreOn]);
+
   // External focus requests from the Controls list.
   useEffect(() => {
     if (!focus || focus.seq === seenFocus.current) return;
-    seenFocus.current = focus.seq;
     const frame = requestAnimationFrame(() => {
+      seenFocus.current = focus.seq;
+      cancelHoverPan();
+      clearCanvasHover();
       const [top, inner] = focus.path;
       if (top === undefined) return;
+      const inst = topModel?.nodes.find((n) => n.id === top);
+      if (!inst) return;
       if (inner !== undefined) {
-        const inst = model?.nodes.find((n) => n.id === top);
-        const def = inst?.subgraph ? subgraphDefs.get(inst.subgraph) : undefined;
-        if (inst?.subgraph && def) {
-          const frameSg = { id: inst.subgraph, name: def.name ?? inst.title ?? "Subgraph", instanceId: top };
-          setSubgraph(frameSg);
+        if (inst.subgraph) {
+          const frameSg = { id: inst.subgraph, name: inst.subgraphName ?? inst.title ?? "Subgraph", instanceId: top };
           const innerModel = normalizeGraph(workflow, inst.subgraph);
-          onSelect({ node: innerModel?.nodes.find((n) => n.id === inner) ?? inst, subgraph: frameSg });
-          centreOn(innerModel, inner);
+          const node = innerModel?.nodes.find((n) => n.id === inner);
+          if (!node) return;
+          onSelect({ node, subgraph: frameSg });
+          if (subgraph?.id === frameSg.id && subgraph.instanceId === top) {
+            centreOn(innerModel, inner);
+          } else {
+            pendingFocus.current = inner;
+            setSubgraph(frameSg);
+          }
           return;
         }
       }
-      setSubgraph(null);
-      const node = model?.nodes.find((n) => n.id === top);
-      if (node) onSelect({ node, subgraph: null });
-      centreOn(model, top);
+      onSelect({ node: inst, subgraph: null });
+      if (subgraph) {
+        pendingFocus.current = top;
+        setSubgraph(null);
+      } else {
+        centreOn(topModel, top);
+      }
     });
     return () => cancelAnimationFrame(frame);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focus]);
+  }, [focus, topModel, workflow, subgraph, centreOn, onSelect, cancelHoverPan, clearCanvasHover]);
+
+  // Panel-hover pan, debounced so sweeping the list doesn't thrash. Panning
+  // is instant (no animation), so reduced motion needs no special case.
+  useEffect(() => {
+    if (!panelHoverPath || drag.current) return;
+    const nodeId = nodeIdForPath(panelHoverPath, subgraph?.instanceId ?? null);
+    if (nodeId === undefined) return;
+    hoverTimer.current = setTimeout(() => {
+      hoverTimer.current = null;
+      if (!drag.current) centreOn(model, nodeId, true);
+    }, 120);
+    return cancelHoverPan;
+  }, [panelHoverPath, subgraph, model, centreOn, cancelHoverPan]);
 
   // Esc clears the selection.
   useEffect(() => {
@@ -185,12 +234,13 @@ export function WorkflowGraph({
 
   const openSubgraphCb = useCallback(
     (node: GNode) => {
-      const def = node.subgraph ? subgraphDefs.get(node.subgraph) : undefined;
-      if (!node.subgraph || !def) return;
-      setSubgraph({ id: node.subgraph, name: def.name ?? node.title ?? "Subgraph", instanceId: node.id });
+      if (!node.subgraph) return;
+      cancelHoverPan();
+      clearCanvasHover();
+      setSubgraph({ id: node.subgraph, name: node.subgraphName ?? node.title ?? "Subgraph", instanceId: node.id });
       onSelect(null);
     },
-    [subgraphDefs, onSelect],
+    [onSelect, cancelHoverPan, clearCanvasHover],
   );
   useEffect(() => {
     registerApi?.({ openSubgraph: openSubgraphCb });
@@ -200,11 +250,7 @@ export function WorkflowGraph({
   const bound = useMemo(() => {
     const map = new Map<number, string[]>();
     for (const t of targets) {
-      const id = subgraph
-        ? t.path[0] === subgraph.instanceId
-          ? t.path[1]
-          : undefined
-        : t.path[0];
+      const id = nodeIdForPath(t.path, subgraph?.instanceId ?? null);
       if (id === undefined) continue;
       map.set(id, [...(map.get(id) ?? []), t.label]);
     }
@@ -229,49 +275,86 @@ export function WorkflowGraph({
     };
   };
 
-  const onWheel = (e: ReactWheelEvent<SVGSVGElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const cx = e.clientX - rect.left;
-    const cy = e.clientY - rect.top;
+  useEffect(() => {
+    const el = wrap.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      cancelHoverPan();
+      clearCanvasHover();
+      if (drag.current || e.deltaY === 0) return;
+      const rect = el.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      setView((v) => {
+        const scale = Math.min(2, Math.max(0.1, v.scale * (e.deltaY < 0 ? 1.15 : 1 / 1.15)));
+        const k = scale / v.scale;
+        return { scale, x: cx - (cx - v.x) * k, y: cy - (cy - v.y) * k };
+      });
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [cancelHoverPan, clearCanvasHover]);
+
+  const onPointerDown = (e: ReactPointerEvent<SVGSVGElement>) => {
+    if (e.button !== 0 || !e.isPrimary) return;
+    cancelHoverPan();
+    if (e.target instanceof Element && e.target.closest("[data-node]")) return;
+    clearCanvasHover();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    drag.current = { pointerId: e.pointerId, px: e.clientX, py: e.clientY, x: view.x, y: view.y };
+  };
+  const onPointerMove = (e: ReactPointerEvent<SVGSVGElement>) => {
+    const activeDrag = drag.current;
+    if (activeDrag) {
+      if (activeDrag.pointerId !== e.pointerId) return;
+      setView((v) => ({
+        ...v,
+        x: activeDrag.x + e.clientX - activeDrag.px,
+        y: activeDrag.y + e.clientY - activeDrag.py,
+      }));
+      return;
+    }
+    if (e.pointerType === "touch") return;
+    const target = e.target instanceof Element ? e.target.closest("[data-node]") : null;
+    const id = target ? Number(target.getAttribute("data-node")) : null;
+    if (canvasHover.current === id) return;
+    canvasHover.current = id;
+    onCanvasHoverPath?.(id === null ? null : subgraph ? [subgraph.instanceId, id] : [id]);
+  };
+  const onPointerUp = (e: ReactPointerEvent<SVGSVGElement>) => {
+    if (drag.current?.pointerId !== e.pointerId) return;
+    drag.current = null;
+    clearCanvasHover();
+  };
+
+  const zoom = (factor: number) => {
+    cancelHoverPan();
+    clearCanvasHover();
     setView((v) => {
-      const scale = Math.min(2, Math.max(0.1, v.scale * (e.deltaY < 0 ? 1.15 : 1 / 1.15)));
+      const scale = Math.min(2, Math.max(0.1, v.scale * factor));
       const k = scale / v.scale;
-      return { scale, x: cx - (cx - v.x) * k, y: cy - (cy - v.y) * k };
+      return { scale, x: size.w / 2 - (size.w / 2 - v.x) * k, y: size.h / 2 - (size.h / 2 - v.y) * k };
     });
   };
 
-  const onPointerDown = (e: ReactPointerEvent<SVGSVGElement>) => {
-    if ((e.target as Element).closest("[data-node]")) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    drag.current = { px: e.clientX, py: e.clientY, x: view.x, y: view.y };
-  };
-  const onPointerMove = (e: ReactPointerEvent<SVGSVGElement>) => {
-    if (!drag.current) return;
-    setView((v) => ({
-      ...v,
-      x: drag.current!.x + e.clientX - drag.current!.px,
-      y: drag.current!.y + e.clientY - drag.current!.py,
-    }));
-  };
-  const onPointerUp = () => {
-    drag.current = null;
-  };
-
-  const title = (n: GNode) => n.title ?? n.type;
+  const title = nodeDisplayName;
 
   return (
-    <div className="flex h-full min-h-0 flex-col rounded-panel border border-line bg-[#000] overflow-hidden">
-      <div className="flex items-center gap-2 border-b border-line px-3 py-2">
+    <div className="flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-panel border border-line bg-black">
+      <div className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-2">
         <nav className="flex min-w-0 items-center gap-1.5 text-caption">
           <button
             type="button"
             onClick={() => {
+              cancelHoverPan();
+              clearCanvasHover();
               setSubgraph(null);
               onSelect(null);
             }}
             className={`truncate ${subgraph ? "text-t3 hover:text-t1" : "text-t1 font-medium"}`}
           >
-            Workflow
+            {presetName}
           </button>
           {subgraph && (
             <>
@@ -286,8 +369,8 @@ export function WorkflowGraph({
             role="switch"
             aria-checked={showControls}
             onClick={() => setShowControls((v) => !v)}
-            className={`flex h-7 items-center gap-1.5 rounded-lg px-2 text-caption font-medium ${
-              showControls ? "bg-s2 text-t1" : "text-t3 hover:text-t1"
+            className={`flex h-7 items-center gap-1.5 rounded-md border px-2 text-caption font-medium ${
+              showControls ? "border-ac text-t1" : "border-line text-t3 hover:border-t3 hover:text-t1"
             }`}
           >
             <Icon d={SECTION_ICONS.sliders} className="h-3.5 w-3.5" />
@@ -296,23 +379,27 @@ export function WorkflowGraph({
           <button
             type="button"
             aria-label="Zoom out"
-            onClick={() => setView((v) => ({ ...v, scale: Math.max(0.1, v.scale / 1.2) }))}
-            className="grid h-7 w-7 place-items-center rounded-lg bg-s2 text-t2 hover:text-t1"
+            onClick={() => zoom(1 / 1.2)}
+            className="grid h-7 w-7 place-items-center rounded-md border border-line text-t2 hover:border-t3 hover:text-t1"
           >
             <Icon d={SECTION_ICONS.minus} className="h-3.5 w-3.5" />
           </button>
           <button
             type="button"
             aria-label="Zoom in"
-            onClick={() => setView((v) => ({ ...v, scale: Math.min(2, v.scale * 1.2) }))}
-            className="grid h-7 w-7 place-items-center rounded-lg bg-s2 text-t2 hover:text-t1"
+            onClick={() => zoom(1.2)}
+            className="grid h-7 w-7 place-items-center rounded-md border border-line text-t2 hover:border-t3 hover:text-t1"
           >
             <Icon d={SECTION_ICONS.plus} className="h-3.5 w-3.5" />
           </button>
           <button
             type="button"
-            onClick={() => doFit(model)}
-            className="flex h-7 items-center rounded-lg bg-s2 px-2 text-caption font-medium text-t2 hover:text-t1"
+            onClick={() => {
+              cancelHoverPan();
+              clearCanvasHover();
+              doFit(model);
+            }}
+            className="flex h-7 items-center rounded-md border border-line px-2 text-caption font-medium text-t2 hover:border-t3 hover:text-t1"
           >
             Fit
           </button>
@@ -321,16 +408,21 @@ export function WorkflowGraph({
 
       <div ref={wrap} className="relative min-h-0 flex-1">
         <svg
-          className="absolute inset-0 h-full w-full cursor-grab active:cursor-grabbing"
-          onWheel={onWheel}
+          className="absolute inset-0 h-full w-full touch-none cursor-grab select-none active:cursor-grabbing"
+          onPointerEnter={cancelHoverPan}
+          onPointerLeave={clearCanvasHover}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
+          onPointerCancel={(e) => {
+            onPointerUp(e);
+            clearCanvasHover();
+          }}
+          onLostPointerCapture={onPointerUp}
         >
           <g transform={`translate(${view.x} ${view.y}) scale(${view.scale})`}>
             {model?.groups.map((g, i) => (
-              <g key={`g${i}`}>
+              <g key={`g${i}`} pointerEvents="none">
                 <rect
                   x={g.bounding[0]}
                   y={g.bounding[1]}
@@ -359,15 +451,21 @@ export function WorkflowGraph({
                   stroke={p.color}
                   strokeWidth={2}
                   strokeOpacity={0.85}
+                  pointerEvents="none"
                 />
               );
             })}
 
             {model?.nodes.map((n) => {
               const isSub = !!n.subgraph;
-              const isSelected = selection?.node.id === n.id;
+              const isSelected = selection?.node.id === n.id &&
+                (selection.subgraph?.instanceId ?? null) === (subgraph?.instanceId ?? null) &&
+                (selection.subgraph?.id ?? null) === (subgraph?.id ?? null);
               const boundLabels = bound.get(n.id);
               const highlighted = showControls && !!boundLabels;
+              const hovered = panelHoverPath
+                ? nodeIdForPath(panelHoverPath, subgraph?.instanceId ?? null) === n.id
+                : false;
               const dimmed = n.mode === 2 || n.mode === 4;
               const slotCount = Math.max(n.inputs.length, n.outputs.length);
               const widgetsY = n.pos[1] + 10 + slotCount * 20 + 10;
@@ -404,9 +502,9 @@ export function WorkflowGraph({
                     rx={8}
                     fill={n.pseudo ? "#151515" : "var(--color-s2, #161616)"}
                     stroke={
-                      isSelected ? "#fff" : highlighted ? "#FF5B22" : "var(--color-line, #2a2a2a)"
+                      isSelected ? "#fff" : highlighted || hovered ? "#FF5B22" : "var(--color-line, #2a2a2a)"
                     }
-                    strokeWidth={isSelected || highlighted ? 2.5 : 1}
+                    strokeWidth={isSelected || highlighted || hovered ? 2.5 : 1}
                     strokeDasharray={n.pseudo ? "6 4" : undefined}
                   />
                   <line
@@ -417,6 +515,8 @@ export function WorkflowGraph({
                     stroke="var(--color-line, #2a2a2a)"
                   />
                   <text
+                    pointerEvents="none"
+                    className={!n.title && !isSub ? "font-mono" : undefined}
                     x={n.pos[0] + 10}
                     y={n.pos[1] - 10}
                     fill="#e6e6e6"
@@ -426,7 +526,7 @@ export function WorkflowGraph({
                     {truncate(title(n), Math.max(12, Math.floor(n.size[0] / 9)))}
                   </text>
                   {isSub && (
-                    <g transform={`translate(${n.pos[0] + n.size[0] - 76} ${n.pos[1] - 25})`}>
+                    <g pointerEvents="none" transform={`translate(${n.pos[0] + n.size[0] - 76} ${n.pos[1] - 25})`}>
                       <rect width={68} height={20} rx={10} fill="#000" stroke="#FF5B22" strokeOpacity={0.5} />
                       <text x={34} y={14} textAnchor="middle" fill="#FF5B22" fontSize={11}>
                         Subgraph
@@ -434,7 +534,7 @@ export function WorkflowGraph({
                     </g>
                   )}
                   {highlighted && boundLabels && (
-                    <g transform={`translate(${n.pos[0] + 10} ${n.pos[1] - 8})`}>
+                    <g pointerEvents="none" transform={`translate(${n.pos[0] + 10} ${n.pos[1] - 8})`}>
                       <rect
                         x={Math.min(n.size[0] - 20, 14 + Math.min(boundLabels.join(", ").length * 7, n.size[0] - 40)) - 4}
                         y={-14}

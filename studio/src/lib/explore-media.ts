@@ -14,6 +14,8 @@ export type MediaItem = {
   source: string;
   model: string;
   media: ExploreMedia;
+  /** In-app workflow viewer link, resolved server-side per item. */
+  viewerHref?: string;
 };
 
 export const MODEL_DEMOS = [
@@ -68,7 +70,7 @@ export const MODEL_DEMOS = [
   {
     title: "LTX 2.5 text to video",
     description: "Write a prompt, get a clip",
-    href: "/video?preset=ltx25-i2v",
+    href: "/video?preset=ltx25-t2v",
     credit: "LTX 2.5 workflow example · Comfy (MIT)",
     source: "https://github.com/Comfy-Org/workflow_templates/blob/main/templates/video_ltx2_5_t2v.json",
     model: "ltx-2.5",
@@ -83,7 +85,7 @@ export const MODEL_DEMOS = [
   {
     title: "LTX 2.5 first and last frame",
     description: "Anchor both ends of the shot",
-    href: "/video?preset=ltx25-i2v",
+    href: "/video?preset=ltx25-flf2v",
     credit: "LTX 2.5 workflow example · Comfy (MIT)",
     source: "https://github.com/Comfy-Org/workflow_templates/blob/main/templates/video_ltx2_5_flf2v.json",
     model: "ltx-2.5",

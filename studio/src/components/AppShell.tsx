@@ -17,7 +17,7 @@ import { formatStars } from "@/lib/stars";
 import { PhainoMark } from "./Logo";
 import type { MenuRow, NavMenus, TwoColumnMenu } from "./navMenus";
 import { SECTIONS } from "./sections";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "./StatusBadge";
 import { Button } from "@/components/ui/button";
 import { useDemo } from "./DemoProvider";
 import { DemoNotice } from "./DemoNotice";
@@ -32,28 +32,26 @@ const MENU_HREFS = new Set(["/image", "/video", "/camera"]);
 const GROW =
   "transition-[height,padding,font-size] duration-200 ease-out motion-reduce:transition-none";
 
-/** One Features row: 16px icon + title, 36px tall. */
+/** One Features row: 16px icon + title, 36px tall. Soon rows stay muted. */
 function FeatureRowLink({ row }: { row: MenuRow }) {
+  const soon = row.status === "soon";
   return (
     <li>
       <NavigationMenu.Link
         render={<Link href={row.href} />}
         closeOnClick
-        className="flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-left text-body text-t2 hover:bg-s3 hover:text-t1 focus-visible:bg-s3 focus-visible:text-t1"
+        className={`flex h-9 items-center gap-2.5 rounded-lg px-2.5 text-left text-body ${
+          soon
+            ? "text-t3 hover:text-t2"
+            : "text-t2 hover:bg-s3 hover:text-t1 focus-visible:bg-s3 focus-visible:text-t1"
+        }`}
       >
         <span className="flex h-4 w-4 flex-none items-center justify-center text-t3">
           {row.icon && <Icon d={SECTION_ICONS[row.icon]} className="h-4 w-4" />}
         </span>
         <span className="flex min-w-0 items-center gap-1.5">
           <span className="truncate">{row.title}</span>
-          {row.badge && (
-            <Badge
-              size="sm"
-              variant={row.badge === "New" ? "default" : "secondary"}
-            >
-              {row.badge}
-            </Badge>
-          )}
+          {row.status && <StatusBadge status={row.status} />}
         </span>
       </NavigationMenu.Link>
     </li>
@@ -205,12 +203,13 @@ export function AppShell({
                     />
                   )}
                   {SECTIONS.filter((s) => s.group === g).map((s) => {
-                    const active = isActive(pathname, s.href);
+                    const soon = s.status === "soon";
+                    const active = !soon && isActive(pathname, s.href);
                     const isMenu = MENU_HREFS.has(s.href);
                     return (
                       <NavigationMenu.Item
-                        key={s.href}
-                        value={s.href}
+                        key={s.label}
+                        value={s.label}
                         className="relative z-10 flex h-9 shrink-0 items-stretch group-data-[compact=true]:h-7"
                       >
                         {isMenu ? (
@@ -223,16 +222,7 @@ export function AppShell({
                               }`}
                             >
                               {s.label}
-                              {s.badge && (
-                                <Badge
-                                  size="sm"
-                                  variant={
-                                    s.badge === "New" ? "default" : "secondary"
-                                  }
-                                >
-                                  {s.badge}
-                                </Badge>
-                              )}
+                              {s.status && <StatusBadge status={s.status} />}
                               <NavigationMenu.Icon className="flex items-center transition-transform duration-200 ease-out motion-reduce:transition-none data-[popup-open]:rotate-180">
                                 <Icon
                                   d={SECTION_ICONS.chevronDown}
@@ -250,22 +240,19 @@ export function AppShell({
                             closeOnClick
                             aria-current={active ? "page" : undefined}
                             className={`flex h-full items-center px-3 font-wordmark font-semibold text-body whitespace-nowrap ${GROW} ${
-                              active
-                                ? "text-ac"
-                                : "text-t2 hover:text-t1"
+                              soon
+                                ? "text-t3 hover:text-t2"
+                                : active
+                                  ? "text-ac"
+                                  : "text-t2 hover:text-t1"
                             }`}
                           >
                             {s.label}
-                            {s.badge && (
-                              <Badge
-                                size="sm"
-                                variant={
-                                  s.badge === "New" ? "default" : "secondary"
-                                }
+                            {s.status && (
+                              <StatusBadge
+                                status={s.status}
                                 className="ml-1.5"
-                              >
-                                {s.badge}
-                              </Badge>
+                              />
                             )}
                           </NavigationMenu.Link>
                         )}
@@ -282,7 +269,7 @@ export function AppShell({
               className="nav-positioner z-50"
             >
               <NavigationMenu.Popup
-                className="nav-popup rounded-2xl border border-line bg-s2"
+                className="nav-popup rounded-2xl border border-line bg-s1"
               >
                 <NavigationMenu.Viewport className="relative h-full w-full overflow-hidden" />
               </NavigationMenu.Popup>
@@ -292,25 +279,23 @@ export function AppShell({
         <div className="ml-auto flex shrink-0 items-center gap-1.5">
           <MobileNav menus={menus} />
           <CloudStatus />
-          {stars != null && (
-            <a
-              href="https://github.com/screen-gd/phaino"
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`${stars} stars on GitHub`}
-              className="hidden items-center gap-1.5 rounded-full border border-line px-2.5 py-1.5 text-t3 hover:text-t1 md:flex"
-            >
-              <GitHubIcon className="h-4 w-4" />
-              <span className="font-mono text-caption">
-                {formatStars(stars)}
-              </span>
-            </a>
-          )}
+          <a
+            href="https://github.com/screen-gd/phaino"
+            target="_blank"
+            rel="noreferrer"
+            aria-label={stars ? `${stars} stars on GitHub` : "Star on GitHub"}
+            className="hidden items-center gap-1.5 rounded-full border border-line px-2.5 py-1.5 text-t3 hover:text-t1 md:flex"
+          >
+            <GitHubIcon className="h-4 w-4" />
+            <span className="font-mono text-caption">
+              {stars ? formatStars(stars) : "Star on GitHub"}
+            </span>
+          </a>
           <Button
             variant="ghost"
             size="icon-sm"
             aria-label="GitHub"
-            className={`text-t3 hover:text-t1 ${stars != null ? "md:hidden" : ""}`}
+            className="text-t3 hover:text-t1 md:hidden"
             render={
               <a
                 href="https://github.com/screen-gd/phaino"

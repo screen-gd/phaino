@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Clip, Sequence } from "@/server/sequence/model";
 import { mediaFor, mediaFrames } from "@/server/sequence/model";
 import { framesToTimecode, outputSize } from "@/server/sequence/timecode";
@@ -13,7 +13,7 @@ import { SequencePlayer } from "./SequencePlayer";
 import { MediaBin } from "./MediaBin";
 import { useSequence, type Selection } from "./useSequence";
 import { useSequencePlayer } from "./useSequencePlayer";
-import { layoutClips, locate } from "./stripMath";
+import { insertIndexAt, layoutClips, locate } from "./stripMath";
 
 const ASPECTS: { label: string; value: Sequence["aspect"] }[] = [
   { label: "16:9", value: "16:9" },
@@ -53,6 +53,7 @@ export function SequenceEditor() {
   const [pxPerSec, setPxPerSec] = useState(60);
   const [selected, setSelected] = useState<Selection>(null);
   const [rightTab, setRightTab] = useState<"inspector" | "export">("export");
+  const binPickRef = useRef<(() => void) | null>(null);
 
   const mediaMap = useMemo(
     () => new Map((sequence?.media ?? []).map((m) => [m.id, m])),
@@ -110,12 +111,30 @@ export function SequenceEditor() {
     setSelected(null);
   }, [selected, seq]);
 
-  // Keys: JKL shuttle, space, arrows, Alt+arrows, S/Cmd+K split, Cmd+D
-  // duplicate, Delete removes the selection, Cmd+Z/Shift+Z undo/redo.
+  /** Alt+Arrow nudge: reorder the selected video clip, focus-independent. */
+  const moveSelected = useCallback(
+    (dir: -1 | 1) => {
+      const s = seq.sequence;
+      if (!s || selected?.lane !== "video") return;
+      const i = s.clips.findIndex((c) => c.id === selected.id);
+      const to = i + dir;
+      if (i < 0 || to < 0 || to >= s.clips.length) return;
+      seq.reorder(i, to);
+    },
+    [selected, seq],
+  );
+
+  // Keys: JKL shuttle, space, arrows, Alt+arrows move, S/Cmd+K split,
+  // T title, Home/End, Cmd+D duplicate, Delete, Cmd+Z/Shift+Z undo/redo.
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      const el = e.target as HTMLElement | null;
-      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) {
+      const el = e.target;
+      if (
+        el instanceof HTMLElement &&
+        (el.tagName === "INPUT" ||
+          el.tagName === "TEXTAREA" ||
+          el.isContentEditable)
+      ) {
         return;
       }
       const mod = e.metaKey || e.ctrlKey;
@@ -148,6 +167,21 @@ export function SequenceEditor() {
         player.playForward(true);
       } else if (e.key.toLowerCase() === "k") {
         player.pause();
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        player.seek(0);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        player.seek(layout.totalFrames);
+      } else if (e.key.toLowerCase() === "t" && !mod) {
+        e.preventDefault();
+        addTitle();
+      } else if (e.altKey && e.key === "ArrowLeft") {
+        e.preventDefault();
+        moveSelected(-1);
+      } else if (e.altKey && e.key === "ArrowRight") {
+        e.preventDefault();
+        moveSelected(1);
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
         player.step(e.shiftKey ? -10 : -1);
@@ -158,7 +192,7 @@ export function SequenceEditor() {
     };
     window.addEventListener("keydown", down);
     return () => window.removeEventListener("keydown", down);
-  }, [player, selected, split, duplicate, removeSel, seq]);
+  }, [player, selected, split, duplicate, addTitle, moveSelected, removeSel, seq, layout.totalFrames]);
 
   if (!sequence) {
     return (
@@ -170,22 +204,31 @@ export function SequenceEditor() {
     );
   }
 
-  const onDropMedia = (mediaId: string) => {
+  // Timeline drops carry a frame; the bin's + buttons append (no frame).
+  const onDropMedia = ({
+    mediaId,
+    frame,
+  }: {
+    mediaId: string;
+    frame?: number;
+  }) => {
     const m = mediaFor(sequence, mediaId);
     if (!m) return;
     const total = mediaFrames(m, sequence.fps);
     if (m.kind === "audio") {
-      const end = sequence.audio.reduce(
-        (x, a) => Math.max(x, a.start + (a.out - a.in)),
-        0,
-      );
+      const start =
+        frame ??
+        sequence.audio.reduce(
+          (x, a) => Math.max(x, a.start + (a.out - a.in)),
+          0,
+        );
       seq.edit((s) => ({
         audio: [
           ...s.audio,
           {
             id: crypto.randomUUID(),
             mediaId,
-            start: end,
+            start,
             in: 0,
             out: total,
             volume: 1,
@@ -196,22 +239,23 @@ export function SequenceEditor() {
       }));
     } else {
       const len = m.kind === "image" ? Math.min(total, 3 * sequence.fps) : total;
-      seq.edit((s) => ({
-        clips: [
-          ...s.clips,
-          {
-            id: crypto.randomUUID(),
-            mediaId,
-            in: 0,
-            out: len,
-            volume: 1,
-            muted: false,
-            fadeIn: 0,
-            fadeOut: 0,
-            transition: { type: "cut" as const, frames: 0 },
-          },
-        ],
-      }));
+      const index =
+        frame == null ? sequence.clips.length : insertIndexAt(layout, frame);
+      seq.edit((s) => {
+        const clips = [...s.clips];
+        clips.splice(index, 0, {
+          id: crypto.randomUUID(),
+          mediaId,
+          in: 0,
+          out: len,
+          volume: 1,
+          muted: false,
+          fadeIn: 0,
+          fadeOut: 0,
+          transition: { type: "cut" as const, frames: 0 },
+        });
+        return { clips };
+      });
     }
   };
 
@@ -219,9 +263,10 @@ export function SequenceEditor() {
     <MediaBin
       media={sequence.media}
       onAddOutput={seq.appendClip}
-      onAddMedia={onDropMedia}
+      onAddMedia={(id) => onDropMedia({ mediaId: id })}
       onUpload={seq.uploadMedia}
       onRemoveMedia={(id) => void seq.removeMedia(id)}
+      pickRef={binPickRef}
     />
   );
 
@@ -268,19 +313,31 @@ export function SequenceEditor() {
           <span className="mx-1 h-4 w-px bg-line" />
           <Tool
             icon="type"
-            label="Add title"
+            label="Add title (T)"
             onClick={addTitle}
           />
           <Tool icon="scissors" label="Split (S)" onClick={split} />
           <Tool
+            icon="fork"
+            label="Duplicate (Ctrl+D)"
+            onClick={duplicate}
+            disabled={selected?.lane !== "video"}
+          />
+          <Tool
+            icon="trash"
+            label="Delete (Del)"
+            onClick={removeSel}
+            disabled={!selected}
+          />
+          <Tool
             icon="undo"
-            label="Undo"
+            label="Undo (Ctrl+Z)"
             onClick={seq.undo}
             disabled={!seq.canUndo}
           />
           <Tool
             icon="redo"
-            label="Redo"
+            label="Redo (Ctrl+Shift+Z)"
             onClick={seq.redo}
             disabled={!seq.canRedo}
           />
@@ -301,21 +358,24 @@ export function SequenceEditor() {
         </p>
       )}
 
-      {/* Columns */}
-      <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)_260px]">
+      {/* Bin | player | inspector over a full-width timeline */}
+      <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_300px] lg:grid-cols-[260px_minmax(0,1fr)_280px]">
         <div className="hidden min-h-0 border-r border-line lg:block">
           {bin}
         </div>
-        <div className="grid min-h-0 grid-rows-[minmax(0,1fr)_auto]">
+        <div className="min-h-0">
           <SequencePlayer
             videoRef={player.videoRef}
             nextRef={player.nextRef}
             audioRef={player.audioRef}
             sequence={sequence}
+            layout={layout}
             frame={player.frame}
             playing={player.playing}
             onToggle={player.toggle}
             onStep={player.step}
+            onSeek={player.seek}
+            onUpload={() => binPickRef.current?.()}
             fps={sequence.fps}
             totalFrames={layout.totalFrames}
             currentEntry={
@@ -325,53 +385,26 @@ export function SequenceEditor() {
             }
             empty={sequence.clips.length === 0}
           />
-          <div className="h-[240px] border-t border-line">
-            <Timeline
-              sequence={sequence}
-              layout={layout}
-              selected={selected}
-              onSelect={select}
-              onSeek={player.seek}
-              playheadFrame={player.frame}
-              pxPerSec={pxPerSec}
-              onZoomChange={setPxPerSec}
-              onReorder={seq.reorder}
-              onMark={seq.mark}
-              onPreviewClip={(id, i, o) =>
-                seq.replaceClip(id, { in: i, out: o }, false)
-              }
-              onPreviewAudio={(id, patch) => seq.replaceAudio(id, patch, false)}
-              onPreviewTitle={(id, patch) => seq.replaceTitle(id, patch, false)}
-              onCommit={commit}
-              onResetTrim={(clip: Clip) => {
-                const m = mediaFor(sequence, clip.mediaId);
-                seq.replaceClip(clip.id, {
-                  in: 0,
-                  out: m ? mediaFrames(m, sequence.fps) : clip.out,
-                });
-              }}
-              onRemoveClip={seq.removeClip}
-              onMoveClip={(i, d) => seq.reorder(i, i + d)}
-              onDropOutput={(p) => void seq.appendClip(p)}
-              onDropMedia={onDropMedia}
-            />
-          </div>
         </div>
         <div className="hidden min-h-0 border-l border-line lg:block">
           <div className="flex h-full min-h-0 flex-col">
-            <div className="flex h-10 items-center gap-1 border-b border-line px-3">
-              {(["inspector", "export"] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setRightTab(t)}
-                  className={`rounded-md px-2 py-1 text-[12px] capitalize transition-colors ${
-                    rightTab === t ? "bg-s2 font-medium text-t1" : "text-t3 hover:text-t2"
-                  }`}
-                >
-                  {t === "inspector" ? "Inspector" : "Export"}
-                </button>
-              ))}
+            <div className="flex h-10 items-center border-b border-line px-3">
+              <div className="flex h-7 items-center rounded-lg bg-s2 p-0.5">
+                {(["inspector", "export"] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setRightTab(t)}
+                    className={`h-6 rounded-[6px] px-2 text-[12px] transition-colors ${
+                      rightTab === t
+                        ? "bg-s3 font-medium text-t1"
+                        : "text-t3 hover:text-t2"
+                    }`}
+                  >
+                    {t === "inspector" ? "Inspector" : "Export"}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="min-h-0 flex-1">
               {rightTab === "inspector" ? (
@@ -391,6 +424,41 @@ export function SequenceEditor() {
               )}
             </div>
           </div>
+        </div>
+        <div className="col-span-full flex min-h-0 flex-col border-t border-line">
+          <Timeline
+            sequence={sequence}
+            layout={layout}
+            selected={selected}
+            onSelect={select}
+            onSeek={(f) => {
+              player.pause();
+              player.seek(f);
+            }}
+            playheadFrame={player.frame}
+            playing={player.playing}
+            pxPerSec={pxPerSec}
+            onZoomChange={setPxPerSec}
+            onReorder={seq.reorder}
+            onMark={seq.mark}
+            onPreviewClip={(id, i, o) =>
+              seq.replaceClip(id, { in: i, out: o }, false)
+            }
+            onPreviewAudio={(id, patch) => seq.replaceAudio(id, patch, false)}
+            onPreviewTitle={(id, patch) => seq.replaceTitle(id, patch, false)}
+            onCommit={commit}
+            onResetTrim={(clip: Clip) => {
+              const m = mediaFor(sequence, clip.mediaId);
+              seq.replaceClip(clip.id, {
+                in: 0,
+                out: m ? mediaFrames(m, sequence.fps) : clip.out,
+              });
+            }}
+            onRemoveClip={seq.removeClip}
+            onMoveClip={(i, d) => seq.reorder(i, i + d)}
+            onDropOutput={(p) => void seq.appendClip(p)}
+            onDropMedia={onDropMedia}
+          />
         </div>
       </div>
     </div>

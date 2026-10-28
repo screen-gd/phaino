@@ -46,7 +46,7 @@ export function ExploreVideo({ media, title, source, portrait = false, natural =
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-xl border border-line bg-s2 ${natural ? "" : portrait ? "aspect-[4/5]" : "aspect-video"}`}
+      className={`group relative overflow-hidden rounded-md border border-line bg-black ${natural ? "" : portrait ? "aspect-[4/5]" : "aspect-video"}`}
       style={natural ? { aspectRatio: `${media.w} / ${media.h}` } : undefined}
     >
       <img src={media.poster} alt="" loading="lazy" className="absolute inset-0 size-full object-cover" />
@@ -66,13 +66,13 @@ export function ExploreVideo({ media, title, source, portrait = false, natural =
         />
       )}
       {failed ? (
-        <a href={source} target="_blank" rel="noreferrer" className="absolute right-2 bottom-2 rounded bg-black/80 px-2 py-1 text-caption text-white underline underline-offset-4">View source ↗</a>
+        <a href={source} target="_blank" rel="noreferrer" className="absolute right-2 bottom-2 z-20 rounded bg-black/80 px-2 py-1 text-caption text-white underline underline-offset-4">View source ↗</a>
       ) : (
         <button
           type="button"
           aria-label={`${paused ? "Play" : "Pause"} ${title}`}
           onClick={() => setPaused(!paused)}
-          className="absolute top-2 right-2 grid size-9 cursor-pointer place-items-center rounded-full bg-black/70 text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+          className="absolute top-2 right-2 z-20 grid size-9 cursor-pointer place-items-center rounded-full bg-black/70 text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
         >
           {paused ? <Icon d={SECTION_ICONS.play} className="size-4" /> : <Icon d={SECTION_ICONS.pause} className="size-4" />}
         </button>

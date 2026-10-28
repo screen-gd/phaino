@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ExploreVideo } from "@/components/ExploreVideo";
 import type { MediaItem } from "@/lib/explore-media";
 
@@ -41,7 +42,14 @@ export function CommunityGrid({ items }: { items: MediaItem[] }) {
               />
             </div>
           )}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 rounded-b-xl bg-linear-to-t from-black/80 to-transparent p-2.5 pt-8 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+          {item.viewerHref && (
+            <Link
+              href={item.viewerHref}
+              aria-label={`Open ${item.title} in the workflow viewer`}
+              className="absolute inset-0"
+            />
+          )}
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 rounded-b-md bg-linear-to-t from-black/80 to-transparent p-2.5 pt-8 opacity-0 transition-opacity duration-150 motion-reduce:transition-none group-hover:opacity-100 group-focus-within:opacity-100">
             <b className="block text-caption font-semibold text-white">
               {item.title}
             </b>
@@ -54,7 +62,7 @@ export function CommunityGrid({ items }: { items: MediaItem[] }) {
               rel="noreferrer"
               className="pointer-events-auto mt-1 inline-block text-caption text-t3 underline underline-offset-2 hover:text-t1"
             >
-              {item.credit} ↗
+              Comfy template (MIT) ↗
             </a>
           </div>
         </article>

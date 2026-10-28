@@ -43,6 +43,9 @@ type ForkPreset = {
   params: readonly ForkParam[];
 };
 
+const actionClass = "w-full min-w-0 border-line text-t2 hover:border-t3 hover:text-t1 hover:no-underline data-pressed:no-underline";
+const fieldClass = "min-w-0 border-line bg-black text-t1 shadow-none before:hidden dark:bg-black has-focus-visible:border-ac has-focus-visible:ring-0";
+
 function DefaultsForm({ preset }: { preset: ForkPreset }) {
   const router = useRouter();
   // Seed params randomize at run time; they have no stored default.
@@ -74,11 +77,11 @@ function DefaultsForm({ preset }: { preset: ForkPreset }) {
 
   if (params.length === 0) return null;
   return (
-    <div className="rounded-panel border border-line bg-s1 p-3">
-      <h2 className="mb-2 text-caption font-medium text-t3">Defaults</h2>
+    <div className="min-w-0 py-4">
+      <h2 className="mb-3 text-body font-semibold text-t1">Defaults</h2>
       <div className="grid gap-2">
         {params.map((param) => (
-          <label key={param.key} className="grid gap-1">
+          <label key={param.key} className="grid min-w-0 gap-1">
             <span className="text-caption text-t3">{param.label}</span>
             {param.type === "choice" ? (
               <Select
@@ -92,12 +95,12 @@ function DefaultsForm({ preset }: { preset: ForkPreset }) {
                   }));
                 }}
               >
-                <SelectTrigger className="h-9 w-full">
+                <SelectTrigger className="h-9 w-full min-w-0 border-line bg-black text-t1 shadow-none before:hidden focus-visible:border-ac focus-visible:ring-0 dark:bg-black">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectPopup>
                   {param.options?.map((o) => (
-                    <SelectItem key={String(o.value)} value={String(o.value)}>
+                    <SelectItem key={String(o.value)} value={String(o.value)} className="data-highlighted:bg-transparent data-highlighted:text-ac">
                       {o.label}
                     </SelectItem>
                   ))}
@@ -113,7 +116,7 @@ function DefaultsForm({ preset }: { preset: ForkPreset }) {
                 onChange={(e) =>
                   setValues((v) => ({ ...v, [param.key]: Number(e.target.value) }))
                 }
-                className="h-9"
+                className={`${fieldClass} h-9 font-mono`}
               />
             ) : (
               <Input
@@ -121,7 +124,7 @@ function DefaultsForm({ preset }: { preset: ForkPreset }) {
                 onChange={(e) =>
                   setValues((v) => ({ ...v, [param.key]: e.target.value }))
                 }
-                className="h-9"
+                className={`${fieldClass} h-9`}
               />
             )}
           </label>
@@ -134,9 +137,9 @@ function DefaultsForm({ preset }: { preset: ForkPreset }) {
       ))}
       {state.ok && <p className="mt-1.5 text-caption text-t3">Saved.</p>}
       <Button
-        variant="outline"
+        variant="link"
         size="sm"
-        className="mt-2 w-full"
+        className={`${actionClass} mt-3`}
         loading={state.saving}
         onClick={() => void save()}
       >
@@ -181,27 +184,27 @@ function WorkflowReplace({ preset }: { preset: ForkPreset }) {
   };
 
   return (
-    <div className="rounded-panel border border-line bg-s1 p-3">
-      <h2 className="mb-1 text-caption font-medium text-t3">Replace workflow</h2>
+    <div className="min-w-0 py-4">
+      <h2 className="mb-1 text-body font-semibold text-t1">Replace workflow</h2>
       <p className="mb-2 text-caption text-t3">
         In ComfyUI: File &gt; Export, and File &gt; Export (API).
       </p>
-      <label className="grid gap-1">
-        <span className="text-caption text-t3">workflow.json</span>
+      <label className="grid min-w-0 gap-1">
+        <span className="font-mono text-caption text-t3">workflow.json</span>
         <input
           ref={uiFile}
           type="file"
           accept="application/json,.json"
-          className="text-caption text-t2 file:mr-2 file:rounded-md file:border-0 file:bg-s2 file:px-2 file:py-1 file:text-caption file:text-t1"
+          className="w-full min-w-0 text-caption text-t2 file:mr-2 file:rounded-md file:border file:border-line file:bg-transparent file:px-2 file:py-1 file:text-caption file:text-t1 hover:file:border-t3"
         />
       </label>
-      <label className="mt-2 grid gap-1">
-        <span className="text-caption text-t3">workflow_api.json</span>
+      <label className="mt-2 grid min-w-0 gap-1">
+        <span className="font-mono text-caption text-t3">workflow_api.json</span>
         <input
           ref={apiFile}
           type="file"
           accept="application/json,.json"
-          className="text-caption text-t2 file:mr-2 file:rounded-md file:border-0 file:bg-s2 file:px-2 file:py-1 file:text-caption file:text-t1"
+          className="w-full min-w-0 text-caption text-t2 file:mr-2 file:rounded-md file:border file:border-line file:bg-transparent file:px-2 file:py-1 file:text-caption file:text-t1 hover:file:border-t3"
         />
       </label>
       {state.problems.map((p) => (
@@ -211,9 +214,9 @@ function WorkflowReplace({ preset }: { preset: ForkPreset }) {
       ))}
       {state.ok && <p className="mt-1.5 text-caption text-t3">Workflow replaced.</p>}
       <Button
-        variant="outline"
+        variant="link"
         size="sm"
-        className="mt-2 w-full"
+        className={`${actionClass} mt-3`}
         loading={state.busy}
         onClick={() => void submit()}
       >
@@ -258,19 +261,20 @@ export function ForkEditor({ preset }: { preset: ForkPreset }) {
 
   return (
     <>
-      <div className="rounded-panel border border-line bg-s1 p-3">
-        <h2 className="mb-2 text-caption font-medium text-t3">Fork</h2>
-        <label className="grid gap-1">
+      <div className="min-w-0 py-4">
+        <h2 className="mb-3 text-body font-semibold text-t1">Fork</h2>
+        <label className="grid min-w-0 gap-1">
           <span className="text-caption text-t3">Name</span>
           <Input
             value={meta.name}
             onChange={(e) => setMeta((m) => ({ ...m, name: e.target.value }))}
-            className="h-9"
+            className={`${fieldClass} h-9`}
           />
         </label>
-        <label className="mt-2 grid gap-1">
+        <label className="mt-2 grid min-w-0 gap-1">
           <span className="text-caption text-t3">Description</span>
           <Textarea
+            className={fieldClass}
             value={meta.description}
             rows={2}
             onChange={(e) =>
@@ -279,9 +283,9 @@ export function ForkEditor({ preset }: { preset: ForkPreset }) {
           />
         </label>
         <Button
-          variant="outline"
+          variant="link"
           size="sm"
-          className="mt-2 w-full"
+          className={`${actionClass} mt-3`}
           loading={metaState.saving}
           onClick={() => void saveMeta()}
         >
@@ -292,14 +296,17 @@ export function ForkEditor({ preset }: { preset: ForkPreset }) {
       <DefaultsForm preset={preset} />
       <WorkflowReplace preset={preset} />
 
-      <Button
-        variant="outline"
-        className="w-full text-destructive"
-        onClick={() => setConfirmOpen(true)}
-      >
-        <Icon d={SECTION_ICONS.trash} className="h-4 w-4" />
-        Delete fork
-      </Button>
+      <div className="py-4">
+        <Button
+          variant="link"
+          size="sm"
+          className="w-full border-line text-destructive hover:border-destructive hover:no-underline data-pressed:no-underline"
+          onClick={() => setConfirmOpen(true)}
+        >
+          <Icon d={SECTION_ICONS.trash} className="h-4 w-4" />
+          Delete fork
+        </Button>
+      </div>
 
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogPopup>
@@ -311,8 +318,8 @@ export function ForkEditor({ preset }: { preset: ForkPreset }) {
           </DialogHeader>
           <DialogPanel />
           <DialogFooter>
-            <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
-            <Button loading={deleting} onClick={() => void remove()}>
+            <DialogClose render={<Button variant="link" className={actionClass} />}>Cancel</DialogClose>
+            <Button variant="link" className="border-destructive text-destructive hover:no-underline data-pressed:no-underline" loading={deleting} onClick={() => void remove()}>
               Delete
             </Button>
           </DialogFooter>

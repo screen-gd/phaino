@@ -7,7 +7,7 @@ import { Icon, SECTION_ICONS } from "./icons";
 import { PhainoMark } from "./Logo";
 import type { MenuRow, NavMenus } from "./navMenus";
 import { SECTIONS } from "./sections";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "./StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetPopup, SheetTrigger } from "@/components/ui/sheet";
 
@@ -31,11 +31,14 @@ function RowLink({
   row: MenuRow;
   onNavigate: () => void;
 }) {
+  const soon = row.status === "soon";
   return (
     <Link
       href={row.href}
       onClick={onNavigate}
-      className="flex items-center gap-2.5 rounded-lg px-3 py-1.5 hover:bg-s3"
+      className={`flex items-center gap-2.5 rounded-lg px-3 py-1.5 ${
+        soon ? "" : "hover:bg-s3"
+      }`}
     >
       {row.thumb && (
         <img
@@ -45,17 +48,13 @@ function RowLink({
         />
       )}
       <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-1.5 text-body font-semibold text-t1">
+        <span
+          className={`flex items-center gap-1.5 text-body font-semibold ${
+            soon ? "text-t3" : "text-t1"
+          }`}
+        >
           {row.title}
-          {row.badge && (
-            <Badge
-              size="sm"
-              variant={row.badge === "New" ? "default" : "secondary"}
-            >
-              {row.badge}
-            </Badge>
-          )}
-
+          {row.status && <StatusBadge status={row.status} />}
         </span>
         <span className="block truncate text-caption text-t3">
           {row.description}
@@ -106,35 +105,30 @@ export function MobileNav({ menus }: { menus: NavMenus }) {
                 <h4 className="px-3 pb-1 text-caption text-t3">{g.label}</h4>
                 <ul className="grid gap-0.5">
                   {SECTIONS.filter((s) => s.group === g.id).map((s) => {
+                    const soon = s.status === "soon";
                     const active =
-                      pathname === s.href ||
-                      pathname.startsWith(`${s.href}/`);
+                      !soon &&
+                      (pathname === s.href ||
+                        pathname.startsWith(`${s.href}/`));
                     const isMenu = MENU_HREFS.has(s.href);
                     const rows = isMenu ? rowsFor(s.href, menus) : [];
                     return (
-                      <li key={s.href}>
+                      <li key={s.label}>
                         <div className="flex items-center">
                           <Link
                             href={s.href}
                             onClick={close}
                             aria-current={active ? "page" : undefined}
                             className={`flex flex-1 items-center gap-1.5 rounded-lg px-3 py-2 text-body ${
-                              active
-                                ? "font-semibold text-ac"
-                                : "text-t2 hover:bg-s3 hover:text-t1"
+                              soon
+                                ? "text-t3"
+                                : active
+                                  ? "font-semibold text-ac"
+                                  : "text-t2 hover:bg-s3 hover:text-t1"
                             }`}
                           >
                             {s.label}
-                            {s.badge && (
-                              <Badge
-                                size="sm"
-                                variant={
-                                  s.badge === "New" ? "default" : "secondary"
-                                }
-                              >
-                                {s.badge}
-                              </Badge>
-                            )}
+                            {s.status && <StatusBadge status={s.status} />}
                           </Link>
                           {isMenu && (
                             <button
@@ -156,7 +150,7 @@ export function MobileNav({ menus }: { menus: NavMenus }) {
                         {isMenu && expanded[s.href] && (
                           <ul className="mb-1 grid gap-0.5 pl-3">
                             {rows.map((row) => (
-                              <li key={row.href}>
+                              <li key={`${row.href}:${row.title}`}>
                                 <RowLink row={row} onNavigate={close} />
                               </li>
                             ))}

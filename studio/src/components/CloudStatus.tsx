@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { healthLabel } from "@/lib/health";
 import { useComfyHealth } from "@/lib/useComfyHealth";
 import { useDemo } from "./DemoProvider";
 import { DEMO_MESSAGE } from "@/lib/demo";
@@ -70,7 +71,7 @@ export function CloudStatus() {
         <Badge
           variant="outline"
           size="lg"
-          title={health.message ?? health.status}
+          title={healthLabel(health)}
           className="gap-1.5 font-mono text-t3"
           render={<Link href="/settings" />}
         >
@@ -87,7 +88,7 @@ export function CloudStatus() {
       <Badge
         variant="outline"
         size="lg"
-        title={health.message}
+        title={healthLabel(health)}
         className="gap-1.5 font-mono text-t2"
       >
         <span aria-hidden="true" className={`${DOT} bg-ok`} />

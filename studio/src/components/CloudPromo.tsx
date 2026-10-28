@@ -8,7 +8,7 @@ import { useDemo } from "./DemoProvider";
 
 const CHECKLIST = [
   "Open weights on Comfy Cloud",
-  "LTX 2.5, Wan 2.2, HunyuanVideo, FLUX 3 Klein, Qwen, Z-Image",
+  "LTX 2.5, Wan 2.2, HunyuanVideo, FLUX.2 Klein, Qwen, Z-Image",
   "Every shot opens as a workflow",
 ];
 
@@ -23,8 +23,8 @@ export function CloudPromo() {
   const connected = health?.status === "ok";
 
   return (
-    <div className="rounded-panel border border-line bg-s1 bg-[radial-gradient(120%_120%_at_100%_0%,color-mix(in_srgb,var(--color-ac)_18%,transparent),transparent_60%)] p-5">
-      <h2 className="font-display font-extrabold uppercase text-h2 leading-none font-stretch-[112.5%]">
+    <div className="rounded-md border border-line bg-s1 p-5">
+      <h2 className="text-h2 leading-none font-semibold tracking-tight">
         {demo.enabled ? "Explore" : connected ? "Comfy Cloud" : "Connect"}
         <br />
         <span className="text-ac">{demo.enabled ? "the studio" : connected ? "Connected" : "Comfy Cloud"}</span>

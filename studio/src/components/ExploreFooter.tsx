@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FooterDither } from "@/components/FooterDither";
 import { FooterWordmark } from "@/components/FooterWordmark";
 import { GitHubIcon } from "@/components/icons";
-import { SECTIONS } from "@/components/sections";
+import { FEATURES } from "@/lib/features";
 import type { Preset } from "@/server/presets/schema";
 import type { StudioModel } from "@/components/toolStudioData";
 
@@ -58,13 +58,13 @@ export function ExploreFooter({
   return (
     <div className="mt-20">
       <section aria-labelledby="feature-directory-title" className="border-t border-line px-4 py-16 sm:py-20">
-        <h2 id="feature-directory-title" className="text-center font-display text-h3 font-extrabold uppercase tracking-tight font-stretch-[112.5%] sm:text-h2">Explore more features</h2>
+        <h2 id="feature-directory-title" className="text-center text-h2 font-semibold tracking-tight text-t1">Explore more features</h2>
         <div className="mx-auto mt-7 flex max-w-5xl flex-wrap justify-center gap-2">
-          {SECTIONS.filter((section) => section.href !== "/" && section.href !== "/community" && section.badge !== "Soon").map((section) => (
-            <Link key={section.href} href={section.href} className="rounded-lg border border-line bg-s2 px-3 py-2 text-body text-t2 hover:underline underline-offset-4">{section.label}</Link>
+          {FEATURES.filter((feature) => feature.status !== "soon").map((feature) => (
+            <Link key={feature.href} href={feature.href} className="rounded-md border border-line bg-s1 px-3 py-2 text-body text-t2 hover:underline underline-offset-4">{feature.label}</Link>
           ))}
           {camera.map((preset) => (
-            <Link key={preset.id} href={`/camera?preset=${preset.id}`} className="rounded-lg border border-line bg-s2 px-3 py-2 text-body text-t2 hover:underline underline-offset-4">{preset.name}</Link>
+            <Link key={preset.id} href={`/camera?preset=${preset.id}`} className="rounded-md border border-line bg-s1 px-3 py-2 text-body text-t2 hover:underline underline-offset-4">{preset.name}</Link>
           ))}
         </div>
       </section>

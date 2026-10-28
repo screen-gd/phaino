@@ -103,6 +103,14 @@ export function moveFromDrag(
   return Math.max(0, snap(start + df));
 }
 
+export const MIN_ZOOM = 10;
+export const MAX_ZOOM = 200;
+
+/** Clamp px-per-second zoom to the slider's range. */
+export function clampZoom(pxPerSec: number): number {
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, pxPerSec));
+}
+
 /** Zoom so the whole sequence fits `widthPx`, clamped to [10, 200]. */
 export function nextZoomToFit(
   totalFrames: number,
@@ -110,7 +118,79 @@ export function nextZoomToFit(
   widthPx: number,
 ): number {
   const seconds = Math.max(1e-6, totalFrames / fps);
-  return Math.min(200, Math.max(10, widthPx / seconds));
+  return clampZoom(widthPx / seconds);
+}
+
+/**
+ * Index where a dropped clip belongs on V1: before the first entry whose
+ * record midpoint is past `frame`, else the end.
+ */
+export function insertIndexAt(
+  layout: StripLayout,
+  frame: number,
+): number {
+  for (let i = 0; i < layout.clips.length; i++) {
+    const e = layout.clips[i];
+    if ((e.recordIn + e.recordOut) / 2 > frame) return i;
+  }
+  return layout.clips.length;
+}
+
+/**
+ * While playing, scroll so the playhead stays visible: when it leaves
+ * [scrollLeft, scrollLeft + viewWidth - margin], put it at 10% of the view.
+ * Returns the new scrollLeft, or null when no scroll is needed.
+ */
+export function followScroll({
+  playheadX,
+  scrollLeft,
+  viewWidth,
+  margin,
+}: {
+  playheadX: number;
+  scrollLeft: number;
+  viewWidth: number;
+  margin: number;
+}): number | null {
+  if (playheadX >= scrollLeft && playheadX <= scrollLeft + viewWidth - margin) {
+    return null;
+  }
+  return Math.max(0, playheadX - viewWidth * 0.1);
+}
+
+/**
+ * scrollLeft that keeps `anchorFrame` at `anchorScreenX` px from the view's
+ * left edge after a zoom to `nextPxPerSec`.
+ */
+export function zoomAnchorScroll({
+  anchorFrame,
+  anchorScreenX,
+  fps,
+  nextPxPerSec,
+}: {
+  anchorFrame: number;
+  anchorScreenX: number;
+  fps: number;
+  nextPxPerSec: number;
+}): number {
+  return Math.max(0, (anchorFrame / fps) * nextPxPerSec - anchorScreenX);
+}
+
+/** Master playback clock: the frame at `now` since `startTs` at `rate`. */
+export function clockFrame({
+  startFrame,
+  startTs,
+  now,
+  fps,
+  rate,
+}: {
+  startFrame: number;
+  startTs: number;
+  now: number;
+  fps: number;
+  rate: number;
+}): number {
+  return startFrame + Math.floor(((now - startTs) / 1000) * fps * rate);
 }
 
 /** Ruler tick step in seconds: 1, 2, 5 or 10 so labels are >= 64px apart. */

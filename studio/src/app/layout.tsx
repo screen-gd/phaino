@@ -13,11 +13,20 @@ import { getGitHubStars } from "@/server/github";
 import { toStudioModels } from "@/server/models/view";
 import { listPresets } from "@/server/presets/load";
 
+const DESCRIPTION =
+  "Open-source AI video and image studio on Comfy Cloud. Every shot opens as a ComfyUI workflow.";
+
 export const metadata: Metadata = {
   metadataBase: new URL(getEnv().siteUrl),
-  title: "Phaino",
-  description:
-    "Open-source AI video and image studio on Comfy Cloud. Every shot opens as a ComfyUI workflow.",
+  title: { default: "Phaino", template: "%s · Phaino" },
+  description: DESCRIPTION,
+  openGraph: {
+    title: "Phaino",
+    description: DESCRIPTION,
+    siteName: "Phaino",
+    type: "website",
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {

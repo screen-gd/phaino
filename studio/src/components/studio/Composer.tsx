@@ -8,7 +8,7 @@ import { ModelPicker, type PickerRow } from "./ModelPicker";
 import { AdvancedChip, ParamChip } from "./ParamControls";
 import { UploadCard } from "./UploadCard";
 import type { Uploaded } from "./useStudio";
-import type { RuntimeStats } from "@/lib/credits";
+import type { EstimateUnit, RuntimeStats } from "@/lib/credits";
 import type { StudioParam } from "@/components/toolStudioData";
 import { mainPromptKey } from "./studioUtils";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,12 @@ export type ComposerPicker = {
   modeLabel?: string;
   thumbUrl: string;
   isFork?: boolean;
+};
+
+export type ComposerModes = {
+  options: { key: string; label: string }[];
+  value?: string;
+  onChange: (key: string) => void;
 };
 
 const MAX_TEXTAREA_HEIGHT = 126; // ~6 lines of text-body
@@ -77,7 +83,9 @@ export function Composer({
   chipParams,
   advancedParams,
   picker,
+  modes,
   estimate,
+  unit,
   partner,
   submitLabel,
   submitDisabled,
@@ -100,7 +108,11 @@ export function Composer({
   advancedParams: StudioParam[];
   /** Model chip; omit on camera where the MoveStrip switches presets. */
   picker?: ComposerPicker;
+  /** Explicit mode switcher shown above the upload slots. */
+  modes?: ComposerModes;
   estimate?: RuntimeStats;
+  /** Billing unit for the estimate caption. */
+  unit: EstimateUnit;
   partner?: boolean;
   submitLabel: string;
   submitDisabled: boolean;
@@ -114,6 +126,25 @@ export function Composer({
   const promptKey = mainPromptKey(textParams);
   return (
     <div className="rounded-panel border border-[#444] bg-s2 p-2 has-[textarea:focus-visible]:border-ac/70">
+      {modes && modes.options.length > 1 && (
+        <div className="mb-2 flex w-max items-center gap-0.5 rounded-lg bg-s3 p-0.5">
+          {modes.options.map((o) => (
+            <button
+              key={o.key}
+              type="button"
+              aria-pressed={o.key === modes.value}
+              onClick={() => modes.onChange(o.key)}
+              className={`rounded-[6px] px-2.5 py-1 text-caption font-medium whitespace-nowrap ${
+                o.key === modes.value
+                  ? "bg-s2 text-t1"
+                  : "text-t3 hover:text-t1"
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="flex items-start gap-2">
         {slots.length > 0 && (
           <div className="flex flex-none gap-1.5">
@@ -227,7 +258,7 @@ export function Composer({
           />
         </div>
         <div className="flex w-full items-center gap-1.5 sm:w-auto sm:flex-none">
-          <EstimateCaption stats={estimate} partner={partner} />
+          <EstimateCaption stats={estimate} unit={unit} partner={partner} />
           <Button
             className="h-9 flex-1 rounded-lg px-5 sm:flex-none"
             loading={submitting}

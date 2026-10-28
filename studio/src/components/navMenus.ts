@@ -1,5 +1,6 @@
 import type { Preset } from "@/server/presets/schema";
 import type { StudioModel } from "@/components/toolStudioData";
+import { featureById, type FeatureId, type FeatureStatus } from "@/lib/features";
 import type { IconName } from "./icons";
 
 export type MenuRow = {
@@ -7,7 +8,7 @@ export type MenuRow = {
   description: string;
   href: string;
   icon?: IconName;
-  badge?: "New" | "Soon";
+  status?: FeatureStatus;
   thumb?: string;
 };
 
@@ -22,6 +23,16 @@ export type NavMenus = {
   camera: MenuRow[];
 };
 
+/** Feature links follow release status in the shared directory. */
+function featureLink(id: FeatureId) {
+  const feature = featureById(id);
+  if (!feature) throw new Error(`Unknown feature "${id}"`);
+  return {
+    href: feature.status === "soon" ? "/roadmap" : feature.href,
+    status: feature.status,
+  };
+}
+
 /** Header mega-menu data built from the preset catalog and model registry. */
 export function buildNavMenus(
   presets: Preset[],
@@ -33,22 +44,15 @@ export function buildNavMenus(
       features: [
         {
           title: "Create Image",
-          href: "/image",
           description: "Generate images from a prompt",
           icon: "image",
-        },
-        {
-          title: "Characters",
-          href: "/characters",
-          description: "Consistent characters across shots",
-          icon: "characters",
-          badge: "Soon",
+          ...featureLink("image"),
         },
         {
           title: "Workflows",
-          href: "/workflows",
           description: "Open any image as a workflow",
           icon: "workflows",
+          ...featureLink("workflows"),
         },
       ],
       models: models
@@ -66,43 +70,33 @@ export function buildNavMenus(
       features: [
         {
           title: "Create Video",
-          href: "/video",
           description: "Image or text to video",
           icon: "video",
+          ...featureLink("video"),
         },
         {
           title: "Camera moves",
-          href: "/camera",
           description: `${cameraPresets.length} cinematic moves`,
           icon: "camera",
-          badge: "New",
+          ...featureLink("camera"),
         },
         {
           title: "Effects",
-          href: "/effects",
-          description: "One-click VFX",
+          description: "One-click reframe, upscale and smooth motion",
           icon: "effects",
-          badge: "Soon",
-        },
-        {
-          title: "Avatars",
-          href: "/avatars",
-          description: "Lipsync",
-          icon: "avatars",
-          badge: "Soon",
+          ...featureLink("effects"),
         },
         {
           title: "Edit Video",
-          href: "/edit",
           description: "Upscale, reframe, relight",
           icon: "edit",
-          badge: "New",
+          ...featureLink("edit"),
         },
         {
           title: "Editor",
-          href: "/editor",
           description: "Cut, titles and music",
           icon: "export",
+          ...featureLink("editor"),
         },
       ],
       models: models
@@ -126,4 +120,3 @@ export function buildNavMenus(
     ),
   };
 }
-

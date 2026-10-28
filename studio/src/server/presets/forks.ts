@@ -11,6 +11,7 @@ import {
   SLUG,
   type ListedPreset,
 } from "./load";
+import { routerSpecFor } from "@/server/router/catalog";
 import { presetSchema, type Preset } from "./schema";
 import { validateWorkflowApi } from "./validate";
 
@@ -52,6 +53,10 @@ function readForkPreset(id: string, env: StudioEnv): { preset: Preset; dir: stri
 /** Copy a preset folder into a new fork under forksDir. Template-backed model
  * modes have no folder; their loaded preset and graphs are materialised. */
 export function createFork(presetId: string, env: StudioEnv = getEnv()): ListedPreset {
+  // Router catalog presets have no graph to fork.
+  if (routerSpecFor(presetId)) {
+    throw new ForkError(`Hosted preset "${presetId}" cannot be forked`, 400);
+  }
   const dir = resolvePresetDir(presetId, env);
   const forkId = newForkId(presetId, env);
   const target = forkDir(env, forkId);

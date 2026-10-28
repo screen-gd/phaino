@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getPreset, listPresets, type ListedPreset } from "@/server/presets/load";
+import { routerSpecFor } from "@/server/router/catalog";
 import { presetPreview } from "@/lib/preset-preview";
 import { MODEL_FAMILIES, matchesFamily } from "@/lib/model-families";
 import fs from "node:fs";
@@ -72,7 +73,8 @@ export default async function WorkflowsPage({
   searchParams: Promise<{ model?: string }>;
 }) {
   const { model } = await searchParams;
-  const presets = listPresets();
+  // Router catalog presets have no ComfyUI graph to inspect.
+  const presets = listPresets().filter((p) => routerSpecFor(p.id) === null);
   const families = MODEL_FAMILIES.filter((f) =>
     presets.some((p) => matchesFamily(p, f.id)),
   );

@@ -16,6 +16,7 @@ import {
 } from "../models/registry";
 import { EDIT_TOOLS, toolForPresetId } from "../models/tools";
 import { routerAdapterFor } from "@/server/router/adapters";
+import { routerSpecFor, ROUTER_CATALOG, type RouterModelSpec } from "@/server/router/catalog";
 import { presetSchema, type Preset } from "./schema";
 
 export const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -59,6 +60,104 @@ export function resolvePresetDir(id: string, env: StudioEnv = getEnv()): string 
 /** Partner presets show when they have a Router adapter. */
 export function presetVisible(preset: Preset): boolean {
   return preset.model.license !== "partner" || routerAdapterFor(preset.id) !== null;
+}
+
+/**
+ * A catalog partner model as a Preset. Router models have no ComfyUI graph;
+ * binds are placeholders — job submission validates values only and the
+ * adapter builds the request body. Params: prompt plus optional duration and
+ * aspect, plus an advanced "Options (JSON)" merged into the request body.
+ */
+function routerPreset(spec: RouterModelSpec): Preset {
+  const bind = { node: "router", field: "router" };
+  const params: Preset["params"] = [
+    {
+      type: "text",
+      key: "prompt",
+      label: "Prompt",
+      default: "",
+      placeholder: spec.category === "video" ? "Describe the shot" : "Describe the image",
+      bind,
+    },
+    ...(spec.category === "video"
+      ? [
+          {
+            type: "int" as const,
+            key: "duration",
+            label: "Duration (s)",
+            default: 5,
+            min: 1,
+            max: 30,
+            advanced: true,
+            bind,
+          },
+        ]
+      : []),
+    {
+      type: "choice" as const,
+      key: "aspect",
+      label: "Aspect",
+      default: spec.category === "video" ? "adaptive" : "auto",
+      options:
+        spec.category === "video"
+          ? [
+              { value: "adaptive", label: "Adaptive" },
+              { value: "16:9", label: "16:9" },
+              { value: "9:16", label: "9:16" },
+              { value: "1:1", label: "1:1" },
+            ]
+          : [
+              { value: "auto", label: "Auto" },
+              { value: "1:1", label: "1:1" },
+              { value: "16:9", label: "16:9" },
+              { value: "9:16", label: "9:16" },
+              { value: "4:3", label: "4:3" },
+              { value: "3:4", label: "3:4" },
+              { value: "3:2", label: "3:2" },
+              { value: "2:3", label: "2:3" },
+            ],
+      advanced: true,
+      bind,
+    },
+    {
+      type: "text",
+      key: "options",
+      label: "Options (JSON)",
+      default: "",
+      placeholder: '{"key": "value"}',
+      advanced: true,
+      bind,
+    },
+  ];
+  return {
+    id: spec.presetId,
+    name: spec.name,
+    description: spec.description,
+    category: spec.category,
+    order: spec.order,
+    engine: "workflow",
+    model: {
+      id: spec.model,
+      label: spec.name,
+      license: "partner",
+    },
+    source: { template: "router" },
+    inputs: spec.input
+      ? [{ ...spec.input, bind }]
+      : [],
+    params,
+    outputs: [
+      { node: "router", kind: spec.category === "video" ? "video" : "image" },
+    ],
+  };
+}
+
+/** A Router catalog preset by id; null when the id is not in the catalog. */
+export function getRouterPreset(
+  id: string,
+): ListedPreset | null {
+  const spec = routerSpecFor(id);
+  return spec ? { ...routerPreset(spec), origin: "model" } : null;
 }
 
 function parsePreset(dirName: string, raw: unknown): Preset {
@@ -122,9 +221,14 @@ export function listPresets(env: StudioEnv = getEnv()): ListedPreset[] {
     const t = syntheticToolPreset(`edit-${tool.id}`, env);
     if (t) synthetic.push({ ...t.preset, origin: "model" });
   }
+  const router: ListedPreset[] = ROUTER_CATALOG.map((spec) => ({
+    ...routerPreset(spec),
+    origin: "model",
+  }));
   const all = [
     ...listDir(env.presetsDir, "builtin"),
     ...synthetic,
+    ...router,
     ...listDir(env.forksDir, "fork"),
   ];
   return all
@@ -147,6 +251,11 @@ export function getPreset(id: string, env: StudioEnv = getEnv()): LoadedPreset |
   if (!SLUG.test(id)) return null;
   const presetFileBuiltin = path.join(presetDir(env, id), "preset.json");
   if (!fs.existsSync(presetFileBuiltin) && !fs.existsSync(path.join(forkDir(env, id), "preset.json"))) {
+    // A Router catalog preset: no folder, no ComfyUI graph.
+    const router = getRouterPreset(id);
+    if (router) {
+      return { preset: router, workflowApi: {}, workflowUi: {} };
+    }
     // A template-backed entry (model mode or edit tool): models/cache holds
     // its graphs.
     const manifest = loadModelsManifest(env);
@@ -221,6 +330,16 @@ export function resolveThumbPath(id: string, env: StudioEnv = getEnv()): string 
   if (dir) {
     const file = path.join(dir, "thumb.webp");
     return fs.existsSync(file) ? file : null;
+  }
+  // Router catalog presets have no folder; serve the bundled category art.
+  const spec = routerSpecFor(id);
+  if (spec) {
+    const fallback = path.join(
+      process.cwd(),
+      "public",
+      spec.category === "video" ? "video.webp" : "image.webp",
+    );
+    return fs.existsSync(fallback) ? fallback : null;
   }
   const manifest = loadModelsManifest(env);
   const hit = modeForPresetId(id);

@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { getEnv } from "@/server/env";
+import { ROUTER_CATALOG, routerSpecFor } from "@/server/router/catalog";
 import { listPresets, getPreset } from "./load";
 import { bindsOf, type PresetBind } from "./schema";
 
@@ -103,7 +104,11 @@ describe("presets on disk", () => {
     }
   });
 
-  for (const preset of presets) {
+  // Router catalog presets carry no ComfyUI graph, so the on-disk checks
+  // below only apply to folder and template-backed presets.
+  const graphed = presets.filter((p) => routerSpecFor(p.id) === null);
+
+  for (const preset of graphed) {
     describe(preset.id, () => {
       const loaded = getPreset(preset.id, env);
       it("returns preset plus both graphs", () => {
@@ -176,5 +181,27 @@ describe("partner preset visibility", () => {
     for (const id of ["kling3-video", "seedance25-i2v", "nano-banana-2"]) {
       expect(getPreset(id, env)?.preset.id).toBe(id);
     }
+  });
+});
+
+describe("router catalog presets", () => {
+  const noForks = path.join(getEnv().presetsDir, "__no_forks__");
+  const env = { ...getEnv(), forksDir: noForks };
+
+  it("lists every catalog entry as a partner preset", () => {
+    const ids = listPresets(env).map((p) => p.id);
+    for (const spec of ROUTER_CATALOG) {
+      expect(ids, spec.presetId).toContain(spec.presetId);
+    }
+    const router = listPresets(env).filter((p) => routerSpecFor(p.id) !== null);
+    for (const p of router) {
+      expect(p.model.license).toBe("partner");
+    }
+  });
+
+  it("getPreset returns router presets without a graph", () => {
+    const loaded = getPreset("veo-3-1", env);
+    expect(loaded?.preset.id).toBe("veo-3-1");
+    expect(loaded?.preset.model.license).toBe("partner");
   });
 });

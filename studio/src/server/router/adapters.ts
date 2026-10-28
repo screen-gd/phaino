@@ -1,3 +1,5 @@
+import { ROUTER_CATALOG } from "./catalog";
+import { genericAdapter } from "./generic";
 import { klingAdapter } from "./kling";
 import { nanoBananaAdapter } from "./nanoBanana";
 import { seedanceAdapter } from "./seedance";
@@ -16,6 +18,7 @@ export const ROUTER_ADAPTERS: readonly RouterAdapter[] = [
   nanoBananaAdapter,
   seedanceAdapter,
   klingAdapter,
+  ...ROUTER_CATALOG.map(genericAdapter),
 ];
 
 /** Find the adapter for a preset in the supplied registry. */

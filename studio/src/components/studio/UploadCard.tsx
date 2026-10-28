@@ -6,7 +6,7 @@ import type { Uploaded } from "./useStudio";
 import { uploadStill } from "./uploadStill";
 import { useDemo } from "@/components/DemoProvider";
 
-/** Drop card for one image input: 120px default, 64px tile with compact. */
+/** Drop card for one image or video input: 120px default, 64px tile with compact. */
 export function UploadCard({
   label,
   required,
@@ -14,24 +14,32 @@ export function UploadCard({
   onUploaded,
   onClear,
   compact = false,
+  kind = "image",
 }: {
   label: string;
   required: boolean;
+  kind?: "image" | "video";
   uploaded?: Uploaded;
   onUploaded: (u: Uploaded) => void;
   onClear: () => void;
   compact?: boolean;
 }) {
+  const isVideo = kind === "video";
   const demo = useDemo();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [drag, setDrag] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   async function upload(file: File) {
     if (!demo.enabled) setBusy(true);
+    setFailed(false);
     try {
       const u = await uploadStill(file, { demo: demo.enabled });
       if (u) onUploaded(u);
+      else setFailed(true);
+    } catch {
+      setFailed(true);
     } finally {
       if (!demo.enabled) setBusy(false);
     }
@@ -48,11 +56,15 @@ export function UploadCard({
     if (compact) {
       return (
         <div className="group relative h-16 w-16 flex-none overflow-hidden rounded-lg border border-line">
-          <img
-            src={uploaded.previewUrl}
-            alt={uploaded.name}
-            className="h-full w-full object-cover"
-          />
+          {isVideo ? (
+            <video src={uploaded.previewUrl} muted playsInline aria-label={uploaded.name} className="h-full w-full object-cover" />
+          ) : (
+            <img
+              src={uploaded.previewUrl}
+              alt={uploaded.name}
+              className="h-full w-full object-cover"
+            />
+          )}
           <button
             type="button"
             aria-label={`Remove ${label}`}
@@ -66,11 +78,15 @@ export function UploadCard({
     }
     return (
       <div className="group relative h-[120px] overflow-hidden rounded-xl border border-line">
-        <img
-          src={uploaded.previewUrl}
-          alt={uploaded.name}
-          className="h-full w-full object-cover"
-        />
+        {isVideo ? (
+          <video src={uploaded.previewUrl} muted playsInline aria-label={uploaded.name} className="h-full w-full object-cover" />
+        ) : (
+          <img
+            src={uploaded.previewUrl}
+            alt={uploaded.name}
+            className="h-full w-full object-cover"
+          />
+        )}
         <button
           type="button"
           aria-label={`Remove ${label}`}
@@ -87,7 +103,7 @@ export function UploadCard({
     <input
       ref={inputRef}
       type="file"
-      accept="image/png,image/jpeg,image/webp"
+      accept={isVideo ? "video/mp4,video/quicktime,video/webm" : "image/png,image/jpeg,image/webp"}
       className="hidden"
       onChange={(e) => {
         const file = e.target.files?.[0];
@@ -102,7 +118,8 @@ export function UploadCard({
       <button
         type="button"
         disabled={busy}
-        aria-label={`${label} (upload image)`}
+        aria-label={`${label} (upload ${kind}, ${required ? "required" : "optional"})`}
+        title={failed ? "Upload failed. Try again." : `${label}${required ? "" : " (optional)"}`}
         onClick={() => inputRef.current?.click()}
         onDragOver={(e) => {
           e.preventDefault();
@@ -111,13 +128,13 @@ export function UploadCard({
         onDragLeave={() => setDrag(false)}
         onDrop={onDrop}
         className={`relative grid h-16 w-16 flex-none place-items-center rounded-lg border bg-s3 transition-colors ${
-          drag ? "border-ac" : "border-line hover:border-[#444]"
+          drag ? "border-ac" : failed ? "border-destructive" : "border-line hover:border-[#444]"
         } ${busy ? "opacity-60" : ""}`}
       >
         <span className="grid justify-items-center gap-0.5 px-1">
           <Icon d={SECTION_ICONS.upload} className="h-4 w-4 text-t3" />
           <span className="text-center text-caption leading-tight text-t2">
-            {busy ? "…" : label}
+            {busy ? "…" : failed ? "Retry" : label}
           </span>
         </span>
         {fileInput}
@@ -152,7 +169,11 @@ export function UploadCard({
         <span className="text-body text-t1">
           {busy ? "Uploading…" : label}
         </span>
-        <span className="text-caption text-t3">PNG, JPG or WebP</span>
+        {failed ? (
+          <span role="alert" className="text-caption text-destructive">Upload failed. Try again.</span>
+        ) : (
+          <span className="text-caption text-t3">{isVideo ? "MP4, MOV or WebM" : "PNG, JPG or WebP"}</span>
+        )}
       </span>
       {fileInput}
     </button>

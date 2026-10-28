@@ -53,6 +53,7 @@ export function VideoStudio({
             : i.label
         : i.label,
       required: i.required,
+      type: i.type,
     }));
   }, [model, preset]);
 
@@ -197,6 +198,7 @@ export function VideoStudio({
         activeId={s.job?.id}
         onSelect={s.setJob}
         aspect="wide"
+        failed={s.recentFailed}
       />
     </div>
   );

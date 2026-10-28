@@ -17,6 +17,7 @@ export type ComposerSlot = {
   key: string;
   label: string;
   required: boolean;
+  type?: "image" | "video";
 };
 
 export type ComposerPicker = {
@@ -154,6 +155,7 @@ export function Composer({
                 compact
                 label={slot.label}
                 required={slot.required}
+                kind={slot.type}
                 uploaded={uploads[slot.key]}
                 onUploaded={(u) => onUploaded(slot.key, u)}
                 onClear={() => onClearSlot(slot.key)}
@@ -270,7 +272,7 @@ export function Composer({
         </div>
       </div>
       {error && (
-        <p className="mt-1.5 text-caption text-destructive">{error}</p>
+        <p role="alert" className="mt-1.5 text-caption text-destructive">{error}</p>
       )}
     </div>
   );

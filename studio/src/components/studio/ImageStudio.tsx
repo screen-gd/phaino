@@ -168,6 +168,7 @@ export function ImageStudio({
         activeId={s.job?.id}
         onSelect={s.setJob}
         aspect="square"
+        failed={s.recentFailed}
       />
     </div>
   );

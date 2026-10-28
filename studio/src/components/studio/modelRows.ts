@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import type { ModeKey } from "@/lib/modes";
-import { modelFamily } from "@/lib/model-families";
+import { brandLogo } from "@/lib/brand-logos";
+import { modelFamily, partnerFamily } from "@/lib/model-families";
 import type { StudioModel, StudioPreset } from "@/components/toolStudioData";
 import type { PickerRow } from "./ModelPicker";
 
@@ -53,6 +54,7 @@ export function useModelMaps(
     }));
     for (const p of presets) {
       if (!claimed.has(p.id)) {
+        const group = p.partner ? partnerFamily(p.name) : undefined;
         pickerRows.push({
           id: p.id,
           name: p.name,
@@ -60,6 +62,9 @@ export function useModelMaps(
           thumbUrl: p.thumbUrl,
           isFork: p.isFork,
           model: p.model,
+          // Partner models fold by brand like registry models do.
+          group,
+          logoUrl: brandLogo(group),
         });
       }
     }

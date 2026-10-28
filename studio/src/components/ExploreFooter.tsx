@@ -56,10 +56,10 @@ export function ExploreFooter({
   ];
 
   return (
-    <div className="mt-20">
-      <section aria-labelledby="feature-directory-title" className="border-t border-line px-4 py-16 sm:py-20">
+    <div className="mt-8">
+      <section aria-labelledby="feature-directory-title" className="px-4 pt-2 pb-8">
         <h2 id="feature-directory-title" className="text-center text-h2 font-semibold tracking-tight text-t1">Explore more features</h2>
-        <div className="mx-auto mt-7 flex max-w-5xl flex-wrap justify-center gap-2">
+        <div className="mx-auto mt-5 flex max-w-5xl flex-wrap justify-center gap-2">
           {FEATURES.filter((feature) => feature.status !== "soon").map((feature) => (
             <Link key={feature.href} href={feature.href} className="rounded-md border border-line bg-s1 px-3 py-2 text-body text-t2 hover:underline underline-offset-4">{feature.label}</Link>
           ))}

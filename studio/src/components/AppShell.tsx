@@ -180,7 +180,6 @@ export function AppShell({
           className={`mr-1 flex shrink-0 items-center gap-2 font-wordmark text-xl font-bold tracking-tight group-data-[compact=true]:text-base ${GROW}`}
         >
           <PhainoMark className="h-5 w-5 text-ac transition-[height,width] duration-200 ease-out motion-reduce:transition-none group-data-[compact=true]:h-4 group-data-[compact=true]:w-4" />
-          Phaino
         </Link>
         <NavigationMenu.Root
           aria-label="Sections"

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { groupPickerRows, modelFamily } from "./model-families";
+import { partnerFamily, groupPickerRows, modelFamily } from "./model-families";
 
 describe("modelFamily", () => {
   it("maps registry ids to family names", () => {
@@ -94,5 +94,15 @@ describe("groupPickerRows", () => {
       row("d", "LTX"),
     ]);
     expect(pair.map((r) => r.id)).toEqual(["c", "d", "a", "b"]);
+  });
+});
+
+describe("partnerFamily", () => {
+  it("folds partner models by brand", () => {
+    expect(partnerFamily("Kling 3.0 Turbo (Higgsfield)")).toBe("Kling");
+    expect(partnerFamily("GPT Image 2.5 Flare (fal)")).toBe("GPT Image");
+    expect(partnerFamily("Nano Banana Pro (Runware)")).toBe("Nano Banana");
+    expect(partnerFamily("FLUX.2 Pro")).toBe("FLUX");
+    expect(partnerFamily("Qwen Image 3.0")).toBe("Qwen");
   });
 });

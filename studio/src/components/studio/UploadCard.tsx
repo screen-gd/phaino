@@ -49,7 +49,13 @@ export function UploadCard({
     e.preventDefault();
     setDrag(false);
     const file = e.dataTransfer.files?.[0];
-    if (file) void upload(file);
+    if (!file) return;
+    // Drops bypass the picker's accept filter.
+    if (!file.type.startsWith(`${kind}/`)) {
+      setFailed(true);
+      return;
+    }
+    void upload(file);
   }
 
   if (uploaded) {

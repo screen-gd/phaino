@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { CloudPromo } from "@/components/CloudPromo";
-import { ComfyBanner } from "@/components/home/ComfyBanner";
+import { McpBanner } from "@/components/home/McpBanner";
 import { PartnerBanner } from "@/components/home/PartnerBanner";
 import { Icon, SECTION_ICONS, type IconName } from "@/components/icons";
 import { ExploreCarousel } from "@/components/ExploreCarousel";
 import { ExploreFooter } from "@/components/ExploreFooter";
-import { StatusBadge } from "@/components/StatusBadge";
+import { ToolTile } from "@/components/home/ToolTile";
 import { presetPreview } from "@/lib/preset-preview";
-import { featureById, type FeatureStatus } from "@/lib/features";
+import { cn } from "@/lib/utils";
+import { featureById } from "@/lib/features";
 import { Button } from "@/components/ui/button";
 import { toStudioModels } from "@/server/models/view";
 import { listPresets } from "@/server/presets/load";
@@ -44,7 +45,7 @@ function SectionHead({
   actions?: readonly { label: string; href: string; accent?: boolean }[];
 }) {
   return (
-    <div className="mt-8 mb-4 flex items-end justify-between gap-4">
+    <div className="mt-4 mb-3 flex items-end justify-between gap-4">
       <div>
         <h2 className="text-h2 font-semibold tracking-tight text-t1">
           {title}
@@ -66,39 +67,6 @@ function SectionHead({
         </div>
       )}
     </div>
-  );
-}
-
-/** Small tool tile: icon and kind tag on top, name, status and description below. */
-function ToolTile({
-  tool,
-  status,
-}: {
-  tool: (typeof TOOLS)[number];
-  status: FeatureStatus;
-}) {
-  const soon = status === "soon";
-  return (
-    <Link
-      href={soon ? "/roadmap" : tool.href}
-      className={`flex min-h-24 flex-col justify-between rounded-md border border-line bg-s1 p-3 ${
-        soon ? "" : "hover:border-[#444]"
-      }`}
-    >
-      <div className="flex items-center justify-between">
-        <Icon d={SECTION_ICONS[tool.icon]} className="h-5 w-5 text-t2" />
-        {tool.kind && (
-          <span className="font-mono text-caption text-t3">{tool.kind}</span>
-        )}
-      </div>
-      <div>
-        <b className={`text-body font-semibold ${soon ? "text-t3" : ""}`}>
-          {tool.name}
-          <StatusBadge status={status} className="ml-1.5 align-middle" />
-        </b>
-        <span className="mt-0.5 block text-caption text-t3">{tool.desc}</span>
-      </div>
-    </Link>
   );
 }
 
@@ -153,21 +121,33 @@ export default function Home() {
 
       <ExploreCarousel />
 
-      <div className="mt-8 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+      <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <CloudPromo />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {TOOLS.map((t) => (
-            <ToolTile
-              key={t.id}
-              tool={t}
-              status={featureById(t.id)?.status ?? "live"}
-            />
-          ))}
+          {TOOLS.map((t, i) => {
+            const n = TOOLS.length;
+            const last = i === n - 1;
+            // A lone last tile spans the row instead of leaving a hole.
+            return (
+              <ToolTile
+                key={t.id}
+                tool={t}
+                status={featureById(t.id)?.status ?? "live"}
+                wide={last && n % 3 === 1}
+                className={cn(
+                  last && n % 2 === 1 && "col-span-2",
+                  last && n % 3 === 1
+                    ? "sm:col-span-3"
+                    : last && n % 2 === 1 && "sm:col-span-1",
+                )}
+              />
+            );
+          })}
         </div>
       </div>
 
-      <div className="mt-5">
-        <ComfyBanner />
+      <div className="mt-3">
+        <McpBanner />
       </div>
 
       <SectionHead
@@ -206,7 +186,7 @@ export default function Home() {
         </div>
       )}
 
-      <div className="mt-6">
+      <div className="mt-3">
         <PartnerBanner />
       </div>
 

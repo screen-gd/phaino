@@ -47,6 +47,10 @@ export const reference: { title: string; endpoints: Endpoint[] }[] = [
     ["POST", "/api/edits/extend", "{uploadId, modelId, prompt?}", "201 {job}; continues the video from its last frame"],
     ["POST", "/api/edits/join", "{uploadId, result}: source upload and the extend output path", "200 {ok}; appends both to the Editor"],
   ] },
+  { title: "Kawarimi (character swap)", endpoints: [
+    ["POST", "/api/uploads", "Upload the source video, then the character image; keep both uploadIds", "201 {uploadId, previewUrl} each"],
+    ["POST", "/api/jobs", '{presetId: "kawarimi" | "kawarimi-genjutsu" | "kawarimi-seedance" | "kawarimi-h3" | "kawarimi-wan27" | "kawarimi-happyhorse" | "kawarimi-aleph", inputs: {video: videoUploadId, character: imageUploadId}, params?: {prompt?, seed?, resolution?}}', "201 {job}; sources are trimmed to each engine's cap and the result keeps the source audio"],
+  ] },
   { title: "Social", endpoints: [
     ["GET", "/api/social/credentials", "None", "200 {configured, maskedKey}"],
     ["PUT", "/api/social/credentials", "{apiKey}: Zernio API key", "200 {configured, maskedKey}; 400 if Zernio rejects the key"],

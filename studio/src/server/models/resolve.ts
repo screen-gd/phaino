@@ -5,7 +5,7 @@ import path from "node:path";
 import { getEnv, type StudioEnv } from "@/server/env";
 import type { Preset } from "../presets/schema";
 import { loadObjectInfo } from "../presets/validate";
-import { detectPreset, detectToolPreset } from "./bindings";
+import { detectPreset, detectSwapPreset, detectToolPreset } from "./bindings";
 import {
   MODEL_REGISTRY,
   modeForPresetId,
@@ -84,6 +84,7 @@ export function syntheticPreset(
 function buildSynthetic(id: string, env: StudioEnv): Preset | null {
   const hit = modeForPresetId(id);
   if (!hit) return null;
+  if (hit.mode === "swap") return syntheticSwapPreset(id, env)?.preset ?? null;
   const entry = loadModelsManifest(env)?.modes?.[id];
   if (!entry || entry.gate !== "pass") return null;
   const files = cacheFiles(entry.template, env);
@@ -155,6 +156,52 @@ export function syntheticToolPreset(
   }
 }
 
+const swapCache = new Map<string, ResolvedTool | null>();
+
+/**
+ * The detected preset plus runtime binds for a swap-mode preset id
+ * (`kawarimi*`); null when the manifest gates it out.
+ */
+export function syntheticSwapPreset(
+  id: string,
+  env: StudioEnv = getEnv(),
+): ResolvedTool | null {
+  const key = `${env.presetsDir}:${id}`;
+  const cached = swapCache.get(key);
+  if (cached !== undefined) return cached;
+
+  const set = (v: ResolvedTool | null) => {
+    swapCache.set(key, v);
+    return v;
+  };
+
+  const hit = modeForPresetId(id);
+  const entry =
+    hit?.mode === "swap" ? loadModelsManifest(env)?.modes?.[id] : undefined;
+  if (!hit || !entry || entry.gate !== "pass") return set(null);
+  const files = cacheFiles(entry.template, env);
+  if (!fs.existsSync(files.apiFile) || !fs.existsSync(files.uiFile)) {
+    return set(null);
+  }
+  try {
+    const api = JSON.parse(fs.readFileSync(files.apiFile, "utf8"));
+    const ui = JSON.parse(fs.readFileSync(files.uiFile, "utf8"));
+    const detected = detectSwapPreset(hit.model, api, ui, loadObjectInfo());
+    return set(
+      detected.preset && detected.problems.length === 0
+        ? {
+            preset: detected.preset,
+            ...(detected.inputFps !== undefined
+              ? { inputFps: detected.inputFps }
+              : {}),
+          }
+        : null,
+    );
+  } catch {
+    return set(null);
+  }
+}
+
 /** Every edit tool the manifest gates pass: template-backed and app (extend). */
 export function listTools(env: StudioEnv = getEnv()): {
   tool: (typeof EDIT_TOOLS)[number];
@@ -191,6 +238,7 @@ export function listModels(
   for (const model of MODEL_REGISTRY) {
     const modes: ListedModel["modes"] = [];
     for (const mode of Object.keys(model.modes) as ModelMode[]) {
+      if (mode === "swap") continue;
       const src = model.modes[mode];
       if (!src) continue;
       const id = modePresetId(model, mode);

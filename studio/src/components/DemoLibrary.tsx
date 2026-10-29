@@ -10,6 +10,8 @@ const SAMPLES = [
   { id: "qwen-image", name: "Qwen Image", category: "image" },
   { id: "ltx25-i2v", name: "LTX 2.5", category: "video" },
   { id: "wan22-i2v", name: "Wan 2.2", category: "video" },
+  { id: "kawarimi", name: "Kawarimi (SCAIL-2)", category: "video" },
+  { id: "kawarimi-h3", name: "Kawarimi (MiniMax H3)", category: "video" },
 ];
 
 export function DemoLibrary({ presets }: { presets: Pick<StudioPreset, "id" | "name">[] }) {

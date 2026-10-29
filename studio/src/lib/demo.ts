@@ -9,9 +9,24 @@ export function demoOutput(category: string, presetId: string): string {
       ? "/explore/examples/qwen-image.webp"
       : "/explore/examples/flux2-klein.webp";
   }
+  if (presetId.startsWith("kawarimi")) {
+    // Two bundled swaps; the preset picks one deterministically.
+    const n =
+      [...presetId].reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 2 + 1;
+    return `/explore/examples/kawarimi_${n}.mp4`;
+  }
   return presetId.includes("wan")
     ? "/explore/examples/wan22-i2v.mp4"
     : "/explore/examples/ltx25-i2v.mp4";
+}
+
+/**
+ * The "before" clip for a Kawarimi demo result, e.g.
+ * /explore/examples/kawarimi_1.mp4 -> /explore/examples/kawarimi_1_source.mp4.
+ */
+export function demoSource(output: string): string | undefined {
+  const m = /^\/explore\/examples\/kawarimi_(\d+)\.mp4$/.exec(output);
+  return m ? `/explore/examples/kawarimi_${m[1]}_source.mp4` : undefined;
 }
 
 export function createDemoJob(input: Pick<StudioJob, "category" | "presetId" | "params" | "inputs">): StudioJob {

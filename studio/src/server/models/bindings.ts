@@ -9,7 +9,11 @@ import {
 } from "./tools.ts";
 import { comboOptions, type ObjectInfo, type WorkflowApiGraph } from "../presets/validate.ts";
 
-type ApiNode = { class_type?: string; inputs?: Record<string, unknown> };
+type ApiNode = {
+  class_type?: string;
+  inputs?: Record<string, unknown>;
+  _meta?: { title?: unknown };
+};
 type UiNode = {
   id?: unknown;
   type?: string;
@@ -108,6 +112,65 @@ function imageSortRank(names: string[]): number {
 
 const round16 = (n: number) => Math.max(16, Math.round(n / 16) * 16);
 
+/** Model files a template downloads, from node properties.models. */
+function templateModels(ui: UiWorkflowDoc): DetectedModel[] {
+  const models: DetectedModel[] = [];
+  for (const node of ui.nodes ?? []) {
+    for (const m of node.properties?.models ?? []) {
+      if (m.name && m.url) models.push({ name: m.name, url: m.url });
+    }
+  }
+  return models;
+}
+
+/** Node ids of a given class. */
+function nodesOfClass(api: WorkflowApiGraph, cls: string): string[] {
+  return Object.keys(api).filter((id) => api[id].class_type === cls);
+}
+
+/** Save-style node entries that produce video. */
+function videoSaveNodes(api: WorkflowApiGraph): [string, ApiNode][] {
+  return Object.entries(api).filter(
+    ([, n]) =>
+      /^Save(Image|Video|WEBM|AnimatedWEBP|AnimatedPNG)/.test(
+        n.class_type ?? "",
+      ) && /Video|WEBM/i.test(n.class_type ?? ""),
+  );
+}
+
+/** Unlinked seed/noise_seed literals across the graph, as binds. */
+function seedBindList(api: WorkflowApiGraph): PresetBind[] {
+  return literalInputs(api, /^(seed|noise_seed)$/).map((s) => ({
+    node: s.node,
+    field: s.field,
+  }));
+}
+
+/** The node's UI title, serialized into the api graph as `_meta.title`. */
+function nodeTitle(node: { _meta?: { title?: unknown } } | undefined): string {
+  const t = node?._meta?.title;
+  return typeof t === "string" ? t : "";
+}
+
+/** Every distinct text node traced from linked `input` sinks across the graph. */
+function tracedTextBinds(
+  api: WorkflowApiGraph,
+  input: string,
+): { bind: PresetBind; value: string }[] {
+  const seen = new Set<string>();
+  const out: { bind: PresetBind; value: string }[] = [];
+  for (const [nodeId, n] of Object.entries(api)) {
+    if (!isLink(n.inputs?.[input])) continue;
+    const hit = traceText(api, { nodeId, input });
+    if (!hit) continue;
+    const key = `${hit.node}.${hit.field}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ bind: { node: hit.node, field: hit.field }, value: hit.value });
+  }
+  return out;
+}
+
 /** Detect a full Preset for a template-backed mode, or report problems. */
 export function detectPreset(
   model: ModelEntry,
@@ -124,12 +187,7 @@ export function detectPreset(
       : "";
 
   // Models referenced by the template (HF download entries on loader nodes).
-  const models: DetectedModel[] = [];
-  for (const node of ui.nodes ?? []) {
-    for (const m of node.properties?.models ?? []) {
-      if (m.name && m.url) models.push({ name: m.name, url: m.url });
-    }
-  }
+  const models = templateModels(ui);
 
   // Output: exactly one Save-style node (PreviewImage ignored).
   const saveNodes = Object.entries(api).filter(([, n]) =>
@@ -192,9 +250,7 @@ export function detectPreset(
   }
 
   // seed: every unlinked seed/noise_seed input, written together.
-  const seedBinds: PresetBind[] = literalInputs(api, /^(seed|noise_seed)$/).map(
-    (s) => ({ node: s.node, field: s.field }),
-  );
+  const seedBinds = seedBindList(api);
   if (seedBinds.length === 0) {
     problems.push("seed: no unlinked seed input");
   } else {
@@ -207,9 +263,7 @@ export function detectPreset(
   }
 
   // image inputs: LoadImage nodes ordered by downstream slot name.
-  const loadImages = Object.keys(api).filter(
-    (id) => api[id].class_type === "LoadImage",
-  );
+  const loadImages = nodesOfClass(api, "LoadImage");
   const wantImages = mode === "flf2v" ? 2 : mode === "i2v" || mode === "edit" ? 1 : 0;
   if (loadImages.length < wantImages) {
     problems.push(
@@ -546,20 +600,10 @@ export function detectToolPreset(
   const problems: string[] = [];
   const id = toolPresetId(tool);
 
-  const models: DetectedModel[] = [];
-  for (const node of ui.nodes ?? []) {
-    for (const m of node.properties?.models ?? []) {
-      if (m.name && m.url) models.push({ name: m.name, url: m.url });
-    }
-  }
+  const models = templateModels(ui);
 
   // Output: exactly one Save-style node producing video.
-  const saveNodes = Object.entries(api).filter(([, n]) =>
-    /^Save(Image|Video|WEBM|AnimatedWEBP|AnimatedPNG)/.test(n.class_type ?? ""),
-  );
-  const videoSaves = saveNodes.filter(([, n]) =>
-    /Video|WEBM/i.test(n.class_type ?? ""),
-  );
+  const videoSaves = videoSaveNodes(api);
   const outputs: Preset["outputs"] = [];
   if (videoSaves.length !== 1) {
     problems.push(
@@ -570,9 +614,7 @@ export function detectToolPreset(
   }
 
   // Input: exactly one LoadVideo node.
-  const loadVideos = Object.keys(api).filter(
-    (id) => api[id].class_type === "LoadVideo",
-  );
+  const loadVideos = nodesOfClass(api, "LoadVideo");
   const inputs: Preset["inputs"] = [];
   if (loadVideos.length !== 1) {
     problems.push(
@@ -591,9 +633,7 @@ export function detectToolPreset(
   // Reference image: a linked LoadImage when the tool wants one. Required
   // whenever something consumes it — the template's stock filename would
   // fail at run.
-  const loadImages = Object.keys(api).filter(
-    (id) => api[id].class_type === "LoadImage",
-  );
+  const loadImages = nodesOfClass(api, "LoadImage");
   if (tool.controls?.reference && loadImages.length === 0) {
     problems.push("reference: expected a LoadImage node, found none");
   }
@@ -664,9 +704,7 @@ export function detectToolPreset(
   }
 
   // Seed: bound when present, never required for tools.
-  const seedBinds = literalInputs(api, /^(seed|noise_seed)$/).map(
-    (s) => ({ node: s.node, field: s.field }),
-  );
+  const seedBinds = seedBindList(api);
   if (seedBinds.length > 0) {
     params.push({
       type: "seed",
@@ -835,5 +873,167 @@ export function detectToolPreset(
     size,
     inputFps,
     padsNode,
+  };
+}
+
+/**
+ * Detect a Preset for a character-swap mode: one LoadVideo source, one
+ * consumed LoadImage for the character, one "final" Save video output, and a
+ * prompt written to every positive-text node (swap templates flatten several
+ * subgraphs, each with its own encode). No frame/size binds: the template
+ * derives segmentation from the source clip itself.
+ */
+export function detectSwapPreset(
+  model: ModelEntry,
+  api: WorkflowApiGraph,
+  ui: UiWorkflowDoc,
+  objectInfo: ObjectInfo,
+): ToolDetection {
+  const problems: string[] = [];
+  const id = modePresetId(model, "swap");
+  const src = model.modes.swap;
+  const source = src && "template" in src ? src : null;
+
+  const models = templateModels(ui);
+
+  // Output: one video Save; with several, the one titled "Final ..." wins.
+  const saves = videoSaveNodes(api);
+  let chosen = saves.length === 1 ? saves[0] : null;
+  if (!chosen && saves.length > 1) {
+    const finals = saves.filter(([, n]) => /final/i.test(nodeTitle(n)));
+    if (finals.length === 1) chosen = finals[0];
+  }
+  const outputs: Preset["outputs"] = [];
+  if (!chosen) {
+    problems.push(
+      saves.length === 0
+        ? "output: expected one Save video node, found 0"
+        : `output: ambiguous, ${saves.length} Save video nodes`,
+    );
+  } else {
+    outputs.push({ node: chosen[0], kind: "video" });
+  }
+
+  const inputs: Preset["inputs"] = [];
+
+  const loadVideos = nodesOfClass(api, "LoadVideo");
+  if (loadVideos.length !== 1) {
+    problems.push(
+      `video input: expected one LoadVideo node, found ${loadVideos.length}`,
+    );
+  } else {
+    inputs.push({
+      key: "video",
+      type: "video",
+      label: "Source video",
+      required: true,
+      bind: { node: loadVideos[0], field: "file" },
+    });
+  }
+
+  const characters = nodesOfClass(api, "LoadImage").filter(
+    (id) => consumerInputNames(api, id).length > 0,
+  );
+  if (characters.length !== 1) {
+    problems.push(
+      `character: expected one consumed LoadImage node, found ${characters.length}`,
+    );
+  } else {
+    inputs.push({
+      key: "character",
+      type: "image",
+      label: "Character",
+      required: true,
+      bind: { node: characters[0], field: "image" },
+    });
+  }
+
+  const params: Preset["params"] = [];
+
+  // Prompt: every distinct text node behind a linked `positive` input, so a
+  // single prompt value reaches each flattened subgraph.
+  const promptBinds = tracedTextBinds(api, "positive");
+  if (promptBinds.length === 0) {
+    problems.push("prompt: no text input found");
+  } else {
+    params.push({
+      type: "text",
+      key: "prompt",
+      label: "Prompt",
+      default: source?.prompt ?? promptBinds[0].value,
+      placeholder: "Describe it",
+      bind:
+        promptBinds.length === 1
+          ? promptBinds[0].bind
+          : promptBinds.map((b) => b.bind),
+    });
+    const negativeBinds = tracedTextBinds(api, "negative").filter(
+      (b) =>
+        !promptBinds.some(
+          (p) => p.bind.node === b.bind.node && p.bind.field === b.bind.field,
+        ),
+    );
+    if (negativeBinds.length > 0) {
+      params.push({
+        type: "text",
+        key: "negative",
+        label: "Negative prompt",
+        default: negativeBinds[0].value,
+        advanced: true,
+        bind:
+          negativeBinds.length === 1
+            ? negativeBinds[0].bind
+            : negativeBinds.map((b) => b.bind),
+      });
+    }
+  }
+
+  // Seed: bound when present, never required.
+  const seeds = seedBindList(api);
+  if (seeds.length > 0) {
+    params.push({
+      type: "seed",
+      key: "seed",
+      label: "Seed",
+      bind: seeds.length === 1 ? seeds[0] : seeds,
+    });
+  }
+
+  // A literal CreateVideo fps on the node feeding the chosen Save fixes the
+  // frame rate; the source clip is re-encoded to it before queueing.
+  let inputFps: number | undefined;
+  if (chosen) {
+    for (const v of Object.values(api[chosen[0]].inputs ?? {})) {
+      if (!isLink(v) || api[v[0]]?.class_type !== "CreateVideo") continue;
+      inputFps = resolveLiteral(api, v[0], "fps")?.value;
+      if (inputFps !== undefined) break;
+    }
+  }
+
+  const candidate = {
+    id,
+    name: model.label,
+    description: `Character swap on ${model.label}.`,
+    category: "video",
+    order: 50,
+    engine: "workflow",
+    model: { id: model.id, label: model.label, license: "open" },
+    source: { template: source?.template ?? "" },
+    inputs,
+    params,
+    outputs,
+  };
+  const parsed = presetSchema.safeParse(candidate);
+  if (!parsed.success) {
+    problems.push(
+      `schema: ${parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`,
+    );
+    return { preset: null, problems, models };
+  }
+  return {
+    preset: parsed.data,
+    problems,
+    models,
+    ...(inputFps !== undefined ? { inputFps } : {}),
   };
 }

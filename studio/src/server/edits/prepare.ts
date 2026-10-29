@@ -5,7 +5,15 @@ import { unlink } from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
 import { getEnv, type StudioEnv } from "@/server/env";
-import { syntheticToolPreset, type ResolvedTool } from "@/server/models/resolve";
+import {
+  kawarimiEngine,
+  type KawarimiEngine,
+} from "@/server/kawarimi/engines";
+import {
+  syntheticSwapPreset,
+  syntheticToolPreset,
+  type ResolvedTool,
+} from "@/server/models/resolve";
 import {
   outpaintPads,
   toolForPresetId,
@@ -42,6 +50,8 @@ export type PreparedEdit = {
   derived: DerivedWrite[];
   /** Source was longer than the tool's maxSeconds and got trimmed. */
   trimmed: boolean;
+  /** The effective source clip (the trimmed upload when trimmed). */
+  source?: { uploadId: string; seconds: number; hasAudio: boolean };
 };
 
 /**
@@ -84,9 +94,11 @@ export async function conformUpload(
 }
 
 /**
- * For an `edit-*` preset: probe the video input, trim it to the tool's
- * maxSeconds, and compute the derived writes (frame counts capped at the
- * template default, reframe pads). Returns null for non-edit presets.
+ * For an `edit-*` or Kawarimi preset: probe the video input, trim it to the
+ * tool's or engine's maxSeconds, and compute the derived writes (frame
+ * counts capped at the template default, reframe pads). Partner engines get
+ * the trim only (no fps conform, no derived writes). Returns null for
+ * presets that need no preparation.
  */
 export async function prepareEditJob(
   presetId: string,
@@ -95,6 +107,22 @@ export async function prepareEditJob(
   env: StudioEnv,
   deps: EditDeps = defaultDeps,
 ): Promise<PreparedEdit | null> {
+  const engine = kawarimiEngine(presetId);
+  if (engine?.license === "partner") {
+    return prepareKawarimiPartner(engine, inputs, env, deps);
+  }
+  if (engine) {
+    const resolved = syntheticSwapPreset(presetId, env);
+    if (!resolved) return null;
+    return prepareToolJob(
+      { maxSeconds: engine.maxSeconds },
+      resolved,
+      inputs,
+      params,
+      env,
+      deps,
+    );
+  }
   const tool = toolForPresetId(presetId);
   if (!tool || !tool.template) return null;
   const resolved = syntheticToolPreset(presetId, env);
@@ -102,12 +130,51 @@ export async function prepareEditJob(
   return prepareToolJob(tool, resolved, inputs, params, env, deps);
 }
 
+/** Trim the source clip to the partner engine's maxSeconds; nothing else. */
+async function prepareKawarimiPartner(
+  engine: KawarimiEngine,
+  inputs: Record<string, string>,
+  env: StudioEnv,
+  deps: EditDeps,
+): Promise<PreparedEdit> {
+  const uploadId = inputs.video;
+  if (!uploadId) return { inputs, derived: [], trimmed: false };
+  const abs = resolveUpload(env.dataDir, uploadId).absPath;
+  const probe = await deps.probe(abs);
+  if (probe.durationSec <= engine.maxSeconds + 0.05) {
+    return {
+      inputs,
+      derived: [],
+      trimmed: false,
+      source: { uploadId, seconds: probe.durationSec, hasAudio: probe.hasAudio },
+    };
+  }
+  const usedUpload = await conformUpload(
+    env.dataDir,
+    abs,
+    { seconds: engine.maxSeconds },
+    env,
+    deps,
+    probe.hasAudio,
+  );
+  return {
+    inputs: { ...inputs, video: usedUpload },
+    derived: [],
+    trimmed: true,
+    source: {
+      uploadId: usedUpload,
+      seconds: Math.min(engine.maxSeconds, probe.durationSec),
+      hasAudio: probe.hasAudio,
+    },
+  };
+}
+
 /**
  * Trim + derive for a resolved tool preset. Exported for tests; callers use
  * prepareEditJob.
  */
 export async function prepareToolJob(
-  tool: EditTool,
+  tool: Pick<EditTool, "maxSeconds" | "controls">,
   resolved: ResolvedTool,
   inputs: Record<string, string>,
   params: Record<string, string | number | boolean>,
@@ -162,6 +229,11 @@ export async function prepareToolJob(
     inputs: { ...inputs, [videoKey]: usedUpload },
     derived,
     trimmed,
+    source: {
+      uploadId: usedUpload,
+      seconds: durationSec,
+      hasAudio: probe.hasAudio,
+    },
   };
 }
 
@@ -171,7 +243,7 @@ export async function prepareToolJob(
  */
 export function deriveWrites(
   resolved: ResolvedTool,
-  tool: EditTool,
+  tool: Pick<EditTool, "controls">,
   probe: { width: number; height: number; fps: number },
   durationSec: number,
   fps: number,

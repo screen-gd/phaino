@@ -76,6 +76,7 @@ To work toward a goal:
 4. Build the cut: add_to_sequence for each shot, upload_to_editor or import_media for music, then update_sequence for order, trims, transitions, audio and titles.
 5. export_sequence, then poll get_job for the rendered file.
 Runs spend the user's Comfy credits. Confirm large batches with the user first.
+For a character swap, run the kawarimi preset with a source video and a character image.
 To share a result, list_social_accounts and post_to_social. Posts are public: confirm the caption and accounts with the user first.`;
 
 function requirePreset(id: string) {

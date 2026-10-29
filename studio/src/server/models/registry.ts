@@ -6,9 +6,19 @@
 
 export const TEMPLATES_REF = "46e060ea88eb07adecf07197ec384c54a70e030c";
 
-export type ModelMode = "t2i" | "edit" | "t2v" | "i2v" | "flf2v";
+export type ModelMode = "t2i" | "edit" | "t2v" | "i2v" | "flf2v" | "swap";
 
-export type ModeSource = { preset: string } | { template: string };
+export type ModeSource =
+  | { preset: string }
+  | {
+      template: string;
+      /** Overrides the synthetic preset id (default "<modelId>-<mode>"). */
+      id?: string;
+      /** Overrides the detected default prompt. */
+      prompt?: string;
+      /** Swap: source clips longer than this are trimmed to the first N seconds. */
+      maxSeconds?: number;
+    };
 
 export type ModelEntry = {
   id: string;
@@ -485,6 +495,32 @@ export const MODEL_REGISTRY = [
     modes: { t2v: { template: "video_wan2.1_alpha_t2v_14B" } },
   },
   {
+    id: "scail2",
+    label: "SCAIL-2",
+    kind: "video",
+    modes: {
+      swap: {
+        template: "video_wan21_scail2_character_replacement",
+        id: "kawarimi",
+        prompt: "Replace the person with the character from the reference image",
+        maxSeconds: 5,
+      },
+    },
+  },
+  {
+    id: "wan22-animate",
+    label: "Wan 2.2 Animate",
+    kind: "video",
+    modes: {
+      swap: {
+        template: "video_wan2_2_14B_animate",
+        id: "kawarimi-animate",
+        prompt: "Replace the person with the character from the reference image",
+        maxSeconds: 5,
+      },
+    },
+  },
+  {
     id: "fasth3",
     label: "FastH3",
     kind: "video",
@@ -525,6 +561,7 @@ export const MODE_LABELS: Record<ModelMode, string> = {
   t2v: "Text to video",
   i2v: "Image to video",
   flf2v: "First and last frame",
+  swap: "Character swap",
 };
 
 export function modelById(id: string): ModelEntry | null {
@@ -546,7 +583,8 @@ export function modeSource(
 export function modePresetId(model: ModelEntry, mode: ModelMode): string {
   const src = model.modes[mode];
   if (!src) return `${model.id}-${mode}`;
-  return "preset" in src ? src.preset : `${model.id}-${mode}`;
+  if ("preset" in src) return src.preset;
+  return "id" in src && src.id ? src.id : `${model.id}-${mode}`;
 }
 
 /** Find the model/mode a synthetic preset id belongs to. */
@@ -556,7 +594,7 @@ export function modeForPresetId(
   for (const model of MODEL_REGISTRY) {
     for (const mode of Object.keys(model.modes) as ModelMode[]) {
       const src = model.modes[mode];
-      if (src && "template" in src && `${model.id}-${mode}` === id) {
+      if (src && "template" in src && modePresetId(model, mode) === id) {
         return { model, mode };
       }
     }

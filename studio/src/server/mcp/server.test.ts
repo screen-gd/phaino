@@ -20,6 +20,12 @@ describe("MCP tool handlers", () => {
     expect(toolHandlers.list_presets()).toContainEqual(expect.objectContaining({
       id: "orbit", model: "LTX 2.5", chip: "90°", inputs: ["image"], params: expect.arrayContaining(["prompt", "seed"]),
     }));
+    const presets = toolHandlers.list_presets();
+    expect(presets).toContainEqual(expect.objectContaining({ id: "kawarimi", category: "video", inputs: ["video", "character"] }));
+    for (const id of ["kawarimi-genjutsu", "kawarimi-seedance", "kawarimi-h3", "kawarimi-wan27", "kawarimi-happyhorse", "kawarimi-aleph"]) {
+      expect(presets).toContainEqual(expect.objectContaining({ id, category: "video", inputs: ["video", "character"] }));
+    }
+    expect(presets.find((preset) => preset.id === "kawarimi-kling-o1")).toBeUndefined();
   });
 
   it("reads the preset and both workflow formats", () => {

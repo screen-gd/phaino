@@ -3,7 +3,12 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { RouterOutputError } from "./adapters";
-import { extForMime, saveRouterOutput, uploadDataUrl } from "./media";
+import {
+  extForMime,
+  saveRouterOutput,
+  uploadComfyMedia,
+  uploadDataUrl,
+} from "./media";
 
 describe("extForMime", () => {
   it.each([
@@ -89,6 +94,60 @@ describe("Router media files", () => {
 
     expect(written).toBe(`${dest}${ext}`);
     expect(fs.readFileSync(written)).toEqual(Buffer.from(bytes));
+  });
+
+  it("uploads to Comfy storage and returns the download URL", async () => {
+    const absPath = path.join(dir, "clip.mp4");
+    fs.writeFileSync(absPath, bytes);
+    const calls: { url: string; init?: RequestInit }[] = [];
+    const fetchImpl = (async (url: string | URL | Request, init?: RequestInit) => {
+      const u = String(url);
+      calls.push({ url: u, init });
+      if (u === "https://api.comfy.org/customers/storage") {
+        return new Response(
+          JSON.stringify({
+            upload_url: "https://storage.example/put/clip.mp4",
+            download_url: "https://cdn.example.com/clip.mp4",
+          }),
+          { headers: { "content-type": "application/json" } },
+        );
+      }
+      return new Response(null, { status: 200 });
+    }) as typeof fetch;
+
+    const url = await uploadComfyMedia(
+      { absPath, mimeType: "video/mp4" },
+      "test-key",
+      fetchImpl,
+    );
+
+    expect(url).toBe("https://cdn.example.com/clip.mp4");
+    expect(calls).toHaveLength(2);
+    const request = JSON.parse(String(calls[0].init?.body)) as {
+      file_name: string;
+      content_type: string;
+    };
+    expect(request).toEqual({
+      file_name: "clip.mp4",
+      content_type: "video/mp4",
+    });
+    expect(calls[0].init?.headers).toMatchObject({
+      Authorization: "Bearer test-key",
+    });
+    expect(calls[1].init?.method).toBe("PUT");
+    expect(Buffer.from(calls[1].init?.body as Uint8Array)).toEqual(
+      Buffer.from(bytes),
+    );
+  });
+
+  it("rejects when the storage request fails", async () => {
+    const absPath = path.join(dir, "clip.mp4");
+    fs.writeFileSync(absPath, bytes);
+    const fetchImpl = (async () => new Response(null, { status: 403 })) as typeof fetch;
+
+    await expect(
+      uploadComfyMedia({ absPath, mimeType: "video/mp4" }, "k", fetchImpl),
+    ).rejects.toThrow(RouterOutputError);
   });
 
   it("rejects failed downloads with a RouterOutputError", async () => {

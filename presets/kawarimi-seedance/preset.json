@@ -1,0 +1,60 @@
+{
+  "id": "kawarimi-seedance",
+  "name": "Seedance 2.5 Video Editing",
+  "description": "Character swap on Seedance 2.5 Video Editing.",
+  "category": "video",
+  "order": 40,
+  "engine": "workflow",
+  "model": {
+    "id": "seedance25-edit",
+    "label": "Seedance 2.5 Video Editing",
+    "license": "partner"
+  },
+  "source": {
+    "template": "api_seedance2_5_video_editing"
+  },
+  "inputs": [
+    {
+      "key": "video",
+      "type": "video",
+      "label": "Source video",
+      "required": true,
+      "bind": { "node": "35", "field": "file" }
+    },
+    {
+      "key": "character",
+      "type": "image",
+      "label": "Character",
+      "required": true,
+      "bind": { "node": "40", "field": "image" }
+    }
+  ],
+  "params": [
+    {
+      "type": "text",
+      "key": "prompt",
+      "label": "Prompt",
+      "default": "Replace the person in the video with the character from the reference image. Keep the motion, characters, composition and timing exactly the same.",
+      "bind": { "node": "39", "field": "model.prompt" }
+    },
+    {
+      "type": "choice",
+      "key": "resolution",
+      "label": "Resolution",
+      "default": "720p",
+      "options": [
+        { "value": "480p", "label": "480p" },
+        { "value": "720p", "label": "720p" },
+        { "value": "1080p", "label": "1080p" }
+      ],
+      "bind": { "node": "39", "field": "model.resolution" }
+    },
+    {
+      "type": "seed",
+      "key": "seed",
+      "label": "Seed",
+      "bind": { "node": "39", "field": "seed" }
+    }
+  ],
+  "outputs": [{ "node": "16", "kind": "video" }]
+}

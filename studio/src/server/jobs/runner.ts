@@ -17,7 +17,13 @@ import {
 } from "@/server/presets/bind";
 import { getPreset } from "@/server/presets/load";
 import type { Preset } from "@/server/presets/schema";
-import { applyDerived, prepareEditJob } from "@/server/edits/prepare";
+import {
+  applyDerived,
+  prepareEditJob,
+  type PreparedEdit,
+} from "@/server/edits/prepare";
+import { remuxSourceAudio } from "@/server/kawarimi/audio";
+import { isKawarimiPreset } from "@/server/kawarimi/engines";
 import { resolveUpload } from "@/server/uploads";
 import {
   RouterInputError,
@@ -26,7 +32,12 @@ import {
   type RouterAdapter,
 } from "@/server/router/adapters";
 import { parseOptions } from "@/server/router/generic";
-import { extForMime, saveRouterOutput, uploadDataUrl } from "@/server/router/media";
+import {
+  extForMime,
+  saveRouterOutput,
+  uploadComfyMedia,
+  uploadDataUrl,
+} from "@/server/router/media";
 import { getStore, type JobRecord, type JobStore } from "./store";
 
 /** A run submitted without a reachable Comfy deployment. */
@@ -51,6 +62,8 @@ export class JobInputError extends Error {
 export interface OutputLike {
   name: string;
   contentType: string;
+  /** The graph node that produced this output; absent in older fakes. */
+  nodeId?: string;
   toFile(path: string): Promise<unknown>;
 }
 export interface JobHandleLike {
@@ -328,16 +341,12 @@ export class JobRunner {
       if (!loaded) throw new JobInputError(`Unknown preset "${row.presetId}"`);
       const { preset } = loaded;
       const adapter = this.deps.adapterFor(row.presetId);
-      if (adapter) {
-        await this.runRouter(row, preset, adapter);
-        return;
-      }
-      const client = this.deps.getClient();
 
-      // Edit tools: probe the source video, trim to maxSeconds and derive
-      // bind values (frame counts, reframe pads) from the probe.
+      // Edit tools and Kawarimi presets: probe the source video and trim it
+      // to the tool's or engine's maxSeconds (tools also derive bind values
+      // like frame counts and reframe pads).
       const edit =
-        row.presetId.startsWith("edit-")
+        row.presetId.startsWith("edit-") || isKawarimiPreset(row.presetId)
           ? await prepareEditJob(
               row.presetId,
               row.inputs,
@@ -346,6 +355,16 @@ export class JobRunner {
             )
           : null;
       const inputs = edit?.inputs ?? row.inputs;
+      const audioSource =
+        isKawarimiPreset(row.presetId) && edit?.source
+          ? resolveUpload(this.deps.dataDir, edit.source.uploadId).absPath
+          : undefined;
+
+      if (adapter) {
+        await this.runRouter(row, preset, adapter, inputs, edit, audioSource);
+        return;
+      }
+      const client = this.deps.getClient();
 
       const bound = applyPreset(
         loaded.workflowApi as WorkflowApi,
@@ -370,29 +389,52 @@ export class JobRunner {
           : {}),
       });
       this.update(jobId, { comfyJobId: remote.id });
-      await this.watch(row, remote);
+      await this.watch(row, remote, audioSource);
     } catch (err) {
       this.fail(jobId, err);
     }
   }
 
-  private async runRouter(row: JobRecord, preset: Preset, adapter: RouterAdapter) {
+  private async runRouter(
+    row: JobRecord,
+    preset: Preset,
+    adapter: RouterAdapter,
+    inputs: Record<string, string>,
+    edit: PreparedEdit | null,
+    audioSource?: string,
+  ) {
     const images: Record<string, string> = {};
     for (const spec of preset.inputs) {
-      const uploadId = row.inputs[spec.key];
+      const uploadId = inputs[spec.key];
       if (uploadId === undefined) continue;
-      images[spec.key] = await uploadDataUrl(resolveUpload(this.deps.dataDir, uploadId));
+      const resolved = resolveUpload(this.deps.dataDir, uploadId);
+      // Some Router models refuse base64 video; storage URLs work for all.
+      images[spec.key] = adapter.mediaAsUrl
+        ? await uploadComfyMedia(
+            resolved,
+            comfyTarget(this.deps.env).apiKey ?? "",
+          )
+        : await uploadDataUrl(resolved);
     }
-    const input = adapter.buildInput({ params: row.params, images });
+    const input = adapter.buildInput({
+      params: row.params,
+      images,
+      sourceSeconds: edit?.source?.seconds,
+    });
     this.update(row.id, { status: "running", message: "Submitting" });
     const handle = await this.deps.getRouter().submit(adapter.model, input, {
       idempotencyKey: row.id,
     });
     this.update(row.id, { comfyJobId: handle.requestId });
-    await this.watchRouter(row, adapter, handle);
+    await this.watchRouter(row, adapter, handle, audioSource);
   }
 
-  private async watchRouter(row: JobRecord, adapter: RouterAdapter, handle: RouterHandleLike) {
+  private async watchRouter(
+    row: JobRecord,
+    adapter: RouterAdapter,
+    handle: RouterHandleLike,
+    audioSource?: string,
+  ) {
     for await (const u of handle.events()) {
       if (this.isCancelled(row.id)) return;
       if (u.completed) continue;
@@ -413,29 +455,48 @@ export class JobRunner {
     const outputs = adapter.readOutputs(result);
     if (outputs.length === 0) throw new RouterOutputError("Router returned no outputs");
     const outputsDir = path.join(this.deps.dataDir, "outputs");
+    const saved: string[] = [];
     for (const [i, output] of outputs.entries()) {
       const dest = await saveRouterOutput(
         output,
         path.join(outputsDir, row.presetId, `${row.id}-${i}`),
       );
+      saved.push(dest);
       const rel = path.relative(outputsDir, dest).split(path.sep).join("/");
       const current = this.deps.store.get(row.id);
       this.update(row.id, { outputs: [...(current?.outputs ?? []), rel] });
+    }
+    if (audioSource) {
+      for (const dest of saved) {
+        await remuxSourceAudio(dest, audioSource).catch(() => false);
+      }
     }
     this.update(row.id, { status: "succeeded", progress: 1, message: "Done" });
   }
 
   /** Follow a live remote job: events, outputs, then the terminal result. */
-  private async watch(row: JobRecord, remote: JobHandleLike) {
+  private async watch(
+    row: JobRecord,
+    remote: JobHandleLike,
+    audioSource?: string,
+  ) {
     const dir = path.join(this.deps.dataDir, "outputs", row.presetId);
+    // Only the preset's output nodes are saved; graphs may carry extra Save
+    // nodes (SCAIL-2's "first segment") that are not job outputs.
+    const outputNodes = new Set(
+      (getPreset(row.presetId, this.deps.env)?.preset.outputs ?? []).map(
+        (o) => o.node,
+      ),
+    );
     const savedNames = new Set<string>();
+    const savedPaths: string[] = [];
     let index = 0;
     const save = async (output: OutputLike) => {
       const rel = `${row.presetId}/${row.id}-${index++}${extFor(output)}`;
       await mkdir(dir, { recursive: true });
-      await output.toFile(
-        path.join(this.deps.dataDir, "outputs", rel),
-      );
+      const abs = path.join(this.deps.dataDir, "outputs", rel);
+      await output.toFile(abs);
+      savedPaths.push(abs);
       savedNames.add(output.name);
       const current = this.deps.store.get(row.id);
       this.update(row.id, { outputs: [...(current?.outputs ?? []), rel] });
@@ -471,7 +532,11 @@ export class JobRunner {
               : (ev.status ?? "Running"),
         });
       } else if (ev.kind === "outputReady" && ev.output) {
-        await save(ev.output);
+        const wanted =
+          !ev.output.nodeId ||
+          outputNodes.size === 0 ||
+          outputNodes.has(ev.output.nodeId);
+        if (wanted) await save(ev.output);
       }
     }
 
@@ -483,6 +548,11 @@ export class JobRunner {
       for (const output of remote.getOutputs(spec.node)) {
         if (savedNames.has(output.name)) continue;
         await save(output);
+      }
+    }
+    if (audioSource) {
+      for (const dest of savedPaths) {
+        await remuxSourceAudio(dest, audioSource).catch(() => false);
       }
     }
     this.update(row.id, { status: "succeeded", progress: 1, message: "Done" });

@@ -1,0 +1,59 @@
+{
+  "id": "kawarimi-h3",
+  "name": "MiniMax H3",
+  "description": "Character swap on MiniMax H3.",
+  "category": "video",
+  "order": 20,
+  "engine": "workflow",
+  "model": {
+    "id": "minimax-h3",
+    "label": "MiniMax H3",
+    "license": "partner"
+  },
+  "source": {
+    "template": "api_minimax_h3_r2v"
+  },
+  "inputs": [
+    {
+      "key": "video",
+      "type": "video",
+      "label": "Source video",
+      "required": true,
+      "bind": { "node": "5", "field": "file" }
+    },
+    {
+      "key": "character",
+      "type": "image",
+      "label": "Character",
+      "required": true,
+      "bind": { "node": "2", "field": "image" }
+    }
+  ],
+  "params": [
+    {
+      "type": "text",
+      "key": "prompt",
+      "label": "Prompt",
+      "default": "Replace the person in <Video 1> with the character from <Picture 1>. Keep the motion, camera and background.",
+      "bind": { "node": "4", "field": "model.prompt" }
+    },
+    {
+      "type": "choice",
+      "key": "resolution",
+      "label": "Resolution",
+      "default": "768P",
+      "options": [
+        { "value": "768P", "label": "768P" },
+        { "value": "2K", "label": "2K" }
+      ],
+      "bind": { "node": "4", "field": "model.resolution" }
+    },
+    {
+      "type": "seed",
+      "key": "seed",
+      "label": "Seed",
+      "bind": { "node": "4", "field": "seed" }
+    }
+  ],
+  "outputs": [{ "node": "3", "kind": "video" }]
+}

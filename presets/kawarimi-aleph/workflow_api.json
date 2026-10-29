@@ -1,0 +1,88 @@
+{
+  "1": {
+    "inputs": {
+      "prompt": "Change the scene to a surfing scene and replace the characters with surfers",
+      "seed": 2374599215,
+      "public_figure_threshold": "low",
+      "video": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "RunwayAleph2VideoToVideoNode",
+    "_meta": {
+      "title": "Runway Aleph2 Video to Video"
+    }
+  },
+  "2": {
+    "inputs": {
+      "position": "Absolute time (seconds)",
+      "position.seconds": 0,
+      "image": [
+        "3",
+        0
+      ]
+    },
+    "class_type": "RunwayAleph2PromptImageNode",
+    "_meta": {
+      "title": "Runway Aleph2 Prompt Image"
+    }
+  },
+  "3": {
+    "inputs": {
+      "image": "example.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "4": {
+    "inputs": {
+      "file": "sunset_city_skateboarder.mp4"
+    },
+    "class_type": "LoadVideo",
+    "_meta": {
+      "title": "Load Video"
+    }
+  },
+  "5": {
+    "inputs": {
+      "timing": "Absolute time (seconds)",
+      "timing.seconds": 0,
+      "image": [
+        "6",
+        0
+      ]
+    },
+    "class_type": "RunwayAleph2KeyframeNode",
+    "_meta": {
+      "title": "Runway Aleph2 Keyframe"
+    }
+  },
+  "6": {
+    "inputs": {
+      "image": "example.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "7": {
+    "inputs": {
+      "filename_prefix": "video/Runway_Aleph2",
+      "format": "auto",
+      "format.codec": "auto",
+      "codec": "auto",
+      "video": [
+        "1",
+        0
+      ]
+    },
+    "class_type": "SaveVideo",
+    "_meta": {
+      "title": "Save Video"
+    }
+  }
+}

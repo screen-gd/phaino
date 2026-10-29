@@ -44,10 +44,11 @@ function envWith(key: string | undefined): StudioEnv {
   };
 }
 
-function fakeOutput(name = "ComfyUI_1_.mp4"): OutputLike {
+function fakeOutput(name = "ComfyUI_1_.mp4", nodeId?: string): OutputLike {
   return {
     name,
     contentType: "video/mp4",
+    ...(nodeId ? { nodeId } : {}),
     toFile: vi.fn(async (p: string) => {
       fs.mkdirSync(path.dirname(p), { recursive: true });
       fs.writeFileSync(p, "video-bytes");
@@ -211,6 +212,37 @@ describe("job runner", () => {
     expect(submitCalls[1].apiKey).toBe("test-key");
   });
 
+  it("saves only outputs from the preset's output nodes", async () => {
+    const job = fakeJob({
+      events: vi.fn(async function* () {
+        // dolly-in's output node is "75"; "999" is an extra Save node.
+        yield {
+          kind: "outputReady",
+          output: fakeOutput("segment.mp4", "999"),
+        };
+        yield {
+          kind: "outputReady",
+          output: fakeOutput("final.mp4", "75"),
+        };
+      }),
+    });
+    const { dir, store, runner } = makeDeps(job);
+    const row = runner.startJob({
+      presetId: "dolly-in",
+      params: {},
+      inputs: { image: makeUpload(dir) },
+    });
+    await vi.waitFor(() =>
+      expect(store.get(row.id)?.status).toBe("succeeded"),
+    );
+    const done = store.get(row.id)!;
+    expect(done.outputs).toHaveLength(1);
+    expect(done.outputs[0]).toMatch(/^dolly-in\/.+\.mp4$/);
+    expect(
+      fs.readFileSync(path.join(dir, "outputs", done.outputs[0]), "utf8"),
+    ).toBe("video-bytes");
+  });
+
   it("marks the job failed when result() rejects", async () => {
     const job = fakeJob({
       result: vi.fn(async () => {
@@ -339,6 +371,41 @@ describe("Router job runner", () => {
     const output = path.join(dir, "outputs", done.outputs[0]);
     expect(fs.existsSync(output)).toBe(true);
     expect(fs.readFileSync(output, "utf8")).toBe("router-png-bytes");
+  });
+
+  it("uploads inputs to Comfy storage when the adapter sets mediaAsUrl", async () => {
+    const calls: { url: string; init?: RequestInit }[] = [];
+    vi.stubGlobal("fetch", async (url: string | URL | Request, init?: RequestInit) => {
+      const u = String(url);
+      calls.push({ url: u, init });
+      if (u === "https://api.comfy.org/customers/storage") {
+        return new Response(JSON.stringify({
+          upload_url: "https://put.example/clip",
+          download_url: "https://cdn.example/clip.mp4",
+        }));
+      }
+      return new Response("ok");
+    });
+    try {
+      const { dir, store, runner, adapter } = makeRouterDeps(
+        fakeRouterHandle(),
+        { mediaAsUrl: true },
+      );
+      const row = runner.startJob({
+        presetId: adapter.presetId,
+        params: {},
+        inputs: { image: makeUpload(dir) },
+      });
+      await vi.waitFor(() => expect(store.get(row.id)?.status).toBe("succeeded"));
+      expect(calls.map((c) => c.init?.method ?? "GET")).toEqual(["POST", "PUT"]);
+      expect(adapter.buildInput).toHaveBeenCalledWith(
+        expect.objectContaining({
+          images: { image: "https://cdn.example/clip.mp4" },
+        }),
+      );
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("fails when the adapter returns no outputs", async () => {

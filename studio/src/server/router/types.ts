@@ -15,7 +15,14 @@ export type RouterOutput =
 export type RouterAdapter = {
   presetId: string;
   model: string;
-  buildInput(job: { params: RouterParams; images: RouterImages }): Record<string, unknown>;
+  /** Inputs are uploaded to Comfy storage and passed as https URLs. */
+  mediaAsUrl?: true;
+  buildInput(job: {
+    params: RouterParams;
+    images: RouterImages;
+    /** Probed length of the prepared source clip, for duration fields. */
+    sourceSeconds?: number;
+  }): Record<string, unknown>;
   readOutputs(result: RunResult): RouterOutput[];
 };
 

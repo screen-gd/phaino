@@ -1,0 +1,48 @@
+{
+  "id": "kawarimi-aleph",
+  "name": "Runway Aleph 2",
+  "description": "Character swap on Runway Aleph 2.",
+  "category": "video",
+  "order": 80,
+  "engine": "workflow",
+  "model": {
+    "id": "aleph2",
+    "label": "Runway Aleph 2",
+    "license": "partner"
+  },
+  "source": {
+    "template": "api_runway_aleph2_video_edit"
+  },
+  "inputs": [
+    {
+      "key": "video",
+      "type": "video",
+      "label": "Source video",
+      "required": true,
+      "bind": { "node": "4", "field": "file" }
+    },
+    {
+      "key": "character",
+      "type": "image",
+      "label": "Character",
+      "required": true,
+      "bind": { "node": "3", "field": "image" }
+    }
+  ],
+  "params": [
+    {
+      "type": "text",
+      "key": "prompt",
+      "label": "Prompt",
+      "default": "Replace the person with the character from the reference image, keeping their motion, the camera and the background.",
+      "bind": { "node": "1", "field": "prompt" }
+    },
+    {
+      "type": "seed",
+      "key": "seed",
+      "label": "Seed",
+      "bind": { "node": "1", "field": "seed" }
+    }
+  ],
+  "outputs": [{ "node": "7", "kind": "video" }]
+}

@@ -1,6 +1,7 @@
 import "server-only";
 import path from "node:path";
 import { z } from "zod";
+import { DEFAULT_SITE_URL } from "@/lib/request-guard";
 
 const blank = (v: unknown) =>
   typeof v === "string" && v.trim() === "" ? undefined : v;
@@ -50,7 +51,7 @@ function buildEnv() {
     presetsDir: path.resolve(/* turbopackIgnore: true */ process.cwd(), e.PRESETS_DIR ?? "../presets"),
     dataDir,
     user: e.PHAINO_USER ?? e.CUTAWAY_USER ?? "local",
-    siteUrl: e.NEXT_PUBLIC_SITE_URL ?? e.PHAINO_SITE_URL ?? "https://app.phaino.us.ci",
+    siteUrl: e.NEXT_PUBLIC_SITE_URL ?? e.PHAINO_SITE_URL ?? DEFAULT_SITE_URL,
     ffmpegPath: e.FFMPEG_PATH ?? "ffmpeg",
     ffprobePath: e.FFPROBE_PATH ?? "ffprobe",
     forksDir: path.resolve(/* turbopackIgnore: true */ process.cwd(), e.FORKS_DIR ?? path.join(dataDir, "forks")),

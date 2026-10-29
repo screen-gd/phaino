@@ -1,10 +1,22 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isDemoMode } from "@/lib/demo-mode";
 import { DEMO_MESSAGE } from "@/lib/demo";
+import { allowedHostAndOrigin, allowedWriteContentType, siteUrlFrom } from "@/lib/request-guard";
+
+/** The local studio API is unauthenticated, so only same-site browser pages and local tools may drive it. */
+function localGuard(request: NextRequest) {
+  if (!allowedHostAndOrigin(request, siteUrlFrom())) {
+    return NextResponse.json({ error: "Forbidden host or origin" }, { status: 403 });
+  }
+  if (!allowedWriteContentType(request)) {
+    return NextResponse.json({ error: "Expected application/json or multipart/form-data" }, { status: 415 });
+  }
+  return NextResponse.next();
+}
 
 /** Hosted mockups never submit jobs, accept credentials, or write server files. */
 export function proxy(request: NextRequest) {
-  if (!isDemoMode()) return NextResponse.next();
+  if (!isDemoMode()) return localGuard(request);
   if (request.method !== "GET" && request.method !== "HEAD") {
     return NextResponse.json({ error: "demo_mode", message: DEMO_MESSAGE }, { status: 403 });
   }

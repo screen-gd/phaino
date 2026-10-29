@@ -727,6 +727,12 @@
           "id": "ui-polish-higgsfield",
           "title": "Studio UI polish vs Higgsfield",
           "status": "done"
+        },
+        {
+          "id": "api-origin-guard",
+          "title": "Host and Origin guard on every /api route",
+          "status": "done",
+          "notes": "proxy.ts rejects non-loopback/site Host and Origin (DNS rebinding, CSRF) and text/plain or form write bodies outside demo mode. Shared with /api/mcp via lib/request-guard."
         }
       ]
     },

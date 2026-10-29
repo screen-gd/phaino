@@ -25,28 +25,36 @@ function SideBySide({
   resRef: React.RefObject<HTMLVideoElement | null>;
 }) {
   return (
-    <div className="grid w-full max-w-[1100px] gap-3 sm:grid-cols-2 lg:max-w-[min(1100px,calc((100cqh_-_140px)_*_32_/_9))]">
-      <div>
-        <span className="mb-1 block text-caption text-t3">Source</span>
-        <video
-          ref={srcRef}
-          src={sourceUrl}
-          loop
-          muted
-          playsInline
-          className="aspect-video w-full rounded-lg border border-line bg-black object-contain"
-        />
+    <div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
+      <div className="flex min-w-0 flex-1 flex-col items-center">
+        <div className="relative">
+          <video
+            ref={srcRef}
+            src={sourceUrl}
+            loop
+            muted
+            playsInline
+            className="block h-auto w-auto max-w-full max-h-[70svh] rounded-lg border border-line object-contain lg:max-h-[calc(100cqh_-_140px)]"
+          />
+          <span className="pointer-events-none absolute top-2 left-2 rounded bg-black/60 px-1.5 py-0.5 text-caption text-t1">
+            Source
+          </span>
+        </div>
       </div>
-      <div>
-        <span className="mb-1 block text-caption text-t3">Result</span>
-        <video
-          ref={resRef}
-          src={resultUrl}
-          loop
-          muted
-          playsInline
-          className="aspect-video w-full rounded-lg border border-line bg-black object-contain"
-        />
+      <div className="flex min-w-0 flex-1 flex-col items-center">
+        <div className="relative">
+          <video
+            ref={resRef}
+            src={resultUrl}
+            loop
+            muted
+            playsInline
+            className="block h-auto w-auto max-w-full max-h-[70svh] rounded-lg border border-line object-contain lg:max-h-[calc(100cqh_-_140px)]"
+          />
+          <span className="pointer-events-none absolute top-2 left-2 rounded bg-black/60 px-1.5 py-0.5 text-caption text-t1">
+            Result
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -86,7 +94,7 @@ function Wipe({
       ref={frameRef}
       onPointerDown={drag}
       onPointerMove={drag}
-      className="relative aspect-video w-full max-w-[880px] cursor-ew-resize select-none lg:max-w-[min(880px,calc((100cqh_-_140px)_*_16_/_9))]"
+      className="relative mx-auto w-fit max-w-full cursor-ew-resize select-none"
     >
       <video
         ref={srcRef}
@@ -94,7 +102,7 @@ function Wipe({
         loop
         muted
         playsInline
-        className="absolute inset-0 h-full w-full rounded-lg border border-line bg-black object-contain"
+        className="block h-auto w-auto max-w-full max-h-[70svh] rounded-lg border border-line object-contain lg:max-h-[calc(100cqh_-_140px)]"
       />
       <video
         ref={resRef}

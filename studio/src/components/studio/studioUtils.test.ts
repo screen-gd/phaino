@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { StudioParam, StudioPreset } from "@/components/toolStudioData";
 import {
+  failureLabel,
   filterPresets,
   formatParamValue,
   mainPromptKey,
   paramKind,
   progressPct,
+  ratioOf,
   relativeTime,
   stackThumbs,
 } from "./studioUtils";
@@ -172,13 +174,70 @@ describe("paramKind", () => {
     ).toBe("resolution");
     // most presets
     expect(paramKind(seed())).toBe("seed");
-    // flux2-klein style choice / fps
+    // flux2-klein style choice / fps / batch count
     expect(
       paramKind(choice("style", "Style", [{ value: "none", label: "None" }])),
-    ).toBe("other");
+    ).toBe("style");
     expect(
       paramKind(choice("fps", "FPS", [{ value: "24", label: "24" }])),
+    ).toBe("fps");
+    expect(paramKind(int("num_images", "Number of images"))).toBe("count");
+    expect(paramKind(int("batch", "Batch"))).toBe("count");
+    // frame/step ints and non-int "images" params stay out of count
+    expect(paramKind(int("frame_count", "Frame count"))).toBe("other");
+    expect(
+      paramKind(
+        choice("images", "Images", [{ value: "one", label: "One" }]),
+      ),
     ).toBe("other");
+    // style only applies to choices
+    expect(paramKind(int("style_strength", "Style strength"))).toBe("other");
+    // params without a kind keyword
+    expect(paramKind(int("steps", "Steps"))).toBe("other");
+  });
+});
+
+describe("failureLabel", () => {
+  it("maps raw backend errors to short labels", () => {
+    expect(
+      failureLabel("API key authentication is not available for free tier accounts"),
+    ).toBe("Account or API key issue");
+    expect(failureLabel("quota exceeded, check billing")).toBe(
+      "Account or API key issue",
+    );
+    expect(
+      failureLabel("'ratio' is not supported for first-frame generation"),
+    ).toBe("Setting not supported by this model");
+    expect(failureLabel("No media found in the model response")).toBe(
+      "No output returned",
+    );
+    expect(failureLabel("request timed out after 300s")).toBe("Timed out");
+    expect(failureLabel("The request was rejected as invalid for this model")).toBe(
+      "Request rejected by the model",
+    );
+    expect(failureLabel("content flagged by the moderation system")).toBe(
+      "Request rejected by the model",
+    );
+    expect(failureLabel("something odd")).toBe("Generation failed");
+    expect(failureLabel(null)).toBe("Generation failed");
+    expect(failureLabel()).toBe("Generation failed");
+  });
+});
+
+describe("ratioOf", () => {
+  it("parses colon and x ratios out of longer labels", () => {
+    expect(ratioOf("16:9")).toEqual({ w: 16, h: 9 });
+    expect(ratioOf("2.39:1")).toEqual({ w: 2.39, h: 1 });
+    expect(ratioOf("1:1 (square)")).toEqual({ w: 1, h: 1 });
+    expect(ratioOf("16:9 1024x576")).toEqual({ w: 16, h: 9 });
+    expect(ratioOf("1024x576")).toEqual({ w: 1024, h: 576 });
+  });
+
+  it("returns null when there is no ratio", () => {
+    expect(ratioOf("Auto")).toBeNull();
+    expect(ratioOf("Adaptive")).toBeNull();
+    expect(ratioOf("")).toBeNull();
+    expect(ratioOf("0:0")).toBeNull();
   });
 });
 

@@ -2,10 +2,51 @@
 
 import { useEffect, useRef, useState, type DragEvent } from "react";
 import { Icon, SECTION_ICONS } from "../icons";
+import { outputPosterUrl } from "@/lib/demo";
+import {
+  Popover,
+  PopoverPopup,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { Uploaded } from "../studio/useStudio";
-import { Popover, PopoverPopup, PopoverTrigger } from "../ui/popover";
 
 type OutputItem = { relPath: string; name: string; kind: string };
+
+/** One recent-output thumbnail; the poster endpoint covers codecs Chromium can't decode. */
+function OutputThumb({
+  item,
+  onPick,
+  disabled,
+}: {
+  item: OutputItem;
+  onPick: (relPath: string) => void;
+  disabled?: boolean;
+}) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={() => onPick(item.relPath)}
+      title={item.name}
+      aria-label={`Use ${item.name}`}
+      className="w-24 overflow-hidden rounded-md border border-line hover:border-ac"
+    >
+      {failed ? (
+        <span className="grid aspect-video w-full place-items-center bg-s1">
+          <Icon d={SECTION_ICONS.video} className="h-4 w-4 text-t3" />
+        </span>
+      ) : (
+        <img
+          src={outputPosterUrl(item.relPath)}
+          alt=""
+          onError={() => setFailed(true)}
+          className="aspect-video w-full object-cover"
+        />
+      )}
+    </button>
+  );
+}
 
 /** Drop zone plus recent generated videos; feeds an uploadId. */
 export function VideoPicker({
@@ -96,7 +137,7 @@ export function VideoPicker({
   if (uploaded) {
     return (
       <div className="w-full">
-        <div className="group relative aspect-video w-full overflow-hidden rounded-lg border border-line bg-black">
+        <div className="group relative aspect-video w-full overflow-hidden rounded-panel border border-line bg-black">
           <video
             src={uploaded.previewUrl}
             muted
@@ -143,33 +184,79 @@ export function VideoPicker({
           }
         }}
         onDrop={onDrop}
-        className={`relative flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-lg border border-dashed bg-black px-2 py-4 text-center ${
+        className={`relative flex aspect-video w-full flex-col items-center justify-center gap-3 rounded-panel border border-dashed bg-s1 px-2 py-4 text-center ${
           drag ? "border-ac" : "border-line"
         }`}
       >
-        <Icon d={SECTION_ICONS.upload} className="h-6 w-6 shrink-0 text-t3" />
-        <div className="grid min-w-0 gap-2">
-          <p className="whitespace-nowrap text-body leading-6 text-t1" role="status">
-            {busy ? "Loading video…" : (
-              <>
-                Drop a video or{" "}
-                <button
-                  type="button"
-                  onClick={() => inputRef.current?.click()}
-                  className="rounded-sm text-t1 underline underline-offset-4 hover:text-t2"
-                >
-                  browse
-                </button>
-              </>
-            )}
+        <span className="grid h-11 w-11 place-items-center rounded-full bg-s3">
+          <Icon d={SECTION_ICONS.upload} className="h-5 w-5 text-t2" />
+        </span>
+        <div className="grid min-w-0 gap-1.5">
+          <p className="text-body font-medium text-t1" role="status">
+            {busy ? "Loading video…" : "Drop a video here"}
           </p>
-          <p className="font-mono text-caption whitespace-nowrap text-t3">
+          <p className="text-caption text-t3">
             MP4, MOV or WebM
             {maxSeconds != null && maxSeconds > 0
               ? ` · first ${maxSeconds}s used`
               : ""}
           </p>
         </div>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => inputRef.current?.click()}
+          className="h-9 rounded-lg bg-ac px-4 text-body font-semibold text-on hover:bg-[#ff6d3a] disabled:bg-s3 disabled:text-t3"
+        >
+          Browse files
+        </button>
+        {items.length > 0 && (
+          <div>
+            <p className="mb-2 text-caption text-t3">Recent outputs</p>
+            <div className="flex items-center justify-center gap-2">
+              {items.slice(0, 4).map((item) => (
+                <OutputThumb
+                  key={item.relPath}
+                  item={item}
+                  onPick={(relPath) => void pickOutput(relPath)}
+                  disabled={busy}
+                />
+              ))}
+              {items.length > 4 && (
+                <Popover>
+                  <PopoverTrigger
+                    render={
+                      <button
+                        type="button"
+                        className="grid w-24 aspect-video place-items-center rounded-md border border-dashed border-line hover:border-t3"
+                      />
+                    }
+                  >
+                    <span className="text-caption text-t2">
+                      +{Math.min(items.length - 4, 8)}
+                    </span>
+                  </PopoverTrigger>
+                  <PopoverPopup
+                    side="top"
+                    align="center"
+                    className="rounded-xl border-line bg-s2 p-2 shadow-xl shadow-black/50"
+                  >
+                    <div className="grid w-[304px] grid-cols-3 gap-2">
+                      {items.slice(4, 12).map((item) => (
+                        <OutputThumb
+                          key={item.relPath}
+                          item={item}
+                          onPick={(relPath) => void pickOutput(relPath)}
+                          disabled={busy}
+                        />
+                      ))}
+                    </div>
+                  </PopoverPopup>
+                </Popover>
+              )}
+            </div>
+          </div>
+        )}
         <input
           ref={inputRef}
           type="file"
@@ -181,51 +268,9 @@ export function VideoPicker({
             e.target.value = "";
           }}
         />
-        {items.length > 0 && (
-          <Popover>
-            <PopoverTrigger
-              render={
-                <button
-                  type="button"
-                  disabled={busy}
-                  className="rounded-sm text-xs text-t2 underline underline-offset-4 hover:text-t1 disabled:text-t3"
-                />
-              }
-            >
-              Choose from outputs
-            </PopoverTrigger>
-            <PopoverPopup
-              side="bottom"
-              className="w-[min(320px,calc(100vw-32px))] border-line bg-black p-3 motion-reduce:transition-none"
-            >
-              <p className="mb-2 text-xs text-t3">Recent outputs</p>
-              <div className="grid max-h-64 grid-cols-2 gap-2 overflow-y-auto">
-                {items.slice(0, 8).map((item) => (
-                  <button
-                    key={item.relPath}
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void pickOutput(item.relPath)}
-                    title={item.name}
-                    aria-label={`Use ${item.name}`}
-                    className="relative aspect-video overflow-hidden rounded-md border border-line hover:border-ac"
-                  >
-                    <video
-                      src={`/api/outputs/${item.relPath}`}
-                      muted
-                      playsInline
-                      preload="metadata"
-                      className="h-full w-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            </PopoverPopup>
-          </Popover>
-        )}
       </div>
       {error && (
-        <p role="alert" className="mt-2 text-xs text-destructive">{error}</p>
+        <p role="alert" className="mt-2 text-caption text-destructive">{error}</p>
       )}
     </div>
   );

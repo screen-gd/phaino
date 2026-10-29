@@ -10,7 +10,7 @@ type Status = { configured: boolean; maskedKey: string | null };
 const ZERNIO_URL = "https://zernio.com";
 
 /** Bring-your-own Zernio key for posting outputs to connected accounts. */
-export function ZernioSettings() {
+export function ZernioSettings({ onSaved }: { onSaved?: () => void }) {
   const [status, setStatus] = useState<Status | null>(null);
   const [key, setKey] = useState("");
   const [saving, setSaving] = useState(false);
@@ -45,6 +45,7 @@ export function ZernioSettings() {
       setStatus(data);
       setKey("");
       accounts.reload();
+      onSaved?.();
     } finally {
       setSaving(false);
     }

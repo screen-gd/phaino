@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Icon, SECTION_ICONS } from "../icons";
 import type { StudioJob, StudioPreset } from "@/components/toolStudioData";
-import { outputUrl } from "@/lib/demo";
+import { outputPosterUrl, outputUrl } from "@/lib/demo";
 import { isVideoPath } from "./JobViews";
-import { progressPct, relativeTime } from "./studioUtils";
+import { failureLabel, progressPct, relativeTime } from "./studioUtils";
 
 function RailTile({
   job,
@@ -42,6 +43,7 @@ function RailTile({
       isVideoPath(out) ? (
         <video
           ref={videoRef}
+          poster={outputPosterUrl(out)}
           src={outputUrl(out)}
           muted
           playsInline
@@ -56,8 +58,17 @@ function RailTile({
         />
       )
     ) : job.status === "failed" ? (
-      <span className={`grid ${shape} w-full place-items-center bg-s2`}>
-        <span className="text-caption text-destructive">Failed</span>
+      <span
+        className={`flex ${shape} w-full flex-col items-center justify-center gap-1.5 bg-s1 px-2`}
+      >
+        <Icon
+          d={SECTION_ICONS.alert}
+          className="h-5 w-5 text-destructive"
+        />
+        <span className="text-caption text-t2">Failed</span>
+        <span className="max-w-full truncate text-caption text-t3">
+          {failureLabel(job.error)}
+        </span>
       </span>
     ) : (
       <span className={`relative grid ${shape} w-full place-items-center bg-s2`}>
@@ -75,7 +86,7 @@ function RailTile({
     <div className="relative w-[200px] flex-none snap-start lg:w-full lg:flex-auto">
     <button
       type="button"
-      title={name}
+      title={job.status === "failed" && job.error ? job.error : name}
       aria-label={`${name}, ${time}`}
       aria-current={active || undefined}
       onClick={() => onSelect(job)}
@@ -84,7 +95,7 @@ function RailTile({
       onFocus={play}
       onBlur={stop}
       className={`relative block w-full overflow-hidden rounded-xl border-2 text-left ${
-        active ? "border-ac" : "border-transparent"
+        active ? "border-ac" : "border-transparent hover:border-line"
       }`}
     >
       {media}
@@ -160,9 +171,15 @@ export function HistoryRail({
       </div>
       <div className="mt-3 min-h-0 flex-1 overflow-x-auto overflow-y-hidden pb-2 lg:overflow-y-auto lg:overflow-x-hidden">
         {rows.length === 0 ? (
-          <p className="text-caption text-t3">
-            {failed ? "Couldn't load history" : "No runs yet"}
-          </p>
+          failed ? (
+            <p className="text-caption text-t3">{"Couldn't load history"}</p>
+          ) : (
+            <div className="grid h-28 w-[200px] flex-none place-items-center rounded-xl border border-dashed border-line lg:w-full">
+              <span className="px-3 text-center text-caption text-t3">
+                Your runs appear here
+              </span>
+            </div>
+          )
         ) : (
           <div
             className={`flex snap-x snap-proximity gap-3 lg:grid lg:snap-none ${

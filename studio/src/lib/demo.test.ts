@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { expect, it } from "vitest";
-import { createDemoJob, outputUrl } from "./demo";
+import { createDemoJob, outputPosterUrl, outputUrl } from "./demo";
 
 it("previews bundled samples for all three studios without submitting a job", () => {
   for (const [category, presetId] of [["image", "flux2-klein"], ["image", "qwen-image"], ["video", "wan22-i2v"], ["camera", "orbit"]]) {
@@ -15,4 +15,13 @@ it("previews bundled samples for all three studios without submitting a job", ()
     }
   }
   expect(outputUrl("orbit/clip.mp4")).toBe("/api/outputs/orbit/clip.mp4");
+});
+
+it("maps video outputs to a poster image url", () => {
+  expect(outputPosterUrl("/explore/examples/ltx25-i2v.mp4")).toBe(
+    "/explore/examples/ltx25-i2v.webp",
+  );
+  expect(outputPosterUrl("seedance25-i2v/abc-0.mp4")).toBe(
+    "/api/outputs/seedance25-i2v/abc-0.mp4?poster=1",
+  );
 });

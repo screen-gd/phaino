@@ -111,15 +111,16 @@ export async function probeAudio(absPath: string): Promise<{
   return { durationSec, hasAudio: true };
 }
 
-/** A 480px-wide jpeg poster of the first frame. */
+/** A 480px-wide jpeg poster of the frame at `atSec`. */
 export async function makePoster(
   absPath: string,
   outFile: string,
+  atSec = 0,
 ): Promise<void> {
   await mkdir(path.dirname(outFile), { recursive: true });
   await execFileAsync(getEnv().ffmpegPath, [
     "-y",
-    "-ss", "0",
+    "-ss", String(atSec),
     "-i", absPath,
     "-frames:v", "1",
     "-vf", "scale=480:-2",

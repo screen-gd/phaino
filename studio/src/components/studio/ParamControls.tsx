@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import { Icon, SECTION_ICONS } from "../icons";
-import { formatParamValue, paramKind, type ParamKind } from "./studioUtils";
+import {
+  formatParamValue,
+  paramKind,
+  ratioOf,
+  type ParamKind,
+} from "./studioUtils";
 import type { StudioParam } from "@/components/toolStudioData";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,11 +28,44 @@ import { Textarea } from "@/components/ui/textarea";
 
 const KIND_ICON: Record<ParamKind, keyof typeof SECTION_ICONS> = {
   duration: "clock",
+  fps: "video",
+  count: "image",
   aspect: "frame",
   resolution: "gem",
+  style: "effects",
   seed: "dice",
   other: "sliders",
 };
+
+/** A 16px box holding a rectangle at the text's aspect; `fit` when it has none. */
+export function RatioGlyph({
+  text,
+  className,
+}: {
+  text: string;
+  className?: string;
+}) {
+  const ratio = ratioOf(text);
+  const box = (() => {
+    if (!ratio) return null;
+    const wide = ratio.w >= ratio.h;
+    const w = wide ? 14 : Math.max(6, Math.round((14 * ratio.w) / ratio.h));
+    const h = wide ? Math.max(6, Math.round((14 * ratio.h) / ratio.w)) : 14;
+    return { width: w, height: h };
+  })();
+  return (
+    <span className={`grid place-items-center ${className ?? "h-4 w-4"}`}>
+      {box ? (
+        <span
+          className="block rounded-[3px] border-[1.5px] border-current"
+          style={box}
+        />
+      ) : (
+        <Icon d={SECTION_ICONS.fit} className="h-full w-full" />
+      )}
+    </span>
+  );
+}
 
 function ChipBody({
   param,
@@ -38,15 +76,25 @@ function ChipBody({
   formatted: string;
   variant: "panel" | "bar";
 }) {
+  const kind = paramKind(param);
+  const iconCls =
+    variant === "panel" ? "h-4 w-4 text-t3" : "h-3.5 w-3.5 text-t3";
   return (
     <span className="flex h-full items-center justify-center gap-1.5 px-2.5">
-      <Icon
-        d={SECTION_ICONS[KIND_ICON[paramKind(param)]]}
-        className={variant === "panel" ? "h-4 w-4 text-t3" : "h-3.5 w-3.5 text-t3"}
-      />
+      {kind === "aspect" ? (
+        <RatioGlyph text={formatted} className={iconCls} />
+      ) : (
+        <Icon d={SECTION_ICONS[KIND_ICON[kind]]} className={iconCls} />
+      )}
       {param.type === "seed" ? (
         <span className="whitespace-nowrap">
           Seed <span className="text-t3">· {formatted}</span>
+        </span>
+      ) : kind === "fps" ? (
+        <span className="whitespace-nowrap">{formatted} fps</span>
+      ) : kind === "style" || kind === "other" ? (
+        <span className="whitespace-nowrap">
+          {param.label} <span className="text-t3">· {formatted}</span>
         </span>
       ) : (
         <span className="whitespace-nowrap">{formatted}</span>
@@ -83,7 +131,48 @@ export function ParamChip({
   const cls =
     variant === "panel"
       ? "h-12 w-full rounded-xl bg-s2 text-body font-medium text-t1"
-      : "h-8 shrink-0 rounded-lg bg-s3 text-caption font-medium text-t1 hover:bg-[#2e2e2e]";
+      : "h-9 shrink-0 rounded-lg bg-s3 text-[13px] font-medium text-t1 hover:bg-[#2e2e2e]";
+
+  // Small-range counts step inline instead of opening a slider popover.
+  if (
+    param.type === "int" &&
+    paramKind(param) === "count" &&
+    param.max - param.min <= 8
+  ) {
+    const current = Number(value ?? param.default);
+    return (
+      <div
+        role="group"
+        aria-label={param.label}
+        title={param.label}
+        className="flex h-9 shrink-0 items-center rounded-lg bg-s3 pl-2.5 text-[13px] font-medium text-t1"
+      >
+        <Icon
+          d={SECTION_ICONS[KIND_ICON.count]}
+          className="h-3.5 w-3.5 text-t3"
+        />
+        <button
+          type="button"
+          aria-label={`Decrease ${param.label}`}
+          disabled={current <= param.min}
+          onClick={() => onChange(Math.max(param.min, current - 1))}
+          className="grid h-9 w-7 place-items-center text-t2 hover:text-t1 disabled:text-t3"
+        >
+          <Icon d={SECTION_ICONS.minus} className="h-3.5 w-3.5" />
+        </button>
+        <span className="min-w-5 text-center">{current}</span>
+        <button
+          type="button"
+          aria-label={`Increase ${param.label}`}
+          disabled={current >= param.max}
+          onClick={() => onChange(Math.min(param.max, current + 1))}
+          className="grid h-9 w-7 place-items-center text-t2 hover:text-t1 disabled:text-t3"
+        >
+          <Icon d={SECTION_ICONS.plus} className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    );
+  }
 
   const popover = (() => {
     if (param.type === "choice") {
@@ -102,9 +191,16 @@ export function ParamChip({
                     onChange(o.value);
                     setOpen(false);
                   }}
-                  className="flex h-9 w-full items-center justify-between rounded-lg px-2.5 text-left text-body text-t1 hover:bg-s3"
+                  className={`flex h-9 w-full items-center justify-between rounded-lg px-2.5 text-left text-body text-t1 hover:bg-s3 ${
+                    current === o.value ? "bg-s3" : ""
+                  }`}
                 >
-                  {o.label}
+                  <span className="flex items-center gap-2.5">
+                    {paramKind(param) === "aspect" && (
+                      <RatioGlyph text={o.label} className="h-4 w-4 text-t3" />
+                    )}
+                    {o.label}
+                  </span>
                   {current === o.value && (
                     <Icon d={SECTION_ICONS.check} className="h-4 w-4 text-ac" />
                   )}
@@ -252,7 +348,7 @@ export function ParamChip({
       <PopoverPopup
         side={side}
         align="center"
-        sideOffset={8}
+        sideOffset={12}
         className="rounded-xl border-line bg-s2 p-0 shadow-xl shadow-black/50"
       >
         {popover}
@@ -425,7 +521,7 @@ export function AdvancedChip(props: AdvancedProps) {
           <button
             type="button"
             aria-label="Advanced options"
-            className="h-8 shrink-0 rounded-lg bg-s3 text-caption font-medium text-t1 hover:bg-[#2e2e2e]"
+            className="h-9 shrink-0 rounded-lg bg-s3 text-[13px] font-medium text-t1 hover:bg-[#2e2e2e]"
           />
         }
       >

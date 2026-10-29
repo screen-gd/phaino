@@ -87,16 +87,58 @@ export function stackThumbs(
   return out;
 }
 
-export type ParamKind = "duration" | "aspect" | "resolution" | "seed" | "other";
+export type ParamKind =
+  | "duration"
+  | "fps"
+  | "count"
+  | "aspect"
+  | "resolution"
+  | "style"
+  | "seed"
+  | "other";
 
 /** Bucket a param for its chip icon and popover. */
 export function paramKind(param: StudioParam): ParamKind {
   if (param.type === "seed") return "seed";
   const s = `${param.key} ${param.label}`;
   if (/duration|length|seconds/i.test(s)) return "duration";
+  if (/fps|frame.?rate/i.test(s)) return "fps";
+  if (
+    param.type === "int" &&
+    /batch|num.?(images|outputs)|number of (images|outputs)|image.?count|\bcount\b/i.test(
+      s,
+    ) &&
+    !/frame|step/i.test(s)
+  )
+    return "count";
+  if (param.type === "choice" && /style|lora/i.test(s)) return "style";
   if (/aspect|ratio|size/i.test(s)) return "aspect";
   if (/resolution|quality/i.test(s)) return "resolution";
   return "other";
+}
+
+/** Short user-facing label for a failed run's raw backend error. */
+export function failureLabel(error?: string | null): string {
+  const e = error ?? "";
+  if (/api key|auth|free tier|quota|credit|billing/i.test(e))
+    return "Account or API key issue";
+  if (/not supported|unsupported/i.test(e))
+    return "Setting not supported by this model";
+  if (/no media|no output|empty/i.test(e)) return "No output returned";
+  if (/timed? ?out|timeout/i.test(e)) return "Timed out";
+  if (/rejected|invalid|moderat|safety/i.test(e))
+    return "Request rejected by the model";
+  return "Generation failed";
+}
+
+/** Parse "16:9", "2.39:1" or "1024x576" into a ratio; null when none. */
+export function ratioOf(text: string): { w: number; h: number } | null {
+  const m = /(\d+(?:\.\d+)?)\s*[:x]\s*(\d+(?:\.\d+)?)/.exec(text);
+  if (!m) return null;
+  const w = Number(m[1]);
+  const h = Number(m[2]);
+  if (!w || !h) return null;
+  return { w, h };
 }
 
 /** Chip-facing value text: "5s" for durations, option labels for choices. */

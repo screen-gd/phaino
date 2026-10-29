@@ -1,7 +1,11 @@
 "use client";
 
+import { useRef } from "react";
+import { useEdgeFade } from "../studio/useEdgeFade";
+import { EffectPreview } from "./EffectPreview";
 import type { VideoEffect } from "./effects";
 
+/** Video effects: a horizontal strip of treated previews above the composer. */
 export function EffectPicker({
   effects,
   activeId,
@@ -11,18 +15,36 @@ export function EffectPicker({
   activeId?: string;
   onSelect: (effect: VideoEffect) => void;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const fade = useEdgeFade(ref);
   return (
-    <div role="group" aria-label="Video effects" className="mt-4 flex shrink-0 gap-2 overflow-x-auto pb-1">
+    <div
+      ref={ref}
+      style={fade}
+      role="group"
+      aria-label="Video effects"
+      className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    >
       {effects.map((effect) => (
         <button
           key={effect.id}
           type="button"
           aria-pressed={activeId === effect.id}
           onClick={() => onSelect(effect)}
-          className={`w-44 shrink-0 rounded-lg border bg-transparent p-3 text-left ${activeId === effect.id ? "border-ac text-t1" : "border-line text-t2 hover:border-t3 hover:text-t1"}`}
+          className="w-[132px] flex-none text-left"
         >
-          <span className="block text-body font-medium">{effect.name}</span>
-          <span className="mt-1 block text-caption text-t3">{effect.description}</span>
+          <span
+            className={`block overflow-hidden rounded-lg border-2 ${
+              activeId === effect.id
+                ? "border-ac"
+                : "border-transparent hover:border-line"
+            }`}
+          >
+            <EffectPreview effect={effect} />
+          </span>
+          <span className="mt-1 block truncate text-[12px] text-t2">
+            {effect.name}
+          </span>
         </button>
       ))}
     </div>

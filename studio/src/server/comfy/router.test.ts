@@ -10,7 +10,10 @@ vi.mock("@comfyorg/sdk", async (orig) => ({
 }));
 
 const configMock = vi.mocked(config);
-const routerGlobal = globalThis as { __phainoRouterKey?: string };
+const routerGlobal = globalThis as {
+  __phainoRouterKeys?: WeakMap<object, string>;
+  __phainoRouterKey?: string;
+};
 
 const baseEnv = {
   comfyApiKey: undefined,
@@ -27,7 +30,7 @@ const baseEnv = {
 
 beforeEach(() => {
   configMock.mockClear();
-  delete routerGlobal.__phainoRouterKey;
+  delete routerGlobal.__phainoRouterKeys;
 });
 
 describe("getRouter", () => {
@@ -63,6 +66,21 @@ describe("getRouter", () => {
     expect(configMock).toHaveBeenLastCalledWith({ credentials: "key-b" });
   });
 
+  it("reconfigures a fresh SDK instance even with the same key", async () => {
+    getRouter({ ...baseEnv, comfyApiKey: "key-a" });
+    expect(configMock).toHaveBeenCalledTimes(1);
+    // A dev hot reload swaps the sdk module; the memo keys off `models`.
+    vi.resetModules();
+    vi.doMock("@comfyorg/sdk", async (orig) => ({
+      ...(await orig<typeof import("@comfyorg/sdk")>()),
+      models: { fresh: true },
+      config: configMock,
+    }));
+    const { getRouter: getRouterFresh } = await import("./router");
+    getRouterFresh({ ...baseEnv, comfyApiKey: "key-a" });
+    expect(configMock).toHaveBeenCalledTimes(2);
+  });
+
   it("ignores the workflow base URL, passing only credentials", () => {
     const env = {
       ...baseEnv,
@@ -75,7 +93,7 @@ describe("getRouter", () => {
 
   it("never stores the raw key on globalThis", () => {
     getRouter({ ...baseEnv, comfyApiKey: "key-a" });
-    expect(routerGlobal.__phainoRouterKey).not.toBe("key-a");
-    expect(routerGlobal.__phainoRouterKey).toMatch(/^[0-9a-f]{16}$/);
+    expect(routerGlobal.__phainoRouterKeys).toBeInstanceOf(WeakMap);
+    expect(routerGlobal.__phainoRouterKey).toBeUndefined();
   });
 });

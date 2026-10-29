@@ -14,6 +14,7 @@ import { CloudStatus } from "./CloudStatus";
 import { MobileNav } from "./MobileNav";
 import { GitHubIcon, Icon, SECTION_ICONS } from "./icons";
 import { formatStars } from "@/lib/stars";
+import { featureById } from "@/lib/features";
 import { PhainoMark } from "./Logo";
 import type { MenuRow, NavMenus, TwoColumnMenu } from "./navMenus";
 import { SECTIONS } from "./sections";
@@ -132,6 +133,48 @@ function CameraPanel({ items }: { items: MenuRow[] }) {
   );
 }
 
+/** One "More" row: icon, title and badge, description below. */
+function MoreRowLink({ row }: { row: MenuRow }) {
+  const soon = row.status === "soon";
+  return (
+    <li>
+      <NavigationMenu.Link
+        render={<Link href={row.href} />}
+        closeOnClick
+        className={`flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-body ${
+          soon
+            ? "text-t3 hover:text-t2"
+            : "text-t2 hover:bg-s3 hover:text-t1 focus-visible:bg-s3 focus-visible:text-t1"
+        }`}
+      >
+        <span className="flex h-4 w-4 flex-none items-center justify-center text-t3">
+          {row.icon && <Icon d={SECTION_ICONS[row.icon]} className="h-4 w-4" />}
+        </span>
+        <span className="min-w-0">
+          <span className="flex items-center gap-1.5">
+            <span className="truncate">{row.title}</span>
+            {row.status && <StatusBadge status={row.status} />}
+          </span>
+          <span className="block truncate text-caption text-t3">
+            {row.description}
+          </span>
+        </span>
+      </NavigationMenu.Link>
+    </li>
+  );
+}
+
+/** The "More" dropdown: a compact column of the overflow sections. */
+function MorePanel({ items }: { items: MenuRow[] }) {
+  return (
+    <div className="grid w-[300px] max-w-[calc(100vw-24px)] gap-0.5 p-3">
+      {items.map((row) => (
+        <MoreRowLink key={row.href} row={row} />
+      ))}
+    </div>
+  );
+}
+
 function menuContent(href: string, menus: NavMenus): ReactNode {
   if (href === "/image") return <TwoColumnPanel menu={menus.image} />;
   if (href === "/video") return <TwoColumnPanel menu={menus.video} />;
@@ -150,6 +193,21 @@ export function AppShell({
 }) {
   const demo = useDemo();
   const pathname = usePathname();
+  const moreRows: MenuRow[] = SECTIONS.filter((s) => s.group === "more").map(
+    (s) => {
+      const feature = s.id ? featureById(s.id) : undefined;
+      return {
+        href: s.href,
+        title: s.label,
+        description: feature?.description ?? "",
+        icon: feature?.icon,
+        status: s.status,
+      };
+    },
+  );
+  const moreActive = SECTIONS.some(
+    (s) => s.group === "more" && s.status !== "soon" && isActive(pathname, s.href),
+  );
   const mainRef = useRef<HTMLElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = useState(false);
@@ -260,6 +318,30 @@ export function AppShell({
                   })}
                 </Fragment>
               ))}
+              <li
+                aria-hidden="true"
+                className="mx-1.5 h-4 w-px shrink-0 self-center bg-line"
+              />
+              <NavigationMenu.Item
+                value="More"
+                className="relative z-10 flex h-9 shrink-0 items-stretch group-data-[compact=true]:h-7"
+              >
+                <NavigationMenu.Trigger
+                  className={`flex h-full items-center gap-1.5 px-3 font-wordmark font-semibold text-body whitespace-nowrap ${GROW} ${
+                    moreActive
+                      ? "text-ac"
+                      : "text-t2 hover:text-t1 data-[popup-open]:text-t1"
+                  }`}
+                >
+                  More
+                  <NavigationMenu.Icon className="flex items-center transition-transform duration-200 ease-out motion-reduce:transition-none data-[popup-open]:rotate-180">
+                    <Icon d={SECTION_ICONS.chevronDown} className="h-3 w-3" />
+                  </NavigationMenu.Icon>
+                </NavigationMenu.Trigger>
+                <NavigationMenu.Content className="nav-content">
+                  <MorePanel items={moreRows} />
+                </NavigationMenu.Content>
+              </NavigationMenu.Item>
             </NavigationMenu.List>
           </div>
           <NavigationMenu.Portal>
@@ -283,7 +365,7 @@ export function AppShell({
             target="_blank"
             rel="noreferrer"
             aria-label={stars ? `${stars} stars on GitHub` : "Star on GitHub"}
-            className="hidden items-center gap-1.5 rounded-full border border-line px-2.5 py-1.5 text-t3 hover:text-t1 md:flex"
+            className="hidden items-center gap-1.5 rounded-full border border-line px-2.5 py-1.5 text-t3 hover:text-t1 min-[1600px]:flex"
           >
             <GitHubIcon className="h-4 w-4" />
             <span className="font-mono text-caption">
@@ -294,7 +376,7 @@ export function AppShell({
             variant="ghost"
             size="icon-sm"
             aria-label="GitHub"
-            className="text-t3 hover:text-t1 md:hidden"
+            className="text-t3 hover:text-t1 md:flex min-[1600px]:hidden"
             render={
               <a
                 href="https://github.com/screen-gd/phaino"

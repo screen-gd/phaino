@@ -86,20 +86,20 @@ describe("genericAdapter buildInput", () => {
       }),
     ).toEqual({
       instances: [{ prompt: "p", image: { bytesBase64Encoded: "a".repeat(64) } }],
-      parameters: { aspectRatio: "16:9", durationSeconds: 8, sampleCount: 1 },
+      parameters: { aspectRatio: "16:9", durationSeconds: 8, generateAudio: true, sampleCount: 1 },
     });
   });
 
-  it("drops a duration veo does not accept", () => {
+  it("falls back to 8s and drops aspects veo does not accept", () => {
     const a = genericAdapter(spec("veo-3-1"));
-    const body = a.buildInput({ params: { prompt: "p", duration: 5 }, images: {} });
-    expect(body.parameters).toEqual({ sampleCount: 1 });
+    const body = a.buildInput({ params: { prompt: "p", duration: 5, aspect: "1:1" }, images: {} });
+    expect(body.parameters).toEqual({ durationSeconds: 8, generateAudio: true, sampleCount: 1 });
   });
 
   it("accepts a numeric-string duration", () => {
     const a = genericAdapter(spec("veo-3-1"));
     const body = a.buildInput({ params: { prompt: "p", duration: "6" }, images: {} });
-    expect(body.parameters).toEqual({ durationSeconds: 6, sampleCount: 1 });
+    expect(body.parameters).toEqual({ durationSeconds: 6, generateAudio: true, sampleCount: 1 });
   });
 
   it("builds the gemini contents/parts shape", () => {
@@ -188,6 +188,17 @@ describe("readGenericOutputs", () => {
       "video",
     );
     expect(out).toEqual([{ kind: "url", url: "https://x/v.mp4" }]);
+  });
+
+  it("reads a list of output urls", () => {
+    const out = readGenericOutputs(
+      jsonResult({ data: { status: "completed", outputs: ["https://x/a.png", "https://x/b.png"] } }),
+      "image",
+    );
+    expect(out).toEqual([
+      { kind: "url", url: "https://x/a.png" },
+      { kind: "url", url: "https://x/b.png" },
+    ]);
   });
 
   it("skips status and callback links", () => {

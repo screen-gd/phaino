@@ -98,11 +98,12 @@ function buildBody(spec: RouterModelSpec, params: RouterParams, images: Record<s
           },
         ],
         parameters: {
-          ...(aspect !== undefined ? { aspectRatio: aspect } : {}),
-          // Veo accepts 4, 6 or 8 seconds; anything else uses its default.
-          ...(duration === 4 || duration === 6 || duration === 8
-            ? { durationSeconds: duration }
-            : {}),
+          // Veo takes 16:9 or 9:16 only.
+          ...(aspect === "16:9" || aspect === "9:16" ? { aspectRatio: aspect } : {}),
+          // Veo accepts 4, 6 or 8 seconds; anything else falls back to 8.
+          durationSeconds: duration === 4 || duration === 6 ? duration : 8,
+          // Required by Veo 3 models; they generate native audio.
+          generateAudio: true,
           sampleCount: 1,
         },
       };
@@ -189,8 +190,19 @@ function scanMedia(
   for (const [k, v] of Object.entries(obj)) {
     if (MIME_KEY.test(k) && typeof v === "string") siblingMime = v;
   }
-  for (const [key, value] of Object.entries(obj)) {
-    if (typeof value !== "string") continue;
+  for (const [key, raw] of Object.entries(obj)) {
+    // String lists under a media key, e.g. Wavespeed's outputs: ["https://..."].
+    if (Array.isArray(raw) && !CONTROL_KEY.test(key) && URLISH_KEY.test(key)) {
+      for (const item of raw) {
+        if (typeof item === "string" && /^https?:\/\//.test(item) && !seen.has(item)) {
+          seen.add(item);
+          out.push({ kind: "url", url: item });
+        }
+      }
+      continue;
+    }
+    if (typeof raw !== "string") continue;
+    const value = raw;
     if (
       !CONTROL_KEY.test(key) &&
       (URLISH_KEY.test(key) || MEDIA_EXT.test(value)) &&

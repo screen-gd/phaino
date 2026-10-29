@@ -12,13 +12,16 @@ function RailTile({
   active,
   wide,
   onSelect,
+  onCancel,
 }: {
   job: StudioJob;
   name: string;
   active: boolean;
   wide: boolean;
   onSelect: (row: StudioJob) => void;
+  onCancel?: (id: string) => void;
 }) {
+  const running = job.status === "queued" || job.status === "running";
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const play = () => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -69,6 +72,7 @@ function RailTile({
     );
 
   return (
+    <div className="relative w-[200px] flex-none snap-start lg:w-full lg:flex-auto">
     <button
       type="button"
       title={name}
@@ -79,7 +83,7 @@ function RailTile({
       onPointerLeave={stop}
       onFocus={play}
       onBlur={stop}
-      className={`relative block w-[200px] flex-none snap-start overflow-hidden rounded-xl border-2 text-left lg:w-full lg:flex-auto ${
+      className={`relative block w-full overflow-hidden rounded-xl border-2 text-left ${
         active ? "border-ac" : "border-transparent"
       }`}
     >
@@ -93,6 +97,17 @@ function RailTile({
         </span>
       </span>
     </button>
+    {running && onCancel && (
+      <button
+        type="button"
+        aria-label={`Cancel ${name}`}
+        onClick={() => onCancel(job.id)}
+        className="absolute top-1.5 right-1.5 rounded-md bg-black/70 px-2 py-0.5 text-caption text-t2 hover:text-t1"
+      >
+        Cancel
+      </button>
+    )}
+    </div>
   );
 }
 
@@ -106,6 +121,7 @@ export function HistoryRail({
   presets,
   activeId,
   onSelect,
+  onCancel,
   aspect,
   failed = false,
 }: {
@@ -115,6 +131,8 @@ export function HistoryRail({
   presets: StudioPreset[];
   activeId?: string;
   onSelect: (row: StudioJob) => void;
+  /** Cancel a queued or running run from its tile. */
+  onCancel?: (id: string) => void;
   /** Tile shape: 16:9 for video/camera, square for image. */
   aspect: "wide" | "square";
   /** History could not be loaded. */
@@ -159,6 +177,7 @@ export function HistoryRail({
                 active={row.id === activeId}
                 wide={wide}
                 onSelect={onSelect}
+                onCancel={onCancel}
               />
             ))}
           </div>

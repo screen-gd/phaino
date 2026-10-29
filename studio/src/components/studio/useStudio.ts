@@ -17,6 +17,8 @@ function freshSeed() {
 }
 
 /** All state for a tool page: preset, uploads, params, submit, jobs, SSE. */
+const isActive = (status: string) => status === "queued" || status === "running";
+
 export function useStudio(
   category: string,
   presets: StudioPreset[],
@@ -46,6 +48,8 @@ export function useStudio(
   const [error, setError] = useState<string | null>(null);
   const [job, setJob] = useState<StudioJob | null>(null);
   const [recent, setRecent] = useState<StudioJob[]>([]);
+  // The stage only shows finished runs; queued and running ones live in the rail.
+  const [stageJob, setStageJob] = useState<StudioJob | null>(null);
   const [recentFailed, setRecentFailed] = useState(false);
   const esRef = useRef<EventSource | null>(null);
 
@@ -75,6 +79,21 @@ export function useStudio(
       .catch(() => setRecentFailed(true));
     return () => esRef.current?.close();
   }, [category, demo.enabled]);
+
+  // Follow the active job onto the stage once it finishes.
+  const [seenJob, setSeenJob] = useState<StudioJob | null>(null);
+  if (job !== seenJob) {
+    setSeenJob(job);
+    if (job && !isActive(job.status)) setStageJob(job);
+  }
+
+  // Keep rail tiles current while any run is queued or running.
+  const anyActive = recent.some((row) => isActive(row.status));
+  useEffect(() => {
+    if (demo.enabled || !anyActive) return;
+    const t = setInterval(() => void loadRecent(), 2500);
+    return () => clearInterval(t);
+  }, [anyActive, demo.enabled, loadRecent]);
 
   // ?from=<output path> pre-fills the first required image input with a copy
   // of an existing output (used by "Animate" on image results).
@@ -151,6 +170,9 @@ export function useStudio(
       setJob(row);
       if (row.status === "queued" || row.status === "running") {
         subscribe(row.id);
+      } else {
+        // Stay on the run the user picked; the rail keeps polling active ones.
+        esRef.current?.close();
       }
     },
     [subscribe],
@@ -214,6 +236,7 @@ export function useStudio(
       if (res.status === 201) {
         setJob(data.job as StudioJob);
         subscribe(data.job.id);
+        void loadRecent();
       } else {
         setError(data.message ?? data.error ?? "Generate failed");
       }
@@ -222,21 +245,26 @@ export function useStudio(
     } finally {
       setSubmitting(false);
     }
-  }, [preset, submitting, randomSeed, values, uploads, subscribe, demo, category]);
+  }, [preset, submitting, randomSeed, values, uploads, subscribe, loadRecent, demo, category]);
 
-  const cancel = useCallback(async () => {
-    const current = job;
-    if (!current) return;
-    const res = await fetch(`/api/jobs/${current.id}/cancel`, {
+  /** Cancel a run by id, or the active job when no id is given. */
+  const cancel = useCallback(async (id?: string) => {
+    const target = id ?? job?.id;
+    if (!target) return;
+    const res = await fetch(`/api/jobs/${target}/cancel`, {
       method: "POST",
     });
-    if (res.ok) setJob(((await res.json()) as { job: StudioJob }).job);
-  }, [job]);
+    if (!res.ok) return;
+    const row = ((await res.json()) as { job: StudioJob }).job;
+    if (row.id === job?.id) setJob(row);
+    void loadRecent();
+  }, [job, loadRecent]);
 
   /** Dismiss the active job card back to the empty stage. */
   const clearJob = useCallback(() => {
     esRef.current?.close();
     setJob(null);
+    setStageJob(null);
   }, []);
 
   // The main prompt must be non-empty unless a required image input can
@@ -266,6 +294,7 @@ export function useStudio(
     submitting,
     error,
     job,
+    stageJob,
     setJob: selectJob,
     clearJob,
     recent: demo.enabled ? demo.jobs.filter((row) => row.category === category) : recent,

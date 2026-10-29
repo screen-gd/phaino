@@ -24,7 +24,7 @@ const jsonResult = (data: unknown): RunResult => ({
 });
 
 describe("genericAdapter buildInput", () => {
-  it("builds a generic body with prompt, image and duration", () => {
+  it("fits a body to the model's nested input/parameters schema", () => {
     const a = genericAdapter(spec("wan-2-7-i2v"));
     expect(
       a.buildInput({
@@ -32,18 +32,23 @@ describe("genericAdapter buildInput", () => {
         images: { image: pngDataUrl },
       }),
     ).toEqual({
-      prompt: "a shot",
-      image: pngDataUrl,
-      duration: 5,
-      aspect_ratio: "16:9",
+      input: { prompt: "a shot", img_url: pngDataUrl },
+      parameters: { duration: 5, ratio: "16:9" },
     });
   });
 
-  it("omits adaptive aspect and empty prompt", () => {
+  it("builds MiniMax H3 content and omits an adaptive aspect", () => {
     const a = genericAdapter(spec("minimax-h3"));
     expect(
-      a.buildInput({ params: { prompt: "", aspect: "adaptive" }, images: {} }),
-    ).toEqual({});
+      a.buildInput({ params: { prompt: "p", aspect: "adaptive", duration: 6 }, images: { image: pngDataUrl } }),
+    ).toEqual({
+      content: [
+        { type: "text", text: "p" },
+        { type: "image_url", image_url: { url: pngDataUrl }, role: "first_frame" },
+      ],
+      resolution: "768p",
+      duration: 6,
+    });
   });
 
   it("builds the seedance content array", () => {
@@ -63,7 +68,7 @@ describe("genericAdapter buildInput", () => {
     });
   });
 
-  it("builds the kling body with bare-base64 image list", () => {
+  it("drops an image Kling's text-to-video schema cannot take", () => {
     const a = genericAdapter(spec("kling-v3"));
     expect(
       a.buildInput({
@@ -73,7 +78,6 @@ describe("genericAdapter buildInput", () => {
     ).toEqual({
       prompt: "p",
       duration: "5",
-      image_list: [{ image_url: "a".repeat(64), type: "first_frame" }],
     });
   });
 
@@ -133,10 +137,12 @@ describe("genericAdapter buildInput", () => {
         params: { prompt: "p", duration: 5 },
         images: { image: pngDataUrl },
       }),
-    ).toEqual({
+    ).toMatchObject({
       promptText: "p",
-      promptImage: [{ uri: pngDataUrl }],
+      promptImage: pngDataUrl,
+      ratio: "1280:720",
       duration: 5,
+      seed: expect.any(Number),
     });
   });
 
@@ -150,14 +156,14 @@ describe("genericAdapter buildInput", () => {
     ).toEqual({ promptText: "p", videoUri: mp4DataUrl });
   });
 
-  it("builds the bfl body with input_image and input_video", () => {
+  it("moves a source video onto the field the schema declares", () => {
     const a = genericAdapter(spec("bfl-video-edit"));
     expect(
       a.buildInput({
         params: { prompt: "relight" },
         images: { video: mp4DataUrl },
       }),
-    ).toEqual({ prompt: "relight", input_video: mp4DataUrl });
+    ).toEqual({ prompt: "relight", video: mp4DataUrl });
   });
 
   it("merges options JSON last so it can override mapped fields", () => {
@@ -167,7 +173,7 @@ describe("genericAdapter buildInput", () => {
         params: { prompt: "p", options: '{"resolution":"1080p","prompt":"win"}' },
         images: {},
       }),
-    ).toEqual({ prompt: "win", resolution: "1080p" });
+    ).toEqual({ input: { prompt: "p" }, prompt: "win", resolution: "1080p" });
   });
 
   it("rejects malformed options JSON", () => {

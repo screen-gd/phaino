@@ -1,5 +1,6 @@
 import type { RunResult } from "@comfyorg/sdk";
 import type { RouterModelSpec } from "./catalog";
+import { fitToSchema, schemaFor } from "./fit";
 import {
   RouterInputError,
   RouterOutputError,
@@ -61,6 +62,14 @@ function mergeOptions(
 ): Record<string, unknown> {
   return { ...body, ...parseOptions(params) };
 }
+
+const RUNWAY_RATIOS: Record<string, string> = {
+  "16:9": "1280:720",
+  "9:16": "720:1280",
+  "1:1": "960:960",
+  "4:3": "1104:832",
+  "3:4": "832:1104",
+};
 
 function buildBody(spec: RouterModelSpec, params: RouterParams, images: Record<string, string>): Record<string, unknown> {
   const prompt = textParam(params, "prompt");
@@ -139,10 +148,21 @@ function buildBody(spec: RouterModelSpec, params: RouterParams, images: Record<s
     case "runway":
       return {
         promptText: prompt,
-        ...(image ? { promptImage: [{ uri: image }] } : {}),
+        ...(image ? { promptImage: image } : {}),
         ...(videoInput ? { videoUri: videoInput } : {}),
-        ...(aspect !== undefined ? { ratio: aspect } : {}),
+        // Runway takes pixel ratios; 16:9 when the aspect is adaptive.
+        ratio: RUNWAY_RATIOS[aspect ?? "16:9"] ?? RUNWAY_RATIOS["16:9"],
+        ...(spec.category === "video" ? { duration: (duration ?? 5) > 7 ? 10 : 5 } : {}),
+      };
+    case "minimax":
+      return {
+        content: [
+          { type: "text", text: prompt },
+          ...(image ? [{ type: "image_url", image_url: { url: image }, role: "first_frame" }] : []),
+        ],
+        resolution: "768p",
         ...(duration !== undefined ? { duration } : {}),
+        ...(aspect !== undefined ? { ratio: aspect } : {}),
       };
     case "bfl":
       return {
@@ -254,13 +274,48 @@ export function readGenericOutputs(
   return out.slice(0, 8);
 }
 
+const PROBE_IMAGE = "data:image/png;base64,UFJPQkU=";
+const PROBE_VIDEO = "data:video/mp4;base64,UFJPQkU=";
+
+/**
+ * Whether a catalog model can run under its published schema, and whether
+ * the schema has a place for its upload slot. Probes the real family body.
+ */
+export function specSupport(spec: RouterModelSpec): { runs: boolean; takesInput: boolean } {
+  const schema = schemaFor(spec.model);
+  if (schema === undefined) return { runs: false, takesInput: false };
+  if (schema === null) return { runs: true, takesInput: spec.input !== undefined };
+  const images: Record<string, string> = {};
+  if (spec.input) images[spec.input.key] = spec.input.type === "video" ? PROBE_VIDEO : PROBE_IMAGE;
+  const params: RouterParams = { prompt: "p", ...(spec.category === "video" ? { duration: 5 } : {}) };
+  const { body, missing } = fitToSchema(spec.model, buildBody(spec, params, images), {
+    prompt: "p",
+    image: images.image,
+    video: images.video,
+    duration: intParam(params, "duration"),
+  });
+  const flat = JSON.stringify(body);
+  const takesInput = spec.input !== undefined && flat.includes("UFJPQkU=");
+  return { runs: missing.length === 0 && (!spec.input?.required || takesInput), takesInput };
+}
+
 /** Build the adapter for a catalog entry. */
 export function genericAdapter(spec: RouterModelSpec): RouterAdapter {
   return {
     presetId: spec.presetId,
     model: spec.model,
-    buildInput: ({ params, images }) =>
-      mergeOptions(buildBody(spec, params, images), params),
+    buildInput: ({ params, images }) => {
+      // Fit the family shape to the model's published schema, then let the
+      // user's Options (JSON) override anything.
+      const { body } = fitToSchema(spec.model, buildBody(spec, params, images), {
+        prompt: textParam(params, "prompt"),
+        image: images.image,
+        video: images.video,
+        duration: intParam(params, "duration"),
+        aspect: aspectParam(params),
+      });
+      return mergeOptions(body, params);
+    },
     readOutputs: (result) => readGenericOutputs(result, spec.category),
   };
 }

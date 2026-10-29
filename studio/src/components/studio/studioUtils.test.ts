@@ -90,6 +90,11 @@ describe("stackThumbs", () => {
     expect(thumbs).toEqual(["/a", "/c", "/d", "/e"]);
     expect(thumbs.length).toBeLessThanOrEqual(5);
   });
+
+  it("skips presets without a thumbnail", () => {
+    const routerOnly = p({ id: "veo-3-1", model: { id: "veo/veo-3.1", label: "Veo 3.1" }, thumbUrl: "" });
+    expect(stackThumbs([routerOnly, ...presets])).not.toContain("");
+  });
 });
 
 describe("relativeTime", () => {

@@ -199,11 +199,13 @@ export function Composer({
                   aria-label={`Model: ${picker.label}`}
                   className="flex h-8 shrink-0 items-center gap-1.5 rounded-lg bg-s3 px-2 text-caption font-medium text-t1 hover:bg-[#2e2e2e]"
                 >
-                  <img
-                    src={picker.thumbUrl}
-                    alt=""
-                    className="h-5 w-5 rounded object-cover"
-                  />
+                  {picker.thumbUrl && (
+                    <img
+                      src={picker.thumbUrl}
+                      alt=""
+                      className="h-5 w-5 rounded object-cover"
+                    />
+                  )}
                   <span className="whitespace-nowrap">{picker.label}</span>
                   {picker.isFork && (
                     <span className="rounded bg-s3 px-1 py-px text-caption font-bold uppercase text-t2">

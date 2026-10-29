@@ -142,7 +142,9 @@ export function ImageStudio({
                     modeLabel: activeMode
                       ? MODE_LABELS[activeMode]
                       : undefined,
-                    thumbUrl: preset.thumbUrl,
+                    thumbUrl:
+                      preset.thumbUrl ||
+                      (pickerRows.find((r) => r.id === preset.id)?.logoUrl ?? ""),
                     isFork: preset.isFork,
                   }
                 : undefined

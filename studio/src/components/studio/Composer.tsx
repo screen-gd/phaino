@@ -146,7 +146,8 @@ export function Composer({
           ))}
         </div>
       )}
-      <div className="flex items-start gap-2">
+      {/* Same height with or without upload slots, so switching modes keeps the box still. */}
+      <div className="flex min-h-16 items-start gap-2">
         {slots.length > 0 && (
           <div className="flex flex-none gap-1.5">
             {slots.map((slot) => (

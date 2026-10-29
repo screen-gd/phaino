@@ -1,0 +1,59 @@
+<!doctype html>
+<!-- Agent shot for the launch video: a typed replay of an MCP session. -->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; height: 100%; background: #000; }
+  body { display: grid; place-items: center; font: 26px/1.55 "Geist Mono", "Cascadia Mono", Consolas, monospace; color: #d4d4d4; }
+  .term { width: 1480px; height: 820px; border: 1px solid #2a2a2a; border-radius: 18px; background: #0b0b0b; overflow: hidden; box-shadow: 0 40px 120px #ff5b2222; }
+  .bar { display: flex; gap: 10px; padding: 18px 22px; border-bottom: 1px solid #1f1f1f; }
+  .bar i { width: 13px; height: 13px; border-radius: 50%; background: #2e2e2e; }
+  .bar b { margin-left: 14px; font-weight: 500; font-size: 18px; color: #777; }
+  #log { padding: 26px 34px; white-space: pre-wrap; }
+  .you { color: #fff; }
+  .tool { color: #ff5b22; }
+  .dim { color: #6f6f6f; }
+  .ok { color: #7bd88f; }
+  .caret { display: inline-block; width: 13px; height: 28px; background: #ff5b22; vertical-align: -5px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+<div class="term"><div class="bar"><i></i><i></i><i></i><b>agent · phaino mcp</b></div><div id="log"></div></div>
+<script>
+  const lines = [
+    ["you", "> Make a 30 second launch cut: three camera moves, two partner models, titles, export 1080p."],
+    ["tool", "list_presets"], ["dim", "  300 presets · orbit, dolly-in, fpv-dive, veo-3-1, kling-v3 …"],
+    ["tool", "run_preset orbit"], ["tool", "run_preset dolly-in"], ["tool", "run_preset fpv-dive"],
+    ["tool", "run_preset veo-3-1"], ["tool", "run_preset kling-v3"],
+    ["dim", "  5 jobs queued"],
+    ["tool", "get_job"], ["ok", "  succeeded · orbit/orbit_00001.mp4"],
+    ["tool", "add_to_sequence ×5"],
+    ["tool", "update_sequence"], ["dim", "  crossfades 12f · titles: Phaino, Camera moves, 110+ models"],
+    ["tool", "export_sequence render"], ["ok", "  phaino_render.mp4 · 1080p · 30.0s"],
+  ];
+  const log = document.getElementById("log");
+  const caret = Object.assign(document.createElement("span"), { className: "caret" });
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  (async () => {
+    await sleep(500);
+    for (const [kind, text] of lines) {
+      const row = Object.assign(document.createElement("div"), { className: kind });
+      log.append(row);
+      row.after(caret);
+      // Typed prompt, quick tool names, results appear at once.
+      const speed = kind === "you" ? 28 : kind === "tool" ? 14 : 0;
+      for (const ch of text) {
+        row.textContent += ch;
+        if (speed) await sleep(speed);
+      }
+      if (!speed) row.textContent = text;
+      await sleep(kind === "you" ? 700 : kind === "tool" ? 260 : 380);
+    }
+    await sleep(800);
+    window.__done = true;
+  })();
+</script>
+</body>
+</html>

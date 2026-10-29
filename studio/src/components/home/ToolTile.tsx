@@ -10,7 +10,7 @@ import type { FeatureStatus } from "@/lib/features";
 const EXAMPLES = "/explore/examples/";
 
 export type ToolArt =
-  | { still: string; video?: string }
+  | { still: string; video?: string; split?: true }
   | { kind: "timeline" };
 
 // Art lives apart from TOOLS so a future entry can stay text-only.
@@ -19,7 +19,7 @@ const TOOL_ART: Partial<Record<string, ToolArt>> = {
   image: { still: "flux2-klein.webp" },
   video: { still: "wan22.webp", video: "wan22-i2v.mp4" },
   effects: { still: "fasth3-t2v.webp", video: "fasth3-t2v.mp4" },
-  edit: { still: "hunyuan15-t2v.webp", video: "hunyuan15-t2v.mp4" },
+  edit: { still: "hunyuan15-t2v.webp", video: "hunyuan15-t2v.mp4", split: true },
   kawarimi: { still: "kawarimi_2.webp", video: "kawarimi_2.mp4" },
   editor: { kind: "timeline" },
 };
@@ -92,6 +92,7 @@ export function ToolTile({
   const art = TOOL_ART[tool.id];
   const still = art && "still" in art ? art.still : undefined;
   const video = art && "still" in art ? art.video : undefined;
+  const split = art && "still" in art ? art.split === true : false;
 
   const start = () => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -151,6 +152,20 @@ export function ToolTile({
             className="absolute inset-0 size-full object-cover motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-105"
           />
         )}
+        {split && (
+          <>
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 left-0 w-1/2 backdrop-blur-[3px] backdrop-saturate-50"
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-t1/80"
+            >
+              <span className="absolute top-1/2 left-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border border-t1/80 bg-black/55" />
+            </div>
+          </>
+        )}
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-s1 via-s1/50 to-transparent" />
         <span className="absolute top-2.5 left-2.5 grid size-7 place-items-center rounded-lg bg-black/55 backdrop-blur-sm">
           <Icon d={SECTION_ICONS[tool.icon]} className="size-3.5 text-t1" />
@@ -172,7 +187,7 @@ export function ToolTile({
             className="size-3.5 shrink-0 text-t3 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
           />
         </div>
-        <p className="mt-0.5 truncate text-caption text-t3">{tool.desc}</p>
+        <p className="mt-0.5 truncate text-caption text-t2">{tool.desc}</p>
       </div>
     </Link>
   );

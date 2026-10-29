@@ -82,7 +82,7 @@ export function buildNavMenus(
         },
         {
           title: "Effects",
-          description: "One-click reframe, upscale and smooth motion",
+          description: "Reframe, upscale or smooth a clip",
           icon: "effects",
           ...featureLink("effects"),
         },

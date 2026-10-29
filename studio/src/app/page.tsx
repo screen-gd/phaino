@@ -18,13 +18,13 @@ export const dynamic = "force-dynamic";
 
 // Soon tiles stay listed but go to the roadmap, not the stub pages.
 const TOOLS = [
-  { id: "camera", href: "/camera", name: "Camera moves", kind: "Video", desc: "7 moves on LTX 2.5", icon: "camera" },
+  { id: "camera", href: "/camera", name: "Camera moves", kind: "Video", desc: "Orbit, dolly in, crash zoom and 4 more on LTX 2.5", icon: "camera" },
   { id: "image", href: "/image", name: "Image", kind: "Image", desc: "FLUX.2 Klein, Qwen Image, Z-Image", icon: "image" },
   { id: "video", href: "/video", name: "Video", kind: "Video", desc: "LTX 2.5, Wan 2.2, HunyuanVideo, MiniMax H3", icon: "video" },
-  { id: "effects", href: "/effects", name: "Effects", kind: "Video", desc: "One-click reframe, upscale and smooth motion", icon: "effects" },
-  { id: "edit", href: "/edit", name: "Edit", kind: "Image", desc: "Upscale and inpaint", icon: "edit" },
-  { id: "kawarimi", href: "/kawarimi", name: "Kawarimi", kind: "Video", desc: "Character swap", icon: "characters" },
-  { id: "editor", href: "/editor", name: "Editor", kind: null, desc: "Cut, titles and music", icon: "export" },
+  { id: "effects", href: "/effects", name: "Effects", kind: "Video", desc: "Reframe, upscale or smooth a clip. No prompt needed", icon: "effects" },
+  { id: "edit", href: "/edit", name: "Edit", kind: "Video", desc: "Relight, restyle, extend or remove objects", icon: "edit" },
+  { id: "kawarimi", href: "/kawarimi", name: "Kawarimi", kind: "Video", desc: "Swap a character from one image into a video", icon: "characters" },
+  { id: "editor", href: "/editor", name: "Editor", kind: null, desc: "Cut clips, add titles and music", icon: "export" },
 ] as const satisfies readonly {
   id: string;
   href: string;

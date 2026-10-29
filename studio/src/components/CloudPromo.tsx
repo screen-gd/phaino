@@ -9,9 +9,9 @@ import { useComfyHealth } from "@/lib/useComfyHealth";
 import { useDemo } from "./DemoProvider";
 
 const CHECKLIST = [
-  "Open weights on Comfy Cloud",
-  "100+ partner models on the same key",
-  "Every shot opens as a workflow",
+  "Open models: LTX 2.5, Wan 2.2, FLUX.2 Klein",
+  "100+ partner models on one API key",
+  "Open any result as a ComfyUI workflow",
 ];
 
 const EXAMPLES = "/explore/examples/";
@@ -119,7 +119,7 @@ function WorkflowGraph() {
 /**
  * Comfy Cloud promo card: expanded two-line headline, a checklist and one
  * accent CTA. Shows the connect pitch until health reports ok, then switches
- * to a "Try Orbit" deep link. While health is loading the CTA stays invisible.
+ * to a "Try the Orbit move" deep link. While health is loading the CTA stays invisible.
  */
 export function CloudPromo() {
   const demo = useDemo();
@@ -129,9 +129,9 @@ export function CloudPromo() {
   return (
     <div className="relative flex h-full flex-col overflow-hidden rounded-xl border border-line bg-s1 p-5">
       <h2 className="text-h2 leading-none font-semibold tracking-tight">
-        {demo.enabled ? "Explore" : connected ? "Comfy Cloud" : "Connect"}
+        {demo.enabled ? "Runs on" : connected ? "Comfy Cloud" : "Connect"}
         <br />
-        <span className="text-ac">{demo.enabled ? "the studio" : connected ? "Connected" : "Comfy Cloud"}</span>
+        <span className="text-ac">{demo.enabled ? "Comfy Cloud" : connected ? "Connected" : "Comfy Cloud"}</span>
       </h2>
       <ul className="mt-4 space-y-2 text-body text-t2">
         {CHECKLIST.map((item) => (
@@ -146,7 +146,7 @@ export function CloudPromo() {
         className={`mt-5 self-start ${health || demo.enabled ? "" : "invisible"}`}
         render={<Link href={connected || demo.enabled ? "/camera?preset=orbit" : "/settings"} />}
       >
-        {connected || demo.enabled ? "Try Orbit" : "Add your API key"}
+        {connected || demo.enabled ? "Try the Orbit move" : "Add your API key"}
       </Button>
       <WorkflowGraph />
     </div>

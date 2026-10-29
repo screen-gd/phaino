@@ -131,12 +131,14 @@ export function KawarimiStudio({
           <div className="flex min-w-0 flex-1 items-center justify-center py-5 lg:min-h-[240px] lg:overflow-y-auto lg:[container-type:size]">
             {job && job.status === "succeeded" && job.outputs.length > 0 ? (
               <div className="flex min-h-[240px] w-full max-w-[1100px] flex-col lg:h-full">
-                <KawarimiResult
-                  key={job.id}
-                  job={job}
-                  sourceUrl={sourceUrl}
-                  presetName={presetName}
-                />
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <KawarimiResult
+                    key={job.id}
+                    job={job}
+                    sourceUrl={sourceUrl}
+                    presetName={presetName}
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={s.clearJob}
@@ -147,13 +149,15 @@ export function KawarimiStudio({
               </div>
             ) : job ? (
               <div className="flex min-h-[240px] w-full max-w-[1100px] flex-col lg:h-full">
-                <StageResult
-                  key={job.id}
-                  job={job}
-                  presetName={presetName}
-                  onCancel={() => void s.cancel()}
-                  aspect="wide"
-                />
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <StageResult
+                    key={job.id}
+                    job={job}
+                    presetName={presetName}
+                    onCancel={() => void s.cancel()}
+                    aspect="wide"
+                  />
+                </div>
                 {job.status !== "queued" && job.status !== "running" && (
                   <button
                     type="button"

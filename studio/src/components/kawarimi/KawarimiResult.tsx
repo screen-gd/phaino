@@ -25,7 +25,7 @@ function SideBySide({
   resRef: React.RefObject<HTMLVideoElement | null>;
 }) {
   return (
-    <div className="grid w-full max-w-[1100px] gap-3 sm:grid-cols-2">
+    <div className="grid w-full max-w-[1100px] gap-3 sm:grid-cols-2 lg:max-w-[min(1100px,calc((100cqh_-_140px)_*_32_/_9))]">
       <div>
         <span className="mb-1 block text-caption text-t3">Source</span>
         <video
@@ -34,7 +34,7 @@ function SideBySide({
           loop
           muted
           playsInline
-          className="w-full rounded-lg border border-line"
+          className="aspect-video w-full rounded-lg border border-line bg-black object-contain"
         />
       </div>
       <div>
@@ -45,7 +45,7 @@ function SideBySide({
           loop
           muted
           playsInline
-          className="w-full rounded-lg border border-line"
+          className="aspect-video w-full rounded-lg border border-line bg-black object-contain"
         />
       </div>
     </div>
@@ -86,7 +86,7 @@ function Wipe({
       ref={frameRef}
       onPointerDown={drag}
       onPointerMove={drag}
-      className="relative w-full max-w-[880px] cursor-ew-resize select-none"
+      className="relative aspect-video w-full max-w-[880px] cursor-ew-resize select-none lg:max-w-[min(880px,calc((100cqh_-_140px)_*_16_/_9))]"
     >
       <video
         ref={srcRef}
@@ -94,7 +94,7 @@ function Wipe({
         loop
         muted
         playsInline
-        className="w-full rounded-lg border border-line"
+        className="absolute inset-0 h-full w-full rounded-lg border border-line bg-black object-contain"
       />
       <video
         ref={resRef}
@@ -103,7 +103,7 @@ function Wipe({
         muted
         playsInline
         style={{ clipPath: `inset(0 ${100 - pct}% 0 0)` }}
-        className="absolute inset-0 h-full w-full rounded-lg border border-line object-cover"
+        className="absolute inset-0 h-full w-full rounded-lg border border-line object-contain"
       />
       <span className="pointer-events-none absolute top-2 left-2 rounded bg-black/60 px-1.5 py-0.5 text-caption text-t1">
         Result

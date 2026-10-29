@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRef } from "react";
 import { Icon, SECTION_ICONS, type IconName } from "@/components/icons";
 import { StatusBadge } from "@/components/StatusBadge";
+import { cn } from "@/lib/utils";
 import type { FeatureStatus } from "@/lib/features";
 
 const EXAMPLES = "/explore/examples/";
@@ -29,7 +30,7 @@ const TIMELINE_CLIPS = [
 ] as const;
 
 /** Static mini timeline: two clip tracks and a playhead for the Editor card. */
-function TimelineArt() {
+function TimelineArt({ wide }: { wide?: boolean }) {
   return (
     <div aria-hidden="true" className="absolute inset-0 flex flex-col justify-center gap-1.5 bg-s1 px-3">
       <div className="flex justify-between border-b border-line/70 pb-1 font-mono text-[9px] text-t3">
@@ -38,22 +39,25 @@ function TimelineArt() {
         <span>0:10</span>
         <span>0:15</span>
       </div>
-      {TIMELINE_CLIPS.map((row, i) => (
-        <div key={i} className="grid flex-1 grid-cols-3 gap-1">
-          {row.map((clip) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={clip}
-              src={EXAMPLES + clip}
-              alt=""
-              width={96}
-              height={54}
-              loading="lazy"
-              className="h-full w-full rounded-[3px] border border-line object-cover"
-            />
-          ))}
-        </div>
-      ))}
+      {TIMELINE_CLIPS.map((row, i) => {
+        const cells = wide ? [...row, ...row, ...row] : row;
+        return (
+          <div key={i} className={cn("grid flex-1 gap-1", wide ? "grid-cols-6 sm:grid-cols-9" : "grid-cols-3")}>
+            {cells.map((clip, j) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={`${clip}-${j}`}
+                src={EXAMPLES + clip}
+                alt=""
+                width={96}
+                height={54}
+                loading="lazy"
+                className="h-full w-full rounded-[3px] border border-line object-cover"
+              />
+            ))}
+          </div>
+        );
+      })}
       <span className="absolute bottom-2.5 top-2.5 left-[42%] w-px bg-ac" />
     </div>
   );
@@ -72,9 +76,13 @@ export type ToolTileTool = {
 export function ToolTile({
   tool,
   status,
+  wide,
+  className,
 }: {
   tool: ToolTileTool;
   status: FeatureStatus;
+  wide?: boolean;
+  className?: string;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const soon = status === "soon";
@@ -101,7 +109,10 @@ export function ToolTile({
       onMouseLeave={stop}
       onFocus={start}
       onBlur={stop}
-      className="group block overflow-hidden rounded-xl border border-line bg-s1 hover:border-[#444] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-t1"
+      className={cn(
+        "group block overflow-hidden rounded-xl border border-line bg-s1 hover:border-[#444] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-t1",
+        className,
+      )}
     >
       <div className="relative h-[90px] overflow-hidden">
         {still ? (
@@ -115,7 +126,7 @@ export function ToolTile({
             className="absolute inset-0 size-full object-cover motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-105"
           />
         ) : art && "kind" in art && art.kind === "timeline" ? (
-          <TimelineArt />
+          <TimelineArt wide={wide} />
         ) : (
           <div aria-hidden="true" className="absolute inset-0 grid place-items-center bg-s1">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_90%_at_50%_110%,var(--color-ac),transparent)] opacity-25" />

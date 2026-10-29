@@ -7,6 +7,7 @@ import { ExploreCarousel } from "@/components/ExploreCarousel";
 import { ExploreFooter } from "@/components/ExploreFooter";
 import { ToolTile } from "@/components/home/ToolTile";
 import { presetPreview } from "@/lib/preset-preview";
+import { cn } from "@/lib/utils";
 import { featureById } from "@/lib/features";
 import { Button } from "@/components/ui/button";
 import { toStudioModels } from "@/server/models/view";
@@ -123,13 +124,25 @@ export default function Home() {
       <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <CloudPromo />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {TOOLS.map((t) => (
-            <ToolTile
-              key={t.id}
-              tool={t}
-              status={featureById(t.id)?.status ?? "live"}
-            />
-          ))}
+          {TOOLS.map((t, i) => {
+            const n = TOOLS.length;
+            const last = i === n - 1;
+            // A lone last tile spans the row instead of leaving a hole.
+            return (
+              <ToolTile
+                key={t.id}
+                tool={t}
+                status={featureById(t.id)?.status ?? "live"}
+                wide={last && n % 3 === 1}
+                className={cn(
+                  last && n % 2 === 1 && "col-span-2",
+                  last && n % 3 === 1
+                    ? "sm:col-span-3"
+                    : last && n % 2 === 1 && "sm:col-span-1",
+                )}
+              />
+            );
+          })}
         </div>
       </div>
 

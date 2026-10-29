@@ -11,9 +11,10 @@ import { StatusBadge } from "./StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetPopup, SheetTrigger } from "@/components/ui/sheet";
 
-const GROUPS: { id: "core" | "studio"; label: string }[] = [
+const GROUPS: { id: "core" | "studio" | "more"; label: string }[] = [
   { id: "core", label: "Core" },
   { id: "studio", label: "Studio" },
+  { id: "more", label: "More" },
 ];
 const MENU_HREFS = new Set(["/image", "/video", "/camera"]);
 

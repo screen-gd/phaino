@@ -70,6 +70,15 @@ export const FEATURES = [
     group: "primary",
   },
   {
+    id: "social",
+    label: "Social",
+    href: "/social",
+    description: "Post renders to your accounts",
+    icon: "community",
+    status: "new",
+    group: "primary",
+  },
+  {
     id: "workflows",
     label: "Workflows",
     href: "/workflows",

@@ -25,6 +25,7 @@ const NAV: readonly SectionSeed[] = [
   { href: "/workflows", label: "Workflows", group: "studio", id: "workflows" },
   { href: "/showcase", label: "Showcase", group: "studio", id: "showcase" },
   { href: "/editor", label: "Editor", group: "studio", id: "editor" },
+  { href: "/social", label: "Social", group: "studio", id: "social" },
 ];
 
 export const SECTIONS: readonly NavSection[] = NAV.map((section) => {

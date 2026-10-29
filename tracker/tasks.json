@@ -592,8 +592,13 @@
         {
           "id": "m11-home-partners",
           "title": "Home partner models banner, picker brand groups and logos",
-          "status": "doing",
-          "notes": "Banner ships with stand-in images until real model renders land in public/explore/partners."
+          "status": "done",
+          "notes": "Banner uses real renders from each model in public/explore/partners."
+        },
+        {
+          "id": "m11-social-page",
+          "title": "Social page to post renders with the Zernio key",
+          "status": "done"
         },
         {
           "id": "m11-social",
@@ -716,6 +721,11 @@
         {
           "id": "effects-page",
           "title": "Effects page (reframe, upscale, smooth motion)",
+          "status": "done"
+        },
+        {
+          "id": "ui-polish-higgsfield",
+          "title": "Studio UI polish vs Higgsfield",
           "status": "done"
         }
       ]

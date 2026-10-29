@@ -37,5 +37,4 @@ it("serves bundled Kawarimi swaps and their source clips", () => {
     expect(fs.existsSync(path.join(process.cwd(), "public", file!))).toBe(true);
   }
   expect(demoSource("kawarimi-h3/result.mp4")).toBeUndefined();
->>>>>>> 481bc23 (Add Kawarimi character swap on SCAIL-2 and Router partner engines)
 });

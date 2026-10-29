@@ -10,7 +10,6 @@ import {
   MODEL_REGISTRY,
   modeForPresetId,
   modePresetId,
-  type ModelEntry,
   type ModelMode,
 } from "./registry";
 import { EDIT_TOOLS, toolForPresetId } from "./tools";

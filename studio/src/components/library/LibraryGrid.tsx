@@ -12,6 +12,7 @@ import {
   DialogPopup,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { outputPosterUrl } from "@/lib/demo";
 
 type LibraryItem = {
   relPath: string;
@@ -66,6 +67,7 @@ function Tile({
           <video
             ref={videoRef}
             src={url}
+            poster={outputPosterUrl(item.relPath)}
             muted
             playsInline
             preload="metadata"

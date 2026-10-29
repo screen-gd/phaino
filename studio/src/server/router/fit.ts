@@ -95,14 +95,27 @@ function placeOnto(out: Json, props: Record<string, Prop>, input: FitInput, leve
     }
   }
   if (level !== "input") {
-    const dKey = has(props, DURATION_KEYS);
-    if (dKey && input.duration !== undefined && out[dKey] === undefined) {
-      set(dKey, coerceNumber(props[dKey], input.duration));
+    // Family shapes may already have set these; coerce those values too.
+    for (const dKey of DURATION_KEYS.filter((k) => k in props)) {
+      const current = out[dKey] ?? input.duration;
+      if (current === undefined || current === null) continue;
+      const p = props[dKey];
+      // Untyped, unbounded fields give nothing to check against: keep the family's value.
+      if (out[dKey] !== undefined && !p.type && !p.enum && p.minimum === undefined && p.maximum === undefined) break;
+      const n = Number(current);
+      if (!Number.isFinite(n)) continue;
+      const value = coerceNumber(props[dKey], n);
+      if (value === undefined) delete out[dKey];
+      else out[dKey] = value;
+      break;
     }
-    const aKey = has(props, ASPECT_KEYS);
-    if (aKey && input.aspect && out[aKey] === undefined) {
+    for (const aKey of ASPECT_KEYS.filter((k) => k in props)) {
       const p = props[aKey];
-      if (!Array.isArray(p.enum) || p.enum.includes(input.aspect)) set(aKey, input.aspect);
+      const current = out[aKey] ?? input.aspect;
+      if (current === undefined) continue;
+      if (Array.isArray(p.enum) && !p.enum.includes(current)) delete out[aKey];
+      else out[aKey] = current;
+      break;
     }
   }
 }

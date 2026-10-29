@@ -42,3 +42,20 @@ describe("catalog requests against Router's published schemas", () => {
     for (const s of gone) expect(ROUTER_CATALOG).not.toContain(s);
   });
 });
+
+describe("fitToSchema coercion", () => {
+  it("coerces a family duration onto the model's enum", () => {
+    const spec = ROUTER_CATALOG.find((s) => s.presetId === "ltx-2-5-fast");
+    expect(spec).toBeDefined();
+    const body = genericAdapter(spec!).buildInput({ params: { prompt: "p", duration: 7 }, images: {} });
+    expect(body.duration).toBe(6);
+  });
+
+  it("drops an aspect the model's enum does not allow", () => {
+    const spec = ROUTER_CATALOG.find((s) => s.presetId === "wan-2-7-t2v");
+    const body = genericAdapter(spec!).buildInput({ params: { prompt: "p", aspect: "21:9" }, images: {} }) as {
+      parameters?: Record<string, unknown>;
+    };
+    expect(body.parameters?.ratio).toBeUndefined();
+  });
+});

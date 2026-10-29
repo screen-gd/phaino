@@ -1,6 +1,8 @@
 "use client";
 
+import { useRef } from "react";
 import type { StudioPreset } from "@/components/toolStudioData";
+import { useEdgeFade } from "./useEdgeFade";
 
 /** Camera moves: a horizontal strip of every camera preset above the composer. */
 export function MoveStrip({
@@ -12,8 +14,14 @@ export function MoveStrip({
   selectedId: string;
   onSelect: (id: string) => void;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const fade = useEdgeFade(ref);
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div
+      ref={ref}
+      style={fade}
+      className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    >
       {presets.map((p) => (
         <button
           key={p.id}
@@ -35,7 +43,7 @@ export function MoveStrip({
               className="aspect-video w-full object-cover"
             />
           </span>
-          <span className="mt-1 block truncate text-caption text-t2">
+          <span className="mt-1 block truncate text-[12px] text-t2">
             {p.name}
             {p.chip ? ` ${p.chip}` : ""}
           </span>

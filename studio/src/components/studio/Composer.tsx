@@ -95,6 +95,7 @@ export function Composer({
   error,
   workflowHref,
   promptPlaceholder,
+  reserveInputRow = false,
 }: {
   slots: ComposerSlot[];
   uploads: Record<string, Uploaded>;
@@ -111,6 +112,8 @@ export function Composer({
   picker?: ComposerPicker;
   /** Explicit mode switcher shown above the upload slots. */
   modes?: ComposerModes;
+  /** Keep the input row's space even with no slots or text params. */
+  reserveInputRow?: boolean;
   estimate?: RuntimeStats;
   /** Billing unit for the estimate caption. */
   unit: EstimateUnit;
@@ -125,17 +128,18 @@ export function Composer({
   promptPlaceholder?: string;
 }) {
   const promptKey = mainPromptKey(textParams);
+  const hasInputRow = slots.length > 0 || textParams.length > 0;
   return (
     <div className="rounded-panel border border-[#444] bg-s2 p-2 has-[textarea:focus-visible]:border-ac/70">
       {modes && modes.options.length > 1 && (
-        <div className="mb-2 flex w-max items-center gap-0.5 rounded-lg bg-s3 p-0.5">
+        <div className="mb-2 flex w-max max-w-full items-center gap-0.5 overflow-x-auto rounded-lg bg-s3 p-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {modes.options.map((o) => (
             <button
               key={o.key}
               type="button"
               aria-pressed={o.key === modes.value}
               onClick={() => modes.onChange(o.key)}
-              className={`rounded-[6px] px-2.5 py-1 text-caption font-medium whitespace-nowrap ${
+              className={`rounded-[6px] px-2.5 py-1.5 text-[13px] font-medium whitespace-nowrap ${
                 o.key === modes.value
                   ? "bg-s2 text-t1"
                   : "text-t3 hover:text-t1"
@@ -147,6 +151,7 @@ export function Composer({
         </div>
       )}
       {/* Same height with or without upload slots, so switching modes keeps the box still. */}
+      {hasInputRow ? (
       <div className="flex min-h-16 items-start gap-2">
         {slots.length > 0 && (
           <div className="flex flex-none gap-1.5">
@@ -184,7 +189,16 @@ export function Composer({
           </div>
         )}
       </div>
-      <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-line pt-2">
+      ) : reserveInputRow ? (
+        <div className="flex min-h-16 items-center">
+          <p className="text-body text-t3">No prompt needed</p>
+        </div>
+      ) : null}
+      <div
+        className={`flex flex-wrap items-center gap-1.5 ${
+          hasInputRow || reserveInputRow ? "mt-2 border-t border-line pt-2" : ""
+        }`}
+      >
         <div className="flex w-full min-w-0 items-center gap-1.5 overflow-x-auto [scrollbar-width:none] sm:w-auto sm:flex-1 [&::-webkit-scrollbar]:hidden">
           {picker && (
             <ModelPicker
@@ -198,7 +212,7 @@ export function Composer({
                 <button
                   type="button"
                   aria-label={`Model: ${picker.label}`}
-                  className="flex h-8 shrink-0 items-center gap-1.5 rounded-lg bg-s3 px-2 text-caption font-medium text-t1 hover:bg-[#2e2e2e]"
+                  className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-s3 px-2 text-[13px] font-medium text-t1 hover:bg-[#2e2e2e]"
                 >
                   {picker.thumbUrl && (
                     <img
@@ -231,7 +245,7 @@ export function Composer({
               href={workflowHref}
               aria-label="Open workflow"
               title="Workflow"
-              className="grid h-8 w-8 flex-none place-items-center rounded-lg bg-s3 text-t2 hover:bg-[#2e2e2e] hover:text-t1"
+              className="grid h-9 w-9 flex-none place-items-center rounded-lg bg-s3 text-t2 hover:bg-[#2e2e2e] hover:text-t1"
             >
               <Icon d={SECTION_ICONS.workflows} className="h-4 w-4" />
             </Link>
@@ -265,12 +279,11 @@ export function Composer({
         <div className="flex w-full items-center gap-1.5 sm:w-auto sm:flex-none">
           <EstimateCaption stats={estimate} unit={unit} partner={partner} />
           <Button
-            className="h-9 flex-1 rounded-lg px-5 sm:flex-none"
-            loading={submitting}
+            className="h-9 flex-1 rounded-lg px-5 sm:h-9 sm:flex-none"
             disabled={submitDisabled || submitting}
             onClick={onSubmit}
           >
-            {submitLabel}
+            {submitting ? "Generating" : submitLabel}
           </Button>
         </div>
       </div>

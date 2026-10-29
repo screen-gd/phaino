@@ -13,7 +13,7 @@ export function StatusBadge({
   return (
     <Badge
       size="sm"
-      variant={status === "new" ? "default" : "secondary"}
+      variant="secondary"
       className={className}
     >
       {status === "new" ? "New" : "Soon"}

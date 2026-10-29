@@ -124,9 +124,11 @@ export function VideoStudio({
               text={
                 category === "camera"
                   ? "Add a first frame to move the camera"
-                  : activeMode === "t2v" || slots.length === 0
-                    ? "Describe a shot"
-                    : "Describe a shot or add a first frame"
+                  : slots.some((s) => s.required)
+                    ? "Add a first frame to start"
+                    : activeMode === "t2v" || slots.length === 0
+                      ? "Describe a shot"
+                      : "Describe a shot or add a first frame"
               }
             />
           ) : null}

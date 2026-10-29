@@ -8,7 +8,7 @@ import { STATUS_BADGE, isVideoPath } from "./JobViews";
 import { AddToSequence } from "@/components/sequence/AddToSequence";
 import { EditVideoButton } from "@/components/edit/EditVideoButton";
 import { useDemo } from "@/components/DemoProvider";
-import { progressPct } from "./studioUtils";
+import { failureLabel, progressPct } from "./studioUtils";
 import { outputUrl } from "@/lib/demo";
 import type { StudioJob } from "@/components/toolStudioData";
 import { Badge } from "@/components/ui/badge";
@@ -138,9 +138,12 @@ export function StageResult({
           >
             <div className="absolute inset-0 grid place-items-center px-6 text-center">
               {job.status === "failed" ? (
-                <p className="text-body text-destructive">
-                  {job.error ?? "Something went wrong"}
-                </p>
+                <div>
+                  <p className="text-body text-t1">{failureLabel(job.error)}</p>
+                  {job.error && (
+                    <p className="mt-1 text-caption text-t3">{job.error}</p>
+                  )}
+                </div>
               ) : (
                 <p className="text-body text-t2">{job.message ?? "Waiting"}</p>
               )}

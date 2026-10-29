@@ -78,18 +78,21 @@ export function ExploreCarousel() {
       }} className="flex snap-x snap-proximity motion-safe:scroll-smooth overscroll-x-contain gap-3 overflow-x-auto scroll-pr-4 pr-4 pb-2 [scrollbar-width:none]">
         {MODEL_DEMOS.map((demo, index) => (
           <article key={demo.title} aria-roledescription="slide" aria-label={`${index + 1} of ${slideCount}: ${demo.title}`} className="w-[86%] min-w-0 flex-none snap-start sm:w-[46%] xl:w-[30%] 2xl:w-[26%]">
-            {demo.media.kind === "image" ? (
-              <div className="relative overflow-hidden rounded-md border border-line bg-black aspect-video">
-                <img src={demo.media.src} alt={demo.title} loading="lazy" className="absolute inset-0 size-full object-cover" />
+            <div className="relative">
+              {demo.media.kind === "image" ? (
+                <div className="relative overflow-hidden rounded-md border border-line bg-black aspect-video">
+                  <img src={demo.media.src} alt={demo.title} loading="lazy" className="absolute inset-0 size-full object-cover" />
+                </div>
+              ) : (
+                <ExploreVideo media={demo.media} title={demo.title} source={demo.source} />
+              )}
+              <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-[45%] rounded-b-md bg-linear-to-t from-black/85 via-black/40 to-transparent" />
+              <div className="absolute inset-x-3.5 bottom-3">
+                <Link href={demo.href} className="font-display text-lead font-semibold text-white [text-shadow:0_1px_4px_rgba(0,0,0,0.9)] hover:underline underline-offset-4">{demo.title} ↗</Link>
+                <p className="mt-1 text-caption text-t2 [text-shadow:0_1px_4px_rgba(0,0,0,0.9)]">{demo.description}</p>
+                <a href={demo.source} target="_blank" rel="noreferrer" className="mt-1.5 inline-block font-mono text-[11px] text-t3 [text-shadow:0_1px_4px_rgba(0,0,0,0.9)] hover:underline underline-offset-4">{demo.credit} ↗</a>
               </div>
-            ) : (
-              <ExploreVideo media={demo.media} title={demo.title} source={demo.source} />
-            )}
-            <div className="mt-3 flex items-center justify-between gap-2">
-              <Link href={demo.href} className="font-display text-body font-semibold hover:underline underline-offset-4">{demo.title} ↗</Link>
             </div>
-            <p className="mt-1 text-caption text-t2">{demo.description}</p>
-            <a href={demo.source} target="_blank" rel="noreferrer" className="mt-2 inline-block font-mono text-caption text-t3 hover:underline underline-offset-4">{demo.credit} ↗</a>
           </article>
         ))}
       </div>

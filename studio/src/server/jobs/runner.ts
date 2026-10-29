@@ -502,7 +502,9 @@ const rg = globalThis as { __phainoJobRunner?: JobRunner };
 
 /** Shared runner for the process; resumes interrupted jobs once. */
 export function getRunner(): JobRunner {
-  if (!rg.__phainoJobRunner) {
+  // After a dev hot reload the cached runner is an instance of the old class,
+  // whose errors fail the API's instanceof checks. Rebuild it.
+  if (!(rg.__phainoJobRunner instanceof JobRunner)) {
     const env = getEnv();
     rg.__phainoJobRunner = new JobRunner({
       env,

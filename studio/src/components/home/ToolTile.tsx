@@ -19,6 +19,7 @@ const TOOL_ART: Partial<Record<string, ToolArt>> = {
   video: { still: "wan22.webp", video: "wan22-i2v.mp4" },
   effects: { still: "fasth3-t2v.webp", video: "fasth3-t2v.mp4" },
   edit: { still: "hunyuan15-t2v.webp", video: "hunyuan15-t2v.mp4" },
+  kawarimi: { still: "kawarimi_2.webp", video: "kawarimi_2.mp4" },
   editor: { kind: "timeline" },
 };
 

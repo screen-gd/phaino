@@ -110,7 +110,8 @@ export function toStudioPreset(p: Preset | ListedPreset): StudioPreset {
     model: { id: p.model.id, label: p.model.label },
     isFork: "origin" in p ? p.origin === "fork" : undefined,
     partner: p.model.license === "partner",
-    thumbUrl: presetPreview(p),
+    // Router catalog presets ship no thumbnail; the picker shows the brand logo.
+    thumbUrl: p.source.template === "router" ? "" : presetPreview(p),
     inputs: p.inputs.map(({ key, label, required, type }) => ({
       key,
       label,

@@ -191,3 +191,11 @@
   --warning: var(--color-amber-500);
   --warning-foreground: var(--color-amber-400);
 }
+
+/* Model picker flyout slides in beside the list. */
+@keyframes flyout-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+}

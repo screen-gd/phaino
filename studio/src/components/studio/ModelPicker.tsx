@@ -126,7 +126,7 @@ function ModelRow({
   );
 }
 
-/** Searchable model popover: clicking a family drills into its models. */
+/** Searchable model popover: a family opens its models in a side flyout. */
 export function ModelPicker({
   presets,
   selectedId,
@@ -148,11 +148,15 @@ export function ModelPicker({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [family, setFamily] = useState<string | null>(null);
+  // Keyboard focus: the main list or the flyout.
+  const [pane, setPane] = useState<"main" | "sub">("main");
   const [active, setActive] = useState(0);
+  const [subActive, setSubActive] = useState(-1);
   const listRef = useRef<HTMLDivElement>(null);
+  const subRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Multi-model families get a drilled-in view; single-model families and
+  // Multi-model families open a flyout; single-model families and
   // ungrouped rows (forks, standalone presets) stay as direct rows.
   const families = new Map<string, PickerRow[]>();
   const direct: PickerRow[] = [];
@@ -179,69 +183,81 @@ export function ModelPicker({
   const searching = query.trim().length > 0;
   const filtered = searching ? filterPresets(presets, query) : [];
   const subRows = family ? families.get(family) ?? [] : [];
-  const items = searching ? filtered : family ? subRows : level1;
+  const flyout = family !== null && !searching;
 
   const pick = (id: string) => {
     onSelect(id);
     setOpen(false);
   };
-  const goBack = () => {
-    setFamily(null);
-    setActive(0);
+  /** Highlight a main-list item; families preview in the flyout. */
+  const focusMain = (i: number) => {
+    setActive(i);
+    setPane("main");
+    setSubActive(-1);
+    const item = level1[i];
+    setFamily(item?.kind === "family" ? item.name : null);
   };
+  const enterFlyout = (name: string) => {
+    setFamily(name);
+    setPane("sub");
+    setSubActive(0);
+  };
+  const scrollTo = (el: HTMLDivElement | null, i: number) =>
+    el?.querySelectorAll("[role=option]")[i]?.scrollIntoView({ block: "nearest" });
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    // List keys only apply from the search input; focused buttons
-    // (e.g. the back row) keep their native Enter/Space behaviour.
+    // List keys only apply from the search input.
     if (e.target !== inputRef.current) return;
-    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    const vertical = e.key === "ArrowDown" || e.key === "ArrowUp";
+    const step = e.key === "ArrowDown" ? 1 : -1;
+    if (searching) {
+      if (vertical) {
+        e.preventDefault();
+        const next = Math.max(0, Math.min(active + step, filtered.length - 1));
+        setActive(next);
+        scrollTo(listRef.current, next);
+      } else if (e.key === "Enter" && filtered[active]) {
+        e.preventDefault();
+        pick(filtered[active].id);
+      }
+      return;
+    }
+    if (pane === "sub") {
+      if (vertical) {
+        e.preventDefault();
+        const next = Math.max(0, Math.min(subActive + step, subRows.length - 1));
+        setSubActive(next);
+        scrollTo(subRef.current, next);
+      } else if (e.key === "Enter" && subRows[subActive]) {
+        e.preventDefault();
+        pick(subRows[subActive].id);
+      } else if (
+        e.key === "ArrowLeft" ||
+        e.key === "Escape" ||
+        (e.key === "Backspace" && query === "")
+      ) {
+        e.preventDefault();
+        setPane("main");
+        setSubActive(-1);
+      }
+      return;
+    }
+    const item = level1[active];
+    if (vertical) {
       e.preventDefault();
-      const next =
-        e.key === "ArrowDown"
-          ? Math.min(active + 1, items.length - 1)
-          : Math.max(active - 1, 0);
-      setActive(next);
-      listRef.current
-        ?.querySelectorAll("[role=option]")
-        [next]?.scrollIntoView({ block: "nearest" });
-    } else if (e.key === "ArrowRight") {
-      const item = level1[active];
-      if (!searching && !family && item?.kind === "family") {
-        e.preventDefault();
-        setFamily(item.name);
-        setActive(0);
-      }
-    } else if (e.key === "ArrowLeft") {
-      if (family && !searching) {
-        e.preventDefault();
-        goBack();
-      }
-    } else if (e.key === "Backspace") {
-      if (family && query === "") {
-        e.preventDefault();
-        goBack();
-      }
-    } else if (e.key === "Enter") {
+      const next = Math.max(0, Math.min(active + step, level1.length - 1));
+      focusMain(next);
+      scrollTo(listRef.current, next);
+    } else if (e.key === "ArrowRight" && item?.kind === "family") {
       e.preventDefault();
-      const item = items[active];
-      if (!item) return;
-      if (searching) {
-        pick((item as PickerRow).id);
-      } else if (!family && (item as Level1Item).kind === "family") {
-        setFamily((item as { kind: "family"; name: string }).name);
-        setActive(0);
-      } else {
-        pick(
-          family
-            ? (item as PickerRow).id
-            : (item as { kind: "row"; row: PickerRow }).row.id,
-        );
-      }
-    } else if (e.key === "Escape") {
-      if (family) {
-        e.preventDefault();
-        goBack();
-      }
+      enterFlyout(item.name);
+    } else if (e.key === "Enter" && item) {
+      e.preventDefault();
+      if (item.kind === "family") enterFlyout(item.name);
+      else pick(item.row.id);
+    } else if (e.key === "Escape" && family) {
+      e.preventDefault();
+      setFamily(null);
     }
   };
 
@@ -253,6 +269,8 @@ export function ModelPicker({
         if (o) {
           setQuery("");
           setFamily(null);
+          setPane("main");
+          setSubActive(-1);
           const idx = level1.findIndex((item) =>
             item.kind === "family"
               ? item.rows.some((r) => r.id === selectedId)
@@ -267,136 +285,141 @@ export function ModelPicker({
         side={side}
         align={align}
         sideOffset={sideOffset}
-        className="max-h-[480px] w-[340px] rounded-2xl border-line bg-s2 p-0 shadow-xl shadow-black/50"
+        className={`max-h-[480px] rounded-2xl border-line bg-s2 p-0 shadow-xl shadow-black/50 duration-200 ease-out [&_[data-slot=popover-viewport]]:p-0 ${
+          flyout ? "w-[680px]" : "w-[340px]"
+        }`}
         onKeyDown={onKeyDown}
       >
-        <div className="flex items-center gap-2 border-b border-line px-3">
-          <Icon d={SECTION_ICONS.search} className="h-4 w-4 flex-none text-t3" />
-          <input
-            ref={inputRef}
-            autoFocus
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setActive(0);
-            }}
-            placeholder="Search models"
-            className="h-10 min-w-0 flex-1 bg-transparent text-body text-t1 outline-none placeholder:text-t3"
-          />
-        </div>
-        {family && !searching && (
-          <div className="border-b border-line bg-s2 px-1.5 py-1">
-            <button
-              type="button"
-              onClick={goBack}
-              className="flex w-full items-center gap-1 rounded-lg px-2.5 py-1.5 text-caption text-t3 hover:bg-s3 hover:text-t1"
-            >
-              <Icon d={SECTION_ICONS.chevronLeft} className="h-3.5 w-3.5" />
-              {family}
-            </button>
+        <div className="flex">
+          <div className="w-[338px] flex-none">
+            <div className="flex items-center gap-2 border-b border-line px-3">
+              <Icon d={SECTION_ICONS.search} className="h-4 w-4 flex-none text-t3" />
+              <input
+                ref={inputRef}
+                autoFocus
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setActive(0);
+                  setPane("main");
+                }}
+                placeholder="Search models"
+                className="h-10 min-w-0 flex-1 bg-transparent text-body text-t1 outline-none placeholder:text-t3"
+              />
+            </div>
+            <div ref={listRef} className="max-h-[420px] overflow-y-auto p-1.5">
+              {searching ? (
+                filtered.length === 0 ? (
+                  <p className="px-2.5 py-6 text-center text-caption text-t3">
+                    No models match
+                  </p>
+                ) : (
+                  filtered.map((r, i) => (
+                    <ModelRow
+                      key={r.id}
+                      row={r}
+                      selected={r.id === selectedId}
+                      active={i === active}
+                      caption={r.group}
+                      onHover={() => setActive(i)}
+                      onPick={pick}
+                    />
+                  ))
+                )
+              ) : (
+                <>
+                  {multi.length > 0 && <SectionHead>Models</SectionHead>}
+                  {multi.map(([name, rows], i) => {
+                    const hasSelected = rows.some((r) => r.id === selectedId);
+                    const isOpen = family === name;
+                    return (
+                      <button
+                        key={name}
+                        type="button"
+                        role="option"
+                        aria-selected={false}
+                        data-active={i === active || isOpen ? true : undefined}
+                        onClick={() => enterFlyout(name)}
+                        onMouseEnter={() => focusMain(i)}
+                        className={ROW_CLS}
+                      >
+                        <Thumb
+                          src={rows.find((r) => r.thumbUrl)?.thumbUrl ?? ""}
+                          name={name}
+                          logo={rows.find((r) => r.logoUrl)?.logoUrl}
+                        />
+                        <span className="min-w-0 flex-1 text-body font-medium text-t1">
+                          {name}
+                        </span>
+                        {hasSelected && (
+                          <span className="h-1.5 w-1.5 flex-none rounded-full bg-ac" />
+                        )}
+                        <span className="flex-none text-caption text-t3">
+                          {rows.length}
+                        </span>
+                        <Icon
+                          d={SECTION_ICONS.chevronRight}
+                          className={`h-4 w-4 flex-none transition-colors ${isOpen ? "text-t1" : "text-t3"}`}
+                        />
+                      </button>
+                    );
+                  })}
+                  {singles.length > 0 && <SectionHead>More</SectionHead>}
+                  {singles.map((row, i) => {
+                    const idx = multi.length + i;
+                    return (
+                      <ModelRow
+                        key={row.id}
+                        row={row}
+                        selected={row.id === selectedId}
+                        active={idx === active}
+                        onHover={() => focusMain(idx)}
+                        onPick={pick}
+                      />
+                    );
+                  })}
+                  {direct.length > 0 && <SectionHead>Presets</SectionHead>}
+                  {direct.map((row, i) => {
+                    const idx = multi.length + singles.length + i;
+                    return (
+                      <ModelRow
+                        key={row.id}
+                        row={row}
+                        selected={row.id === selectedId}
+                        active={idx === active}
+                        onHover={() => focusMain(idx)}
+                        onPick={pick}
+                      />
+                    );
+                  })}
+                </>
+              )}
+            </div>
           </div>
-        )}
-        <div ref={listRef} className="max-h-[420px] overflow-y-auto p-1.5">
-          {searching ? (
-            filtered.length === 0 ? (
-              <p className="px-2.5 py-6 text-center text-caption text-t3">
-                No models match
+          {flyout && (
+            <div
+              key={family}
+              className="w-[340px] flex-none border-l border-line motion-safe:animate-[flyout-in_180ms_ease-out]"
+            >
+              <p className="flex h-10 items-center border-b border-line px-4 text-caption text-t3">
+                {family}
               </p>
-            ) : (
-              filtered.map((r, i) => (
-                <ModelRow
-                  key={r.id}
-                  row={r}
-                  selected={r.id === selectedId}
-                  active={i === active}
-                  caption={r.group}
-                  onHover={() => setActive(i)}
-                  onPick={pick}
-                />
-              ))
-            )
-          ) : family ? (
-            <>
-              {subRows.map((row, i) => (
-                <ModelRow
-                  key={row.id}
-                  row={row}
-                  selected={row.id === selectedId}
-                  active={i === active}
-                  onHover={() => setActive(i)}
-                  onPick={pick}
-                />
-              ))}
-            </>
-          ) : (
-            <>
-              {multi.length > 0 && <SectionHead>Models</SectionHead>}
-              {multi.map(([name, rows], i) => {
-                const hasSelected = rows.some((r) => r.id === selectedId);
-                return (
-                  <button
-                    key={name}
-                    type="button"
-                    role="option"
-                    aria-selected={false}
-                    data-active={i === active ? true : undefined}
-                    onClick={() => {
-                      setFamily(name);
-                      setActive(0);
+              <div ref={subRef} role="listbox" aria-label={family} className="max-h-[420px] overflow-y-auto p-1.5">
+                {subRows.map((row, i) => (
+                  <ModelRow
+                    key={row.id}
+                    row={row}
+                    selected={row.id === selectedId}
+                    active={pane === "sub" && i === subActive}
+                    onHover={() => {
+                      setPane("sub");
+                      setSubActive(i);
                     }}
-                    onMouseEnter={() => setActive(i)}
-                    className={ROW_CLS}
-                  >
-                    <Thumb
-                      src={rows.find((r) => r.thumbUrl)?.thumbUrl ?? ""}
-                      name={name}
-                      logo={rows.find((r) => r.logoUrl)?.logoUrl}
-                    />
-                    <span className="min-w-0 flex-1 text-body font-medium text-t1">
-                      {name}
-                    </span>
-                    {hasSelected && (
-                      <span className="h-1.5 w-1.5 flex-none rounded-full bg-ac" />
-                    )}
-                    <span className="flex-none text-caption text-t3">
-                      {rows.length}
-                    </span>
-                    <Icon
-                      d={SECTION_ICONS.chevronRight}
-                      className="h-4 w-4 flex-none text-t3"
-                    />
-                  </button>
-                );
-              })}
-              {singles.length > 0 && <SectionHead>More</SectionHead>}
-              {singles.map((row, i) => {
-                const idx = multi.length + i;
-                return (
-                  <ModelRow
-                    key={row.id}
-                    row={row}
-                    selected={row.id === selectedId}
-                    active={idx === active}
-                    onHover={() => setActive(idx)}
                     onPick={pick}
                   />
-                );
-              })}
-              {direct.length > 0 && <SectionHead>Presets</SectionHead>}
-              {direct.map((row, i) => {
-                const idx = multi.length + singles.length + i;
-                return (
-                  <ModelRow
-                    key={row.id}
-                    row={row}
-                    selected={row.id === selectedId}
-                    active={idx === active}
-                    onHover={() => setActive(idx)}
-                    onPick={pick}
-                  />
-                );
-              })}
-            </>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </PopoverPopup>

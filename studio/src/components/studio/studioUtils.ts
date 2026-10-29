@@ -71,6 +71,7 @@ export function stackThumbs(
   const seenIds = new Set<string>();
   for (const p of presets) {
     if (out.length >= max) return out;
+    if (!p.thumbUrl) continue;
     const key = p.model?.id ? modelFamily(p.model.id) : `url:${p.thumbUrl}`;
     if (seenFamilies.has(key)) continue;
     seenFamilies.add(key);
@@ -79,7 +80,7 @@ export function stackThumbs(
   }
   for (const p of presets) {
     if (out.length >= max) break;
-    if (seenIds.has(p.id) || p.model?.id.endsWith("-fast")) continue;
+    if (!p.thumbUrl || seenIds.has(p.id) || p.model?.id.endsWith("-fast")) continue;
     seenIds.add(p.id);
     out.push(p.thumbUrl);
   }

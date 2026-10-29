@@ -15,7 +15,12 @@ const nextConfig: NextConfig = {
     ],
     // Thumbnails are only read by the thumb route and fork creation.
     "/api/presets/*/thumb": webpTraces,
-    "/api/forks/**": webpTraces,
+    "/api/forks": webpTraces,
+  },
+  outputFileTracingExcludes: {
+    // Route keys match by substring, so "/api/forks" also hits the [id]
+    // children, which don't read thumbnails. Strip them back off.
+    "/api/forks/*": webpTraces,
   },
 };
 

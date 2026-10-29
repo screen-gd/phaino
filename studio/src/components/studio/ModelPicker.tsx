@@ -285,7 +285,7 @@ export function ModelPicker({
         side={side}
         align={align}
         sideOffset={sideOffset}
-        className={`max-h-[480px] rounded-2xl border-line bg-s2 p-0 shadow-xl shadow-black/50 duration-200 ease-out ${
+        className={`max-h-[480px] rounded-2xl border-line bg-s2 p-0 shadow-xl shadow-black/50 duration-200 ease-out [&_[data-slot=popover-viewport]]:p-0 ${
           flyout ? "w-[680px]" : "w-[340px]"
         }`}
         onKeyDown={onKeyDown}

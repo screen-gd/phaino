@@ -17,13 +17,28 @@ import '../styles/global.css';
 
 const github = 'https://github.com/screen-gd/phaino';
 const capabilities = [
-  { name: 'Images', file: 'image', model: 'FLUX.2', text: 'Text to image, style presets and characters that stay consistent.', class: 'cap-image' },
-  { name: 'Video', file: 'video', model: 'LTX 2.5', text: 'Turn a prompt or a still image into a moving shot.', class: 'cap-video' },
+  { name: 'Images', file: 'image', model: 'FLUX · QWEN · NANO BANANA', text: 'Text to image and edits, open weights or partner models.', class: 'cap-image' },
+  { name: 'Video', file: 'video', model: 'LTX · WAN · KLING · VEO', text: 'Turn a prompt or a still into a moving shot.', class: 'cap-video' },
   { name: 'Camera moves', file: 'moves', model: '7 PRESETS', text: 'Dolly in, orbit, crash zoom and more. One click each.', class: 'cap-moves' },
-  { name: 'Effects', file: 'effects', model: 'VFX PRESETS', text: 'Set extension, match cut, morph, explode and melt.', class: 'cap-effects' },
-  { name: 'Avatars', file: 'avatar', model: 'LIPSYNC', text: 'A photo plus a voice track becomes a talking shot.', class: 'cap-avatar' },
-  { name: 'Edit & upscale', file: 'edit', model: 'STILLS + VIDEO', text: 'Inpaint, outpaint, relight and upscale.', class: 'cap-edit' },
+  { name: 'Effects', file: 'effects', model: 'ONE CLICK', text: 'Upscale, FPS boost and depth maps. No prompt needed.', class: 'cap-effects' },
+  { name: 'Kawarimi', file: 'kawarimi', model: 'CHARACTER SWAP', text: 'Swap the character in a clip for one from an image. The audio stays.', class: 'cap-kawarimi' },
+  { name: 'Edit', file: 'edit', model: 'STILLS + VIDEO', text: 'Remove an object, relight, restyle, reframe or extend a shot.', class: 'cap-edit' },
 ];
+const partnerModels = [
+  { name: 'Nano Banana Pro', file: 'nano-banana-pro' },
+  { name: 'GPT Image 2.5', file: 'gpt-image-2-5' },
+  { name: 'Seedream 5 Pro', file: 'seedream-5-pro' },
+  { name: 'FLUX.3', file: 'flux-3' },
+  { name: 'Kling 3.0', file: 'kling-3' },
+  { name: 'Veo 3.1', file: 'veo-3-1' },
+];
+const partnerChips = ['Wan 3.0', 'Seedance 2.5', 'Runway Aleph', 'Luma Ray 3.2', 'Grok Imagine', 'Ideogram 4.5', 'Recraft V4', 'MiniMax H3', 'Krea 3'];
+const mcpTools = [
+  { group: 'Generate', tools: ['run_preset', 'extend_video', 'use_output_as_input'] },
+  { group: 'Cut', tools: ['add_to_sequence', 'update_sequence', 'export_sequence'] },
+  { group: 'Post', tools: ['list_social_accounts', 'post_to_social'] },
+];
+const mcpCommand = 'claude mcp add --transport http phaino http://127.0.0.1:3000/api/mcp';
 const moves = [
   { name: 'Orbit', file: 'orbit', subtitle: 'Find a different side.', type: 'arc', degrees: '90°', duration: '5s', number: '01', prompt: 'Slow orbit. Hold the subject.' },
   { name: 'Dolly in', file: 'dolly-in', subtitle: 'Get closer to the story.', type: 'push', degrees: '1.8×', duration: '4s', number: '02', prompt: 'Push in. Let the trees close around.' },
@@ -47,8 +62,8 @@ const communityColumns = Array.from({ length: community.length / 2 }, (_, index)
 const editTools = [
   { id: 'relight', name: 'Relight', before: 'Flat', after: 'Relit' },
   { id: 'upscale', name: 'Upscale', before: '540p', after: '2160p' },
-  { id: 'outpaint', name: 'Outpaint', before: 'Shot', after: 'Extended' },
-  { id: 'inpaint', name: 'Inpaint', before: 'Masked', after: 'Filled' },
+  { id: 'outpaint', name: 'Reframe', before: 'Shot', after: 'Reframed' },
+  { id: 'inpaint', name: 'Remove object', before: 'Masked', after: 'Removed' },
 ];
 const conform = [
   { label: 'Frame rate', options: ['24', '25', '30'], active: '24' },
@@ -97,9 +112,9 @@ const setupCommands = [
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
       <a class="wordmark" href="#" aria-label="Phaino home"><Logo /></a>
-      <nav class="desktop-nav" aria-label="Main navigation"><a href="#workflows">How it works</a><a href="#studio">Features</a><a href="#presets">Presets</a><a href="#community">Community</a><a href="#run">Run it free</a></nav>
+      <nav class="desktop-nav" aria-label="Main navigation"><a href="#workflows">How it works</a><a href="#studio">Features</a><a href="#models">Models</a><a href="#mcp">MCP</a><a href="#presets">Presets</a><a href="#community">Community</a><a href="#run">Run it free</a></nav>
       <div class="header-actions"><button class="motion-toggle" aria-pressed="false" aria-label="Motion on. Pause animated motion"><span class="status-dot"></span><span data-motion-label>Motion on</span></button><a class="header-github" href={github} target="_blank" rel="noreferrer"><Icon name="github" size={17}/><span>GitHub</span><span class="star-count" data-stars hidden></span><span aria-hidden="true">↗</span></a>
-        <details class="mobile-menu"><summary>Menu <Icon name="plus" size={16}/></summary><nav aria-label="Mobile navigation"><a href="#workflows">How it works</a><a href="#studio">Features</a><a href="#presets">Presets</a><a href="#community">Community</a><a href="#run">Run it free</a></nav></details>
+        <details class="mobile-menu"><summary>Menu <Icon name="plus" size={16}/></summary><nav aria-label="Mobile navigation"><a href="#workflows">How it works</a><a href="#studio">Features</a><a href="#models">Models</a><a href="#mcp">MCP</a><a href="#presets">Presets</a><a href="#community">Community</a><a href="#run">Run it free</a></nav></details>
       </div>
     </header>
 
@@ -120,10 +135,16 @@ const setupCommands = [
       <BringToLight github={github} />
 
       <section id="studio" class="screen capabilities-section section-shell" aria-labelledby="studio-heading">
-        <div class="section-head" data-reveal><h2 id="studio-heading">One studio for images and video<span class="accent">.</span></h2><p>FLUX.2 for images and LTX 2.5 for video.</p></div>
+        <div class="section-head" data-reveal><h2 id="studio-heading">One studio for images and video<span class="accent">.</span></h2><p>Open weights on Comfy Cloud, plus 100+ partner models.</p></div>
         <div class="capabilities-grid">{capabilities.map((cap) => <article class:list={['capability', cap.class]} data-reveal>
           <button class="capability-preview" data-cursor="Expand" data-showcase={cap.name} data-poster={`capabilities/${cap.file}`} data-description={cap.text} aria-label={`${cap.name}: ${cap.text}`}><Media name={`capabilities/${cap.file}`} alt=""/><span class="capability-shade"></span><span class="capability-top mono">{cap.model}<span class="expand-icon"><Icon name="plus" size={17}/></span></span><span class="capability-copy"><strong>{cap.name}</strong><span>{cap.text}</span></span></button>
         </article>)}</div>
+      </section>
+
+      <section id="models" class="screen models-section section-shell" aria-labelledby="models-heading">
+        <div class="section-head" data-reveal><h2 id="models-heading">100+ partner models. One key<span class="accent">.</span></h2><p>Kling, Veo, Seedance, Nano Banana, GPT Image and more run through Comfy Router on your Comfy key. Partner runs use Comfy credits.</p></div>
+        <div class="models-grid" data-reveal>{partnerModels.map((model) => <figure class="model-tile"><Media name={`partners/${model.file}`} alt={`${model.name} sample render`}/><figcaption class="model-name mono">{model.name}</figcaption></figure>)}</div>
+        <div class="model-chips mono" data-reveal>{partnerChips.map((chip) => <span>{chip}</span>)}<span class="muted">and more</span></div>
       </section>
 
       <section id="moves" class="moves-section" aria-labelledby="moves-heading">
@@ -143,7 +164,7 @@ const setupCommands = [
       </section>
 
       <section id="edit" class="screen edit-section section-shell" aria-labelledby="edit-heading">
-        <div class="section-head" data-reveal><h2 id="edit-heading">Fix a shot without starting over<span class="accent">.</span></h2><div class="edit-side"><p>Relight, upscale, extend the frame or paint out an object. Works on stills and video.</p><div class="edit-tools" role="group" aria-label="Edit tool">{editTools.map((tool, index) => <button class:list={['filter', { active: index === 0 }]} aria-pressed={index === 0 ? 'true' : 'false'} data-tool={tool.id} data-before={tool.before} data-after={tool.after}>{tool.name}</button>)}</div></div></div>
+        <div class="section-head" data-reveal><h2 id="edit-heading">Fix a shot without starting over<span class="accent">.</span></h2><div class="edit-side"><p>Relight, restyle, reframe or remove an object. Works on stills and video.</p><div class="edit-tools" role="group" aria-label="Edit tool">{editTools.map((tool, index) => <button class:list={['filter', { active: index === 0 }]} aria-pressed={index === 0 ? 'true' : 'false'} data-tool={tool.id} data-before={tool.before} data-after={tool.after}>{tool.name}</button>)}</div></div></div>
         <div class="comparison-wrap" data-reveal><div class="comparison" data-tool-view="relight" data-cursor="Drag" style="--split: 50%"><img class="comparison-after" src="/media/edit/after.webp" alt="Illustrative mountain lake after the edit" width="1200" height="900" loading="lazy"/><div class="comparison-before"><img src="/media/edit/before.webp" alt="The same mountain lake before the edit" width="1200" height="900" loading="lazy"/><span class="inpaint-mask" aria-hidden="true"></span></div><div class="comparison-labels mono" aria-hidden="true"><span data-before-label>FLAT</span><span data-after-label>RELIT</span></div><div class="comparison-handle" aria-hidden="true"><span>‹ ›</span></div><input type="range" min="0" max="100" value="50" aria-label="Compare before and after. Move left to reveal the edited frame." /></div><p class="comparison-caption">Illustrative: one photograph, treated in CSS to show what each tool does.</p></div>
       </section>
 
@@ -188,7 +209,15 @@ const setupCommands = [
         </div>
       </section>
 
-      <section id="export" class="screen export-section section-shell" aria-labelledby="export-heading"><div class="section-head" data-reveal><h2 id="export-heading">Edit it here. Finish it anywhere<span class="accent">.</span></h2><p>Trim and sequence your renders in the Phaino editor, right in the browser. Conform frame rate, resolution and handles, then import the package into Resolve, Premiere or Final Cut.</p></div><div class="editor-mock" data-reveal><div class="timeline" role="img" aria-label="Illustrative Phaino editor timeline: a Phaino shot on video track two, with handles, above your original footage"><div class="timeline-toolbar"><span><span class="status-dot"></span> PHAINO_SEQUENCE</span><span class="mono">24 FPS <span class="muted">/</span> 3840 × 2160 <span class="muted">/</span> 12F HANDLES</span></div><div class="timeline-body"><div class="timeline-ruler mono"><span>01:00:00:00</span><span>01:00:02:00</span><span>01:00:04:00</span><span>01:00:06:00</span><span>01:00:08:00</span></div><div class="timeline-track"><span class="track-label mono">V2</span><div class="generated-clip"><span class="clip-handle left-handle"></span><img src="/media/moves/orbit.webp" alt="" width="120" height="68" loading="lazy" /><span class="mono">PHAINO_ORBIT_001 <span>+12F</span></span><span class="clip-handle right-handle"></span></div></div><div class="timeline-track"><span class="track-label mono">V1</span><div class="source-clip"><span class="mono">A001_C004_SHORE</span></div><div class="source-clip short-clip"><span class="mono">A001_C007</span></div></div><div class="timeline-track audio-track"><span class="track-label mono">A1</span><div class="waveform" aria-hidden="true"></div></div><div class="timeline-playhead" aria-hidden="true"><span></span></div></div></div><div class="conform-panel" role="img" aria-label="Illustrative export settings: 24 fps, 4K, 12 frame handles, ProRes 422"><div class="conform-head"><strong>Conform</strong><span class="mono muted">HANDLES INCLUDED</span></div>{conform.map((group) => <div class="conform-group"><span>{group.label}</span><div class="conform-options">{group.options.map((option) => <span class:list={{ active: option === group.active }}>{option}</span>)}</div></div>)}<span class="conform-export">Export package</span></div></div><div class="export-formats"><span class="export-lead">Imports into</span><span>DaVinci Resolve</span><span>Premiere Pro</span><span>Final Cut Pro</span><span class="muted">FCPXML · EDL · ProRes · H.264</span></div></section>
+      <section id="export" class="screen export-section section-shell" aria-labelledby="export-heading"><div class="section-head" data-reveal><h2 id="export-heading">Edit it here. Finish it anywhere<span class="accent">.</span></h2><p>Trim and sequence your renders in the Phaino editor, right in the browser. Conform frame rate, resolution and handles, then import the package into Resolve, Premiere or Final Cut.</p></div><div class="editor-mock" data-reveal><div class="timeline" role="img" aria-label="Illustrative Phaino editor timeline: a Phaino shot on video track two, with handles, above your original footage"><div class="timeline-toolbar"><span><span class="status-dot"></span> PHAINO_SEQUENCE</span><span class="mono">24 FPS <span class="muted">/</span> 3840 × 2160 <span class="muted">/</span> 12F HANDLES</span></div><div class="timeline-body"><div class="timeline-ruler mono"><span>01:00:00:00</span><span>01:00:02:00</span><span>01:00:04:00</span><span>01:00:06:00</span><span>01:00:08:00</span></div><div class="timeline-track"><span class="track-label mono">V2</span><div class="generated-clip"><span class="clip-handle left-handle"></span><img src="/media/moves/orbit.webp" alt="" width="120" height="68" loading="lazy" /><span class="mono">PHAINO_ORBIT_001 <span>+12F</span></span><span class="clip-handle right-handle"></span></div></div><div class="timeline-track"><span class="track-label mono">V1</span><div class="source-clip"><span class="mono">A001_C004_SHORE</span></div><div class="source-clip short-clip"><span class="mono">A001_C007</span></div></div><div class="timeline-track audio-track"><span class="track-label mono">A1</span><div class="waveform" aria-hidden="true"></div></div><div class="timeline-playhead" aria-hidden="true"><span></span></div></div></div><div class="conform-panel" role="img" aria-label="Illustrative export settings: 24 fps, 4K, 12 frame handles, ProRes 422"><div class="conform-head"><strong>Conform</strong><span class="mono muted">HANDLES INCLUDED</span></div>{conform.map((group) => <div class="conform-group"><span>{group.label}</span><div class="conform-options">{group.options.map((option) => <span class:list={{ active: option === group.active }}>{option}</span>)}</div></div>)}<span class="conform-export">Export package</span></div></div><div class="export-formats"><span class="export-lead">Imports into</span><span>DaVinci Resolve</span><span>Premiere Pro</span><span>Final Cut Pro</span><span class="muted">FCPXML · EDL · ProRes · H.264</span></div><div class="export-formats"><span class="export-lead">Posts to</span><span>X</span><span>LinkedIn</span><span>Threads</span><span class="muted">through Zernio</span></div></section>
+
+      <section id="mcp" class="screen mcp-section section-shell" aria-labelledby="mcp-heading">
+        <div class="section-head" data-reveal><h2 id="mcp-heading">Hand it to your agent<span class="accent">.</span></h2><p>Connect Claude Code or any MCP client to your local studio. It generates, cuts the sequence and posts the result on your Comfy key.</p></div>
+        <div class="mcp-body" data-reveal>
+          <div class="terminal" id="mcp-terminal"><div class="terminal-bar"><span class="terminal-lights" aria-hidden="true"><i></i><i></i><i></i></span><span class="mono">~/phaino</span><button type="button" class="copy-button" data-copy-setup><Icon name="copy" size={15}/><span>Copy</span></button></div><pre><code><span class="terminal-prompt" aria-hidden="true">$</span> <span data-setup-command>{mcpCommand}</span>{'\n'}</code></pre></div>
+          <div class="mcp-groups">{mcpTools.map((group) => <div class="mcp-group"><h3>{group.group}</h3><ul class="mono">{group.tools.map((tool) => <li>{tool}</li>)}</ul></div>)}</div>
+        </div>
+      </section>
 
       <div class="challenge-credit section-shell"><a class="challenge-pill" href="https://comfy.org/open-source-higgsfield" target="_blank" rel="noreferrer"><Logo markOnly /><p>Built for Comfy’s <span>Open Source Higgsfield</span> challenge.</p></a></div>
 

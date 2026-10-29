@@ -12,8 +12,10 @@ public/media/capabilities/image.mp4
 public/media/capabilities/video.mp4
 public/media/capabilities/moves.mp4
 public/media/capabilities/effects.mp4
-public/media/capabilities/avatar.mp4
+public/media/capabilities/kawarimi.mp4
 public/media/capabilities/edit.mp4
+public/media/partners/kling-3.mp4
+public/media/partners/veo-3-1.mp4
 public/media/moves/orbit.mp4
 public/media/moves/dolly-in.mp4
 public/media/moves/crash-zoom.mp4
@@ -37,7 +39,9 @@ Photos served by Unsplash, under the [Unsplash License](https://unsplash.com/lic
 | Effects, whip-pan, into the blue | https://images.unsplash.com/photo-1518837695005-2083093ee35b |
 | Edit, bullet time, a little closer, before/after, quiet orbit | https://images.unsplash.com/photo-1470770841072-f978cf4d019e |
 
-`capabilities/avatar.webp` is a frame from the LTX 2.3 image-plus-audio workflow output (`video_ltx2_3_ia2v.mp4`) in [Comfy-Org/workflow_templates](https://github.com/Comfy-Org/workflow_templates), MIT License, Copyright (c) 2023-present Comfy Org. Credit: Comfy.
+The `partners/` stills and clips are real outputs generated in Phaino through Comfy Router on our own account: Nano Banana Pro, GPT Image 2.5, Seedream 5.0 Pro, FLUX.3, Kling 3.0 and Veo 3.1.
+
+`capabilities/kawarimi.webp` and `capabilities/kawarimi.mp4` come from a Kawarimi character swap made in Phaino from our own generated footage and an original character.
 
 All served locally as compressed WebP. No third-party image requests occur at runtime.
 

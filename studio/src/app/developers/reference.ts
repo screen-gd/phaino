@@ -43,6 +43,10 @@ export const reference: { title: string; endpoints: Endpoint[] }[] = [
     ["GET", "/api/exports/:id/:file", "Export job id and a path in job.outputs", "200 file download"],
     ["GET", "/api/exports/:id/zip", "Export job id", "200 application/zip"],
   ] },
+  { title: "Edits", endpoints: [
+    ["POST", "/api/edits/extend", "{uploadId, modelId, prompt?}", "201 {job}; continues the video from its last frame"],
+    ["POST", "/api/edits/join", "{uploadId, result}: source upload and the extend output path", "200 {ok}; appends both to the Editor"],
+  ] },
   { title: "Health", endpoints: [
     ["GET", "/api/health", "None", "200 {status, target: cloud|custom, host, latencyMs: number|null, message?: string}"],
   ] },

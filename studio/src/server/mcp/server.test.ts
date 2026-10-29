@@ -6,6 +6,8 @@ import { DELETE, GET, POST } from "@/app/api/mcp/route";
 import { getEnv } from "@/server/env";
 import * as jobs from "@/server/jobs/store";
 import * as runner from "@/server/jobs/runner";
+import { emptySequence, type Sequence } from "@/server/sequence/model";
+import * as sequenceStore from "@/server/sequence/store";
 import { toolHandlers } from "./server";
 
 afterEach(() => {
@@ -38,7 +40,11 @@ describe("MCP tool handlers", () => {
       store.update("test-job", { status: "succeeded", progress: 1, outputs: ["orbit/a shot.mp4"] }, now);
       expect(toolHandlers.get_job({ id: "test-job" })).toMatchObject({
         id: "test-job", status: "succeeded", progress: 1, outputs: ["/api/outputs/orbit/a%20shot.mp4"],
+        outputPaths: ["orbit/a shot.mp4"],
       });
+      expect(toolHandlers.list_jobs({ category: "camera" })).toEqual([
+        expect.objectContaining({ id: "test-job", status: "succeeded", outputPaths: ["orbit/a shot.mp4"] }),
+      ]);
     } finally {
       db.close();
     }
@@ -69,6 +75,20 @@ describe("MCP tool handlers", () => {
     }
   });
 
+  it("patches the Editor sequence through the shared store and rejects bad titles", async () => {
+    let current: Sequence = emptySequence();
+    const updateSequence = vi.fn(async (patch: Partial<Sequence>) => (current = { ...current, ...patch }));
+    vi.spyOn(sequenceStore, "getSequenceStore").mockReturnValue({
+      getSequence: async () => current,
+      updateSequence,
+    } as unknown as ReturnType<typeof sequenceStore.getSequenceStore>);
+    const title = { id: "t1", text: "Phaino", start: 0, duration: 48, position: "center", size: "l" } as const;
+    const view = await toolHandlers.update_sequence({ aspect: "9:16", titles: [title] });
+    expect(view.sequence).toMatchObject({ aspect: "9:16", titles: [title] });
+    expect(updateSequence).toHaveBeenCalledWith({ aspect: "9:16", titles: [title] });
+    await expect(toolHandlers.update_sequence({ titles: [{ ...title, text: "" }] })).rejects.toThrow();
+  });
+
   it("rejects malformed params and demo runs before accessing the runner", () => {
     expect(() => toolHandlers.run_preset({ presetId: "" })).toThrow();
     vi.stubEnv("PHAINO_DEMO", "on");
@@ -97,7 +117,11 @@ describe("MCP HTTP transport", () => {
     const listed = await POST(rpcRequest({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} }));
     expect(listed.status).toBe(200);
     const result = z.object({ result: z.object({ tools: z.array(z.object({ name: z.string() })) }) }).parse(await listed.json());
-    expect(result.result.tools.map((tool) => tool.name)).toEqual(["list_presets", "get_preset", "get_workflow", "run_preset", "get_job"]);
+    expect(result.result.tools.map((tool) => tool.name)).toEqual([
+      "list_presets", "get_preset", "get_workflow", "run_preset", "get_job", "list_jobs", "cancel_job",
+      "upload_media", "use_output_as_input", "extend_video", "get_sequence", "add_to_sequence",
+      "import_media", "upload_to_editor", "update_sequence", "remove_clip", "export_sequence",
+    ]);
   });
 
   it("calls real catalog tools and returns tool errors over JSON-RPC", async () => {

@@ -39,7 +39,9 @@ Photos served by Unsplash, under the [Unsplash License](https://unsplash.com/lic
 | Effects, whip-pan, into the blue | https://images.unsplash.com/photo-1518837695005-2083093ee35b |
 | Edit, bullet time, a little closer, before/after, quiet orbit | https://images.unsplash.com/photo-1470770841072-f978cf4d019e |
 
-`capabilities/kawarimi.webp`, `capabilities/kawarimi.mp4` and the `partners/` stills and clips are Phaino-generated outputs copied from the studio's sample set (`studio/public/explore/examples/kawarimi_2.*` and `studio/public/explore/partners/`). The studio's `public/explore/README.md` does not record their upstream provenance; treat them as Phaino sample renders pending documentation there.
+The `partners/` stills and clips are real outputs generated in Phaino through Comfy Router on our own account: Nano Banana Pro, GPT Image 2.5, Seedream 5.0 Pro, FLUX.3, Kling 3.0 and Veo 3.1.
+
+`capabilities/kawarimi.webp` and `capabilities/kawarimi.mp4` come from a Kawarimi character swap made in Phaino from our own generated footage and an original character.
 
 All served locally as compressed WebP. No third-party image requests occur at runtime.
 

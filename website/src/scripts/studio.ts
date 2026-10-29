@@ -161,6 +161,7 @@ const videoObserver = new IntersectionObserver((entries) => {
 }, { rootMargin: '100px' });
 document.querySelectorAll<HTMLVideoElement>('video[data-src]').forEach((video) => {
   videoObserver.observe(video);
+  video.addEventListener('playing', () => { video.dataset.live = 'true'; });
   video.playbackRate = .6;
   video.closest('.move-preview')?.addEventListener('pointerenter', () => { video.playbackRate = 1; });
   video.closest('.move-preview')?.addEventListener('pointerleave', () => { video.playbackRate = .6; });

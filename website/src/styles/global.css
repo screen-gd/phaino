@@ -137,6 +137,8 @@ p { line-height: 1.55; font-size: 17px; }
 .capability-preview > .media { transition: transform 900ms var(--ease); }
 .capability-preview:hover > .media { transform: scale(1.04); }
 .capability-preview .media img { filter: saturate(.55) brightness(.8); }
+.capability-preview::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 35%; z-index: 1; pointer-events: none; background: linear-gradient(180deg,rgba(0,0,0,.45),transparent); }
+.capability-top, .capability-copy { z-index: 2; }
 .capability-shade { position: absolute; inset: 0; background: linear-gradient(0deg,#000000eb,transparent 66%); }
 .capability-top { position: absolute; top: 22px; left: 24px; right: 22px; display: flex; justify-content: space-between; align-items: center; color: #f2f2f2; font-size: 11px; }
 .expand-icon { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 1px solid #ffffff40; border-radius: 50%; transition: transform 250ms var(--ease), background-color 250ms, border-color 250ms, color 250ms; }
@@ -296,6 +298,7 @@ p { line-height: 1.55; font-size: 17px; }
 .timeline-playhead > span { display: block; width: 12px; height: 14px; background: var(--accent); margin-left: -5px; clip-path: polygon(0 0,100% 0,100% 65%,50% 100%,0 65%); }
 .export-formats { display: flex; flex-wrap: wrap; gap: 12px 32px; margin-top: 22px; font-size: 15px; }
 .export-formats + .export-formats { margin-top: 12px; }
+.export-formats + .export-formats > .muted { margin-left: 0; }
 .export-formats > .muted { margin-left: auto; font-size: 13px; align-self: center; }
 .export-formats > .export-lead { color: var(--muted); }
 
@@ -304,6 +307,8 @@ p { line-height: 1.55; font-size: 17px; }
 .model-tile { position: relative; margin: 0; aspect-ratio: 3/4; overflow: hidden; border-radius: var(--radius-panel); background: var(--surface); }
 .model-tile .media { position: absolute; inset: 0; }
 .model-tile .media img { filter: saturate(.55) brightness(.85); }
+.model-tile .media video { object-fit: cover; opacity: 0; transition: opacity .3s var(--ease); }
+.model-tile .media video[data-live] { opacity: 1; }
 .model-tile .media-corners { display: none; }
 .model-name { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; padding: 30px 16px 14px; background: linear-gradient(0deg,#000000e6,transparent); color: #f2f2f2; font-size: 11px; }
 .model-chips { display: flex; flex-wrap: wrap; gap: 9px 24px; margin-top: 24px; color: #d6d6d6; font-size: 12px; }

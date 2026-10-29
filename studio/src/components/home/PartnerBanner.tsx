@@ -1,16 +1,65 @@
 import Link from "next/link";
 
 // Real renders from each model; files live in public/explore/partners.
-const IMAGES = [
-  { preset: "gemini-3-pro-image", name: "Nano Banana Pro", src: "nano-banana-pro.webp" },
-  { preset: "gpt-image-2-5-flare", name: "GPT Image 2.5", src: "gpt-image-2-5.webp" },
-  { preset: "seedream-5-0-pro", name: "Seedream 5.0 Pro", src: "seedream-5-pro.webp" },
-  { preset: "flux-3-image", name: "FLUX.3", src: "flux-3.webp" },
-] as const;
-
 const BASE = "/explore/partners/";
 
-/** Flagship Router models: image renders left, video renders right. */
+// Each wall lists its panels outermost first so the largest sits on top.
+const LEFT_WALL = [
+  { name: "Nano Banana Pro", href: "/image?preset=gemini-3-pro-image", src: "nano-banana-pro.webp", pos: "left-0", h: "h-[60%]" },
+  { name: "GPT Image 2.5", href: "/image?preset=gpt-image-2-5-flare", src: "gpt-image-2-5.webp", pos: "left-[24%]", h: "h-[74%]" },
+  { name: "Seedream 5.0 Pro", href: "/image?preset=seedream-5-0-pro", src: "seedream-5-pro.webp", pos: "left-[46%]", h: "h-[88%]" },
+] as const;
+
+const RIGHT_WALL = [
+  { name: "FLUX.3", href: "/image?preset=flux-3-image", src: "flux-3.webp", pos: "right-0", h: "h-[60%]" },
+  { name: "Kling 3.0", href: "/video?preset=kling-v3", src: "kling-3.webp", video: "kling-3.mp4", pos: "right-[24%]", h: "h-[74%]" },
+  { name: "Veo 3.1", href: "/video?preset=veo-3-1", src: "veo-3-1.webp", video: "veo-3-1.mp4", pos: "right-[46%]", h: "h-[88%]" },
+] as const;
+
+function Panel({
+  item,
+  flip,
+}: {
+  item: (typeof LEFT_WALL)[number] | (typeof RIGHT_WALL)[number];
+  flip?: boolean;
+}) {
+  return (
+    <Link
+      href={item.href}
+      aria-label={item.name}
+      className={`absolute top-1/2 aspect-[3/4] ${item.pos} ${item.h} -translate-y-1/2 overflow-hidden rounded-lg border border-line bg-s1 shadow-[0_18px_40px_#000c] motion-safe:transition-transform motion-safe:duration-200 motion-safe:hover:scale-[1.04] ${
+        flip ? "[transform:rotateY(-42deg)]" : "[transform:rotateY(42deg)]"
+      }`}
+    >
+      {"video" in item && item.video ? (
+        <video
+          src={BASE + item.video}
+          poster={BASE + item.src}
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 size-full object-cover"
+        />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={BASE + item.src}
+          alt=""
+          width={360}
+          height={480}
+          loading="lazy"
+          className="absolute inset-0 size-full object-cover"
+        />
+      )}
+      <span className="absolute bottom-1.5 left-1.5 rounded-sm bg-black/70 px-1.5 py-0.5 font-mono text-[10px] text-t1">
+        {item.name}
+      </span>
+    </Link>
+  );
+}
+
+/** Partner models on Comfy Router: perspective media walls flank the pitch. */
 export function PartnerBanner() {
   return (
     <section
@@ -18,93 +67,45 @@ export function PartnerBanner() {
       className="@container relative isolate overflow-hidden rounded-panel border border-line bg-black"
     >
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_80%_at_50%_120%,var(--color-ac),transparent)] opacity-35" />
-        <div className="absolute inset-x-[-30%] bottom-[-55%] h-full origin-top [transform:perspective(450px)_rotateX(58deg)] [mask-image:linear-gradient(transparent,#000_75%)]">
-          <div className="size-full bg-[linear-gradient(to_right,var(--color-ac)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-ac)_1px,transparent_1px)] bg-size-[56px_40px] opacity-12" />
-        </div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_80%_at_50%_120%,var(--color-ac),transparent)] opacity-25" />
       </div>
 
-      <div className="absolute top-1/2 left-[2.5%] hidden w-[30%] max-w-[380px] -translate-y-1/2 -rotate-4 @min-[48rem]:block">
-        <div className="grid grid-cols-2 gap-2 rounded-xl border border-line bg-s1/90 p-2 shadow-[0_20px_48px_#000c]">
-          {IMAGES.map((m) => (
-            <Link
-              key={m.preset}
-              href={`/image?preset=${m.preset}`}
-              className="group relative block overflow-hidden rounded-md"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={BASE + m.src}
-                alt={`${m.name} render`}
-                width={360}
-                height={360}
-                loading="lazy"
-                className="aspect-square w-full object-cover motion-safe:transition-transform motion-safe:duration-300 group-hover:scale-[1.04]"
-              />
-              <span className="absolute inset-x-1.5 bottom-1.5 truncate rounded-sm bg-black/70 px-1.5 py-0.5 font-mono text-[10px] text-t1">
-                <span className="text-ac">●</span> {m.name}
-              </span>
-            </Link>
-          ))}
-        </div>
+      <div className="absolute inset-y-[4%] left-[-3%] hidden w-[34%] [perspective:900px] [mask-image:linear-gradient(to_right,black_80%,transparent_99%)] @min-[48rem]:block">
+        {LEFT_WALL.map((item) => (
+          <Panel key={item.name} item={item} />
+        ))}
       </div>
 
-      <div className="relative mx-auto flex min-h-[330px] max-w-xl flex-col items-center justify-center px-5 py-14 text-center @min-[48rem]:min-h-[440px] @min-[48rem]:w-[34%] @min-[48rem]:px-0">
+      <div className="absolute inset-y-[4%] right-[-3%] hidden w-[34%] [perspective:900px] [mask-image:linear-gradient(to_left,black_80%,transparent_99%)] @min-[48rem]:block">
+        {RIGHT_WALL.map((item) => (
+          <Panel key={item.name} item={item} flip />
+        ))}
+      </div>
+
+      <div className="relative z-10 mx-auto flex min-h-[330px] max-w-xl flex-col items-center justify-center px-5 py-14 text-center @min-[48rem]:min-h-[440px] @min-[48rem]:w-[30%] @min-[48rem]:px-0">
+        <span className="text-caption tracking-[0.3em] uppercase text-t2">
+          Comfy Router
+        </span>
         <h2
           id="partner-banner-title"
-          className="font-display text-h2 leading-[1.05] font-bold tracking-tight text-balance text-t1 sm:text-h1 @min-[64rem]:text-[48px]"
+          className="mt-4 font-display text-h2 leading-[1.05] font-extrabold uppercase tracking-tight text-t1 font-stretch-[112.5%] sm:text-h1 @min-[64rem]:text-[48px]"
         >
           Partner models
         </h2>
-        <p className="mt-5 max-w-80 text-body leading-relaxed text-pretty text-t2">
-          Veo 3.1, Kling 3.0, Nano Banana Pro, GPT Image 2.5 and 100+ more on Comfy Router.
+        <span className="mt-6 rounded-2xl border-[3px] border-ac px-7 py-3 font-display text-h3 font-extrabold uppercase tracking-wide text-ac shadow-[inset_0_0_22px_4px_rgba(255,91,34,0.4),0_0_36px_4px_rgba(255,91,34,0.5),0_0_90px_-10px_rgba(255,91,34,0.45)]">
+          100+ models
+        </span>
+        <p className="mt-6 text-body text-t3">
+          Veo 3.1, Kling 3.0, Nano Banana Pro, GPT Image 2.5 and more.
+        </p>
+        <p className="mt-1.5 text-body font-medium text-t1">
+          One key, every partner model.
         </p>
         <Link
           href="/video?preset=veo-3-1"
-          className="mt-7 inline-flex min-h-12 items-center justify-center rounded-full bg-white px-6 text-body font-semibold text-black motion-safe:transition-transform motion-safe:duration-150 motion-safe:hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          className="mt-7 inline-flex min-h-12 items-center justify-center rounded-lg bg-ac px-6 text-body font-semibold text-on motion-safe:transition-transform motion-safe:duration-150 motion-safe:hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ac"
         >
           Try Veo 3.1
-        </Link>
-      </div>
-
-      <div className="absolute top-1/2 right-[2.5%] hidden w-[31%] max-w-[400px] -translate-y-1/2 @min-[48rem]:block">
-        <Link
-          href="/video?preset=kling-v3"
-          className="absolute -top-[18%] right-[8%] block w-[62%] rotate-6 overflow-hidden rounded-lg border border-line shadow-[0_16px_36px_#000c]"
-        >
-          <video
-            src={`${BASE}kling-3.mp4`}
-            poster={`${BASE}kling-3.webp`}
-            autoPlay
-            muted
-            loop
-            playsInline
-            aria-label="Kling 3.0 render"
-            className="aspect-video w-full object-cover"
-          />
-          <span className="absolute top-1.5 left-1.5 rounded-sm bg-black/70 px-1.5 py-0.5 font-mono text-[10px] text-t1">
-            Kling 3.0
-          </span>
-        </Link>
-        <Link
-          href="/video?preset=veo-3-1"
-          className="relative mt-[22%] block rotate-3 overflow-hidden rounded-xl border border-line shadow-[0_20px_48px_#000c]"
-        >
-          <video
-            src={`${BASE}veo-3-1.mp4`}
-            poster={`${BASE}veo-3-1.webp`}
-            autoPlay
-            muted
-            loop
-            playsInline
-            aria-label="Veo 3.1 render"
-            className="aspect-video w-full object-cover"
-          />
-          <span className="absolute inset-x-2.5 bottom-2.5 flex items-center gap-2 rounded-md border border-ac/80 bg-black/60 px-2.5 py-1.5 font-mono text-caption text-t1">
-            Veo 3.1
-            <span className="h-1 flex-1 rounded-full bg-[linear-gradient(90deg,var(--color-ac)_40%,#444_40%)]" />
-            1080p
-          </span>
         </Link>
       </div>
     </section>

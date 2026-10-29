@@ -408,13 +408,15 @@ export function EditStudio({
           >
             {s.job && effects ? (
               <div className="flex min-h-[240px] w-full max-w-[1100px] flex-col lg:h-full">
-                <StageResult
-                  key={s.job.id}
-                  job={s.job}
-                  presetName={(id) => presets.find((p) => p.id === id)?.name ?? id}
-                  onCancel={() => void s.cancel()}
-                  aspect="wide"
-                />
+                <div className="flex min-h-0 flex-1 flex-col">
+                  <StageResult
+                    key={s.job.id}
+                    job={s.job}
+                    presetName={(id) => presets.find((p) => p.id === id)?.name ?? id}
+                    onCancel={() => void s.cancel()}
+                    aspect="wide"
+                  />
+                </div>
                 <button type="button" onClick={s.clearJob} className="mt-3 self-start text-caption text-t2 underline underline-offset-4 hover:text-t1">
                   New effect
                 </button>

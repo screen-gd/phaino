@@ -26,7 +26,6 @@ export default function KawarimiPage() {
     id: engine.presetId,
     label: engine.label,
     license: engine.license,
-    badge: engine.badge,
     maxSeconds: engine.maxSeconds,
     preset: {
       ...toStudioPreset(loaded!.preset),

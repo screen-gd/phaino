@@ -584,6 +584,12 @@
           "notes": "New Comfy key works on Router: Nano Banana 2 ran live. Kling and Seedance still need a live run each. Note: Cloud API workflow submission needs a paid Comfy plan (free tier is Router-only)."
         },
         {
+          "id": "m11-agent-mcp",
+          "title": "MCP tools for agents: uploads, library, Editor timeline and export",
+          "status": "done",
+          "notes": "17 tools; server instructions describe the goal loop. Local only; the hosted demo blocks MCP writes."
+        },
+        {
           "id": "m11-home-partners",
           "title": "Home partner models banner, picker brand groups and logos",
           "status": "doing",

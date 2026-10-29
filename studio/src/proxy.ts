@@ -20,6 +20,13 @@ export function proxy(request: NextRequest) {
     return NextResponse.json({ configured: false, source: null, maskedKey: null, baseUrl: "" });
   }
   if (pathname === "/api/comfy/balance") return NextResponse.json({ credits: null });
+  // Never use or reveal a server-side Zernio key on the hosted demo.
+  if (pathname === "/api/social/credentials") {
+    return NextResponse.json({ configured: false, maskedKey: null });
+  }
+  if (pathname === "/api/social/accounts") {
+    return NextResponse.json({ configured: false, accounts: [] });
+  }
   return NextResponse.next();
 }
 

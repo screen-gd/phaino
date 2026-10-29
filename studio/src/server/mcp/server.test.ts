@@ -120,7 +120,7 @@ describe("MCP HTTP transport", () => {
     expect(result.result.tools.map((tool) => tool.name)).toEqual([
       "list_presets", "get_preset", "get_workflow", "run_preset", "get_job", "list_jobs", "cancel_job",
       "upload_media", "use_output_as_input", "extend_video", "get_sequence", "add_to_sequence",
-      "import_media", "upload_to_editor", "update_sequence", "remove_clip", "export_sequence",
+      "import_media", "upload_to_editor", "update_sequence", "remove_clip", "export_sequence", "list_social_accounts", "post_to_social",
     ]);
   });
 

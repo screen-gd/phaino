@@ -17,6 +17,7 @@ import { getPreset, listPresets } from "@/server/presets/load";
 import { cancelExport, startExport } from "@/server/sequence/export";
 import { audioClipSchema, clipSchema, layout, titleSchema } from "@/server/sequence/model";
 import { UPLOAD_EXTS, UPLOAD_MAX_BYTES, getSequenceStore } from "@/server/sequence/store";
+import { getZernioKey, listSocialAccounts, postOutput, zernioClient } from "@/server/social/zernio";
 import { saveUpload, saveUploadFromPath } from "@/server/uploads";
 
 const idSchema = z.object({ id: z.string().min(1) });
@@ -56,6 +57,11 @@ const exportSchema = z.object({
   action: z.enum(["render", "package"]).default("render"),
   codec: z.enum(["h264", "prores"]).default("h264"),
 });
+const socialPostSchema = z.object({
+  path: z.string().min(1),
+  text: z.string().max(5000).default(""),
+  accountIds: z.array(z.string().min(1)).min(1),
+});
 const extendSchema = z.object({
   uploadId: z.string().min(1),
   modelId: z.string().min(1),
@@ -69,7 +75,8 @@ To work toward a goal:
 3. Poll get_job until status is succeeded, failed or cancelled. outputPaths feed the next step.
 4. Build the cut: add_to_sequence for each shot, upload_to_editor or import_media for music, then update_sequence for order, trims, transitions, audio and titles.
 5. export_sequence, then poll get_job for the rendered file.
-Runs spend the user's Comfy credits. Confirm large batches with the user first.`;
+Runs spend the user's Comfy credits. Confirm large batches with the user first.
+To share a result, list_social_accounts and post_to_social. Posts are public: confirm the caption and accounts with the user first.`;
 
 function requirePreset(id: string) {
   const loaded = getPreset(id);
@@ -192,6 +199,16 @@ export const toolHandlers = {
     await getSequenceStore().removeClip(idSchema.parse(input).id);
     return sequenceView();
   },
+  list_social_accounts() {
+    const key = getZernioKey();
+    if (!key) throw new Error("Add a Zernio API key in Phaino Settings to post");
+    return listSocialAccounts(zernioClient(key));
+  },
+  post_to_social(input: z.input<typeof socialPostSchema>) {
+    const key = getZernioKey();
+    if (!key) throw new Error("Add a Zernio API key in Phaino Settings to post");
+    return postOutput(zernioClient(key), socialPostSchema.parse(input));
+  },
   async export_sequence(input: z.input<typeof exportSchema>) {
     const job = await startExport(exportSchema.parse(input));
     return { id: job.id, status: job.status };
@@ -304,5 +321,15 @@ export function createMcpServer() {
     inputSchema: exportSchema,
     annotations: localWrite,
   }, (input) => toolResult(() => toolHandlers.export_sequence(input)));
+  server.registerTool("list_social_accounts", {
+    description: "List the social accounts connected to the user's Zernio key (platform, name, handle, status).",
+    inputSchema: z.object({}),
+    annotations: { readOnlyHint: true, openWorldHint: true },
+  }, () => toolResult(() => toolHandlers.list_social_accounts()));
+  server.registerTool("post_to_social", {
+    description: "Publicly post one output (a path from outputPaths) with a caption to connected accounts by id. Confirm with the user first. Returns each account's outcome and post URL.",
+    inputSchema: socialPostSchema,
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+  }, (input) => toolResult(() => toolHandlers.post_to_social(input)));
   return server;
 }

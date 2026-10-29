@@ -103,10 +103,10 @@ export function ImageStudio({
           </div>
         )}
         <div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto py-4">
-          {s.job ? (
+          {s.stageJob ? (
             <StageResult
-              key={s.job.id}
-              job={s.job}
+              key={s.stageJob.id}
+              job={s.stageJob}
               presetName={presetName}
               onCancel={() => void s.cancel()}
               aspect="square"
@@ -169,6 +169,7 @@ export function ImageStudio({
         presets={presets}
         activeId={s.job?.id}
         onSelect={s.setJob}
+        onCancel={(id) => void s.cancel(id)}
         aspect="square"
         failed={s.recentFailed}
       />

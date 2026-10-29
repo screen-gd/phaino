@@ -4,6 +4,7 @@
  * preset's advanced "Options (JSON)" param is merged into the request body
  * for anything the mapping does not cover.
  */
+import { specSupport } from "./generic";
 
 export type RouterShape =
   | "generic"
@@ -13,7 +14,8 @@ export type RouterShape =
   | "veo"
   | "openai-image"
   | "runway"
-  | "bfl";
+  | "bfl"
+  | "minimax";
 
 export type RouterModelSpec = {
   /** Preset id, also the slug shown in pickers. */
@@ -35,7 +37,8 @@ const image = (required = false, label = "Reference image") =>
 const video = (required = true, label = "Source video") =>
   ({ key: "video", type: "video", label, required }) as const;
 
-export const ROUTER_CATALOG: RouterModelSpec[] = [
+/** Every partner model, before checking Router's published schemas. */
+export const ROUTER_MODELS: RouterModelSpec[] = [
   // ----- Video generation -----
   { presetId: "veo-3-1", model: "veo/veo-3.1-generate-001", name: "Veo 3.1", description: "Text or image to video on Veo 3.1.", category: "video", order: 10, shape: "veo", input: image() },
   { presetId: "veo-3-1-fast", model: "veo/veo-3.1-fast-generate-001", name: "Veo 3.1 Fast", description: "Faster text or image to video on Veo 3.1.", category: "video", order: 11, shape: "veo", input: image() },
@@ -83,7 +86,7 @@ export const ROUTER_CATALOG: RouterModelSpec[] = [
   { presetId: "happyhorse-1-0-t2v", model: "wan/happyhorse-1.0-t2v", name: "HappyHorse 1.0 T2V", description: "Text to video on HappyHorse 1.0.", category: "video", order: 53, shape: "generic" },
   { presetId: "happyhorse-1-0-i2v", model: "wan/happyhorse-1.0-i2v", name: "HappyHorse 1.0 I2V", description: "First frame to video on HappyHorse 1.0.", category: "video", order: 54, shape: "generic", input: image(true, "First frame") },
   { presetId: "happyhorse-1-0-r2v", model: "wan/happyhorse-1.0-r2v", name: "HappyHorse 1.0 R2V", description: "Reference image to video on HappyHorse 1.0.", category: "video", order: 55, shape: "generic", input: image(true) },
-  { presetId: "minimax-h3", model: "minimax/minimax-h3", name: "MiniMax H3", description: "Text or image to video on MiniMax H3.", category: "video", order: 56, shape: "generic", input: image() },
+  { presetId: "minimax-h3", model: "minimax/minimax-h3", name: "MiniMax H3", description: "Text or image to video on MiniMax H3.", category: "video", order: 56, shape: "minimax", input: image() },
   { presetId: "fal-h3-max", model: "fal/h3-max", name: "MiniMax H3 Max (fal)", description: "Text or image to video on MiniMax H3 Max via fal.", category: "video", order: 57, shape: "generic", input: image() },
   { presetId: "fal-h3-max-turbo", model: "fal/h3-max-turbo", name: "MiniMax H3 Max Turbo (fal)", description: "Text or image to video on MiniMax H3 Max Turbo via fal.", category: "video", order: 58, shape: "generic", input: image() },
   { presetId: "luma-ray-3-2", model: "luma_2/ray-3.2", name: "Ray 3.2", description: "Text or image to video on Luma Ray 3.2.", category: "video", order: 59, shape: "generic", input: image() },
@@ -93,7 +96,7 @@ export const ROUTER_CATALOG: RouterModelSpec[] = [
   { presetId: "pika-2-5-t2v", model: "pika/pika-2.5-text-to-video", name: "Pika 2.5 T2V", description: "Text to video on Pika 2.5.", category: "video", order: 63, shape: "generic" },
   { presetId: "pika-2-5-i2v", model: "pika/pika-2.5-image-to-video", name: "Pika 2.5 I2V", description: "First frame to video on Pika 2.5.", category: "video", order: 64, shape: "generic", input: image(true, "First frame") },
   { presetId: "pruna-p-video-2", model: "pruna/p-video-2", name: "P-Video 2", description: "Text or image to video on Pruna P-Video 2.", category: "video", order: 65, shape: "generic", input: image() },
-  { presetId: "runway-gen4-turbo", model: "runway/gen4_turbo", name: "Runway Gen-4 Turbo", description: "Text or image to video on Runway Gen-4 Turbo.", category: "video", order: 66, shape: "runway", input: image() },
+  { presetId: "runway-gen4-turbo", model: "runway/gen4_turbo", name: "Runway Gen-4 Turbo", description: "Image to video on Runway Gen-4 Turbo.", category: "video", order: 66, shape: "runway", input: image(true, "First frame") },
   { presetId: "flux-3-video", model: "bfl/flux-3-video", name: "FLUX.3 Video", description: "Text or image to video on FLUX.3 Video.", category: "video", order: 67, shape: "bfl", input: image() },
   { presetId: "grok-imagine-video", model: "xai/grok-imagine-video", name: "Grok Imagine Video", description: "Text or image to video on Grok Imagine.", category: "video", order: 68, shape: "generic", input: image() },
   { presetId: "grok-imagine-video-1-5", model: "xai/grok-imagine-video-1.5", name: "Grok Imagine Video 1.5", description: "Text or image to video on Grok Imagine 1.5.", category: "video", order: 69, shape: "generic", input: image() },
@@ -231,12 +234,23 @@ export const ROUTER_CATALOG: RouterModelSpec[] = [
 ];
 
 const seen = new Set<string>();
-for (const spec of ROUTER_CATALOG) {
+for (const spec of ROUTER_MODELS) {
   if (seen.has(spec.presetId)) {
     throw new Error(`Duplicate router preset id "${spec.presetId}"`);
   }
   seen.add(spec.presetId);
 }
+
+/**
+ * The models Phaino offers: those Router still serves whose required fields
+ * the request fitting can fill. Upload slots a model's schema cannot take are
+ * dropped.
+ */
+export const ROUTER_CATALOG: RouterModelSpec[] = ROUTER_MODELS.flatMap((spec) => {
+  const support = specSupport(spec);
+  if (!support.runs) return [];
+  return [spec.input && !support.takesInput ? { ...spec, input: undefined } : spec];
+});
 
 export function routerSpecFor(presetId: string): RouterModelSpec | null {
   return ROUTER_CATALOG.find((s) => s.presetId === presetId) ?? null;

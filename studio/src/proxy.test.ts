@@ -13,7 +13,7 @@ describe("hosted demo", () => {
     expect(isDemoMode({ VERCEL: "1", PHAINO_DEMO: "off" })).toBe(false);
   });
 
-  it.each(["/api/jobs", "/api/uploads", "/api/comfy/credentials", "/api/sequence", "/api/edits/extend"])(
+  it.each(["/api/jobs", "/api/uploads", "/api/comfy/credentials", "/api/sequence", "/api/edits/extend", "/api/social/posts", "/api/social/credentials"])(
     "blocks writes to %s before the real backend is reached", async (pathname) => {
       vi.stubEnv("PHAINO_DEMO", "on");
       for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
@@ -23,6 +23,14 @@ describe("hosted demo", () => {
       }
     },
   );
+
+  it("never reads or reveals a saved Zernio key", async () => {
+    vi.stubEnv("PHAINO_DEMO", "on");
+    const creds = proxy(new NextRequest("http://localhost/api/social/credentials"));
+    expect(await creds.json()).toEqual({ configured: false, maskedKey: null });
+    const accounts = proxy(new NextRequest("http://localhost/api/social/accounts"));
+    expect(await accounts.json()).toEqual({ configured: false, accounts: [] });
+  });
 
   it("provides empty job history without opening SQLite", async () => {
     vi.stubEnv("PHAINO_DEMO", "on");

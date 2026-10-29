@@ -1,7 +1,7 @@
 import "server-only";
 
-import { readFileSync } from "node:fs";
-import { readFile } from "node:fs/promises";
+import { openAsBlob, readFileSync } from "node:fs";
+import { stat } from "node:fs/promises";
 import path from "node:path";
 import { createSocial, type AccountRecord, type DeliveryOutcome } from "@opencoredev/social-sdk";
 import { zernio } from "@opencoredev/social-sdk/cloud/zernio";
@@ -107,7 +107,9 @@ export async function postOutput(
   const wanted = new Set(input.accountIds);
   const accounts = (await allAccounts(social)).filter((a) => wanted.has(a.ref.accountId));
   if (accounts.length === 0) throw new Error("Pick at least one connected account");
-  const bytes = await readFile(resolved.absPath);
+  // File-backed Blob: large videos are streamed from disk, not held in memory.
+  const blob = await openAsBlob(resolved.absPath, { type: resolved.mimeType });
+  const { size } = await stat(resolved.absPath);
   const filename = path.basename(resolved.absPath);
   const result = await social.posts.publish({
     targets: accounts.map((a) => ({ account: a.ref })),
@@ -118,12 +120,8 @@ export async function postOutput(
           kind: resolved.kind,
           mimeType: resolved.mimeType,
           filename,
-          byteSize: bytes.length,
-          source: {
-            kind: "blob",
-            blob: new Blob([bytes], { type: resolved.mimeType }),
-            fingerprint: `${input.path}:${bytes.length}`,
-          },
+          byteSize: size,
+          source: { kind: "blob", blob, fingerprint: `${input.path}:${size}` },
         },
       ],
     },

@@ -135,7 +135,8 @@ export function PostToSocial({ path, className }: { path: string; className?: st
               {results && (
                 <ul className="grid gap-1 text-caption" aria-live="polite">
                   {results.map((r) => (
-                    <li key={`${r.platform}:${r.accountId}`} className="flex justify-between gap-2">
+                    <li key={`${r.platform}:${r.accountId}`} className="grid gap-0.5">
+                      <span className="flex justify-between gap-2">
                       <span className="truncate capitalize text-t2">{name(r.accountId)}</span>
                       {r.url ? (
                         <a href={r.url} target="_blank" rel="noreferrer" className="flex-none text-ac hover:underline">
@@ -143,12 +144,13 @@ export function PostToSocial({ path, className }: { path: string; className?: st
                         </a>
                       ) : (
                         <span
-                          title={r.message}
                           className={`flex-none ${r.state === "failed" || r.state === "not-submitted" ? "text-destructive" : "text-t1"}`}
                         >
                           {STATE_LABEL[r.state] ?? r.state}
                         </span>
                       )}
+                      </span>
+                      {r.message && <span className="text-t3">{r.message}</span>}
                     </li>
                   ))}
                 </ul>

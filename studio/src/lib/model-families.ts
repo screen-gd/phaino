@@ -95,6 +95,23 @@ export function modelFamily(modelId: string): string {
   return "Other";
 }
 
+// Brand words that need their second word to read as a family.
+const PARTNER_BRANDS: Record<string, string> = {
+  GPT: "GPT Image",
+  Nano: "Nano Banana",
+};
+
+/**
+ * Picker group for a partner model by its display name: the brand word
+ * ("Kling 3.0 Turbo (fal)" -> "Kling"), folded into a registry family when
+ * one matches ("FLUX.2 Pro" -> "FLUX").
+ */
+export function partnerFamily(name: string): string {
+  const brand = name.split(/\s/)[0].replace(/[.\d]+$/, "");
+  const known = modelFamily(brand.toLowerCase());
+  return known !== "Other" ? known : (PARTNER_BRANDS[brand] ?? brand);
+}
+
 /**
  * Order grouped picker rows: families in FAMILY_PREFIXES order ("Other" with
  * the rest), registry order inside a family, and single-model families folded

@@ -584,6 +584,12 @@
           "notes": "New Comfy key works on Router: Nano Banana 2 ran live. Kling and Seedance still need a live run each. Note: Cloud API workflow submission needs a paid Comfy plan (free tier is Router-only)."
         },
         {
+          "id": "m11-home-partners",
+          "title": "Home partner models banner, picker brand groups and logos",
+          "status": "doing",
+          "notes": "Banner ships with stand-in images until real model renders land in public/explore/partners."
+        },
+        {
           "id": "m11-catalog",
           "title": "Router catalog presets: all image/video gen, edit and upscale models",
           "status": "done",

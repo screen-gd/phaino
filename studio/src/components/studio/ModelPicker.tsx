@@ -16,6 +16,8 @@ export type PickerRow = {
   group?: string;
   /** Short mode labels shown next to the name, e.g. ["T2V","I2V"]. */
   modes?: string[];
+  /** Brand logo shown when the row has no preview render. */
+  logoUrl?: string;
 };
 import {
   Popover,
@@ -35,12 +37,40 @@ function SectionHead({ children }: { children: string }) {
   return <p className={SECTION_HEAD}>{children}</p>;
 }
 
+/** Row thumbnail; models without a preview get their brand logo or a letter. */
+function Thumb({ src, name, logo }: { src: string; name: string; logo?: string }) {
+  const [failed, setFailed] = useState(false);
+  if ((!src || failed) && logo) {
+    return (
+      <span className="grid h-7 w-7 flex-none place-items-center rounded-lg bg-s3">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logo} alt="" className="h-4 w-4" />
+      </span>
+    );
+  }
+  if (!src || failed) {
+    return (
+      <span className="grid h-7 w-7 flex-none place-items-center rounded-lg bg-s3 text-caption font-semibold text-t2">
+        {name.charAt(0)}
+      </span>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt=""
+      onError={() => setFailed(true)}
+      className="h-7 w-7 flex-none rounded-lg object-cover"
+    />
+  );
+}
+
 function ModeChips({ modes }: { modes?: string[] }) {
   if (!modes || modes.length === 0) return null;
   return (
     <span className="flex flex-none gap-1">
       {modes.map((m) => (
-        <span key={m} className="rounded bg-s3 px-1.5 text-caption text-t2">
+        <span key={m} className="rounded border border-line px-1.5 text-caption text-t2">
           {m}
         </span>
       ))}
@@ -73,11 +103,7 @@ function ModelRow({
       onMouseEnter={onHover}
       className={ROW_CLS}
     >
-      <img
-        src={row.thumbUrl}
-        alt=""
-        className="h-7 w-7 flex-none rounded-lg object-cover"
-      />
+      <Thumb src={row.thumbUrl} name={row.name} logo={row.logoUrl} />
       <span className="flex min-w-0 flex-1 items-center gap-1.5 text-body font-medium text-t1">
         <span className="truncate">{row.name}</span>
         {row.isFork && (
@@ -92,9 +118,10 @@ function ModelRow({
         )}
       </span>
       <ModeChips modes={row.modes} />
-      {selected && (
-        <Icon d={SECTION_ICONS.check} className="h-4 w-4 flex-none text-ac" />
-      )}
+      {/* Fixed slot so chips line up whether or not the row is selected. */}
+      <span className="h-4 w-4 flex-none">
+        {selected && <Icon d={SECTION_ICONS.check} className="h-4 w-4 text-ac" />}
+      </span>
     </button>
   );
 }
@@ -320,10 +347,10 @@ export function ModelPicker({
                     onMouseEnter={() => setActive(i)}
                     className={ROW_CLS}
                   >
-                    <img
-                      src={rows[0].thumbUrl}
-                      alt=""
-                      className="h-7 w-7 flex-none rounded-lg object-cover"
+                    <Thumb
+                      src={rows.find((r) => r.thumbUrl)?.thumbUrl ?? ""}
+                      name={name}
+                      logo={rows.find((r) => r.logoUrl)?.logoUrl}
                     />
                     <span className="min-w-0 flex-1 text-body font-medium text-t1">
                       {name}

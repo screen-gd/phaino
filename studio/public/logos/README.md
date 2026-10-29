@@ -1,0 +1,1 @@
+Brand icons from [@lobehub/icons-static-svg](https://github.com/lobehub/lobe-icons) 1.101.0 (MIT) and [Simple Icons](https://simpleicons.org) (CC0; veed, freepik), mono icons recolored white. higgsfield, moonvalley, beeble, heygen and clarity marks are the brands' own site icons. Logos are trademarks of their owners.

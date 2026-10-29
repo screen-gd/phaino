@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CloudPromo } from "@/components/CloudPromo";
 import { ComfyBanner } from "@/components/home/ComfyBanner";
+import { PartnerBanner } from "@/components/home/PartnerBanner";
 import { Icon, SECTION_ICONS, type IconName } from "@/components/icons";
 import { ExploreCarousel } from "@/components/ExploreCarousel";
 import { ExploreFooter } from "@/components/ExploreFooter";
@@ -42,7 +43,7 @@ function SectionHead({
   actions?: readonly { label: string; href: string; accent?: boolean }[];
 }) {
   return (
-    <div className="mt-14 mb-5 flex items-end justify-between gap-4">
+    <div className="mt-8 mb-4 flex items-end justify-between gap-4">
       <div>
         <h2 className="text-h2 font-semibold tracking-tight text-t1">
           {title}
@@ -151,7 +152,7 @@ export default function Home() {
 
       <ExploreCarousel />
 
-      <div className="mt-14 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+      <div className="mt-8 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
         <CloudPromo />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {TOOLS.map((t) => (
@@ -164,7 +165,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="mt-14">
+      <div className="mt-5">
         <ComfyBanner />
       </div>
 
@@ -203,6 +204,10 @@ export default function Home() {
           )}
         </div>
       )}
+
+      <div className="mt-6">
+        <PartnerBanner />
+      </div>
 
       <ExploreFooter presets={catalog} models={models} />
     </div>

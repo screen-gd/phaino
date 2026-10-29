@@ -52,7 +52,10 @@ function TimelineArt({ wide }: { wide?: boolean }) {
                 width={96}
                 height={54}
                 loading="lazy"
-                className="h-full w-full rounded-[3px] border border-line object-cover"
+                className={cn(
+                  "h-full w-full rounded-[3px] border border-line object-cover",
+                  j >= 6 && "max-sm:hidden",
+                )}
               />
             ))}
           </div>

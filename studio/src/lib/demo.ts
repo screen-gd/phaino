@@ -33,3 +33,10 @@ export function createDemoJob(input: Pick<StudioJob, "category" | "presetId" | "
 export function outputUrl(output: string): string {
   return output.startsWith("/explore/examples/") ? output : `/api/outputs/${output}`;
 }
+
+/** Poster image for a video output: the example sibling .webp, else the poster endpoint. */
+export function outputPosterUrl(output: string): string {
+  return output.startsWith("/explore/examples/")
+    ? output.replace(/\.[^.]+$/, ".webp")
+    : `/api/outputs/${output}?poster=1`;
+}

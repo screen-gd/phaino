@@ -33,6 +33,10 @@ export type EditTool = {
   prompt?: boolean;
   /** class_type + field hint when prompt tracing is ambiguous. */
   promptHint?: { nodeClass: RegExp; field: string };
+  /** Prompt field label; defaults to "Prompt". */
+  promptLabel?: string;
+  /** Prompt field placeholder; defaults to "Describe it". */
+  promptPlaceholder?: string;
   controls?: {
     /** Target aspect for the reframe tool (drives ImagePadForOutpaint). */
     aspect?: boolean;
@@ -88,6 +92,7 @@ export const EDIT_TOOLS = [
     template: "video_wan_vace_outpainting",
     maxSeconds: 5,
     prompt: true,
+    promptPlaceholder: "Describe what fills the new space",
     controls: { aspect: true },
   },
   {
@@ -99,6 +104,8 @@ export const EDIT_TOOLS = [
     maxSeconds: 5,
     prompt: true,
     promptHint: { nodeClass: /SAM3.*Detect/i, field: "text" },
+    promptLabel: "What to remove",
+    promptPlaceholder: "Name the object to remove",
   },
   {
     id: "relight",
@@ -108,6 +115,10 @@ export const EDIT_TOOLS = [
     template: "video_bernini_r_video_editing",
     maxSeconds: 5,
     prompt: true,
+    // Bernini keeps the user prompt in a multiline primitive; the traced
+    // conditioning string is its system-prompt RegexExtract.
+    promptHint: { nodeClass: /^PrimitiveStringMultiline$/, field: "value" },
+    promptPlaceholder: "Describe the new light",
   },
   {
     id: "restyle",
@@ -117,6 +128,7 @@ export const EDIT_TOOLS = [
     template: "video_wan_vace_14B_v2v",
     maxSeconds: 5,
     prompt: true,
+    promptPlaceholder: "Describe the new look",
     controls: { reference: true },
   },
   {

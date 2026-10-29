@@ -655,9 +655,9 @@ export function detectToolPreset(
       params.push({
         type: "text",
         key: "prompt",
-        label: tool.promptHint ? "What to remove" : "Prompt",
+        label: tool.promptLabel ?? "Prompt",
         default: promptBind.value,
-        placeholder: "Describe it",
+        placeholder: tool.promptPlaceholder ?? "Describe it",
         bind: { node: promptBind.node, field: promptBind.field },
       });
     }

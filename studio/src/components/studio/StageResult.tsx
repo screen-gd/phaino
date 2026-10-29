@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PostToSocial } from "./PostToSocial";
 import { useState } from "react";
 import { Icon, SECTION_ICONS } from "../icons";
 import { STATUS_BADGE, isVideoPath } from "./JobViews";
@@ -113,6 +114,9 @@ export function StageResult({
                   className="h-8 rounded-lg border-transparent bg-s2 px-3 py-0 text-caption text-t1 hover:bg-s3"
                 />
               </>
+            )}
+            {shown && shownIsSingle && !demo.enabled && (
+              <PostToSocial path={shown} className={ACTION_CLS} />
             )}
             <Link href="/library" className={ACTION_CLS}>
               Open in Library

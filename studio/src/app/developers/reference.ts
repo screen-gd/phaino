@@ -47,6 +47,13 @@ export const reference: { title: string; endpoints: Endpoint[] }[] = [
     ["POST", "/api/edits/extend", "{uploadId, modelId, prompt?}", "201 {job}; continues the video from its last frame"],
     ["POST", "/api/edits/join", "{uploadId, result}: source upload and the extend output path", "200 {ok}; appends both to the Editor"],
   ] },
+  { title: "Social", endpoints: [
+    ["GET", "/api/social/credentials", "None", "200 {configured, maskedKey}"],
+    ["PUT", "/api/social/credentials", "{apiKey}: Zernio API key", "200 {configured, maskedKey}; 400 if Zernio rejects the key"],
+    ["DELETE", "/api/social/credentials", "No body", "200 {configured: false, maskedKey: null}"],
+    ["GET", "/api/social/accounts", "None", "200 {configured, accounts: [{id, platform, name, handle?, status}]}; 502 on Zernio errors"],
+    ["POST", "/api/social/posts", "{path: output path, text?, accountIds: string[]}", "200 {results: [{accountId, platform, state, url?, message?}]}; 409 without a key"],
+  ] },
   { title: "Health", endpoints: [
     ["GET", "/api/health", "None", "200 {status, target: cloud|custom, host, latencyMs: number|null, message?: string}"],
   ] },

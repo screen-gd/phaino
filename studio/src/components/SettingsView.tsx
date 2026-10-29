@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { refreshComfyHealth } from "@/lib/useComfyHealth";
 import { useDemo } from "./DemoProvider";
+import { ZernioSettings } from "./ZernioSettings";
 
 const TARGET_LABELS = { cloud: "Comfy Cloud", custom: "Custom endpoint" } as const;
 
@@ -244,6 +245,8 @@ export function SettingsView({ version }: { version: string }) {
           Setup guide ↗
         </a>
       </div>
+
+      {!demo.enabled && <ZernioSettings />}
 
       <div className="mt-4 rounded-panel border border-line bg-s1 p-3.5">
         <h2 className="mb-2 text-caption font-medium text-t3">About</h2>

@@ -19,6 +19,8 @@ const tools = [
   ["update_sequence", "Set order, trims, transitions, audio, titles and settings."],
   ["remove_clip", "Remove a clip from the video track."],
   ["export_sequence", "Render the timeline or build an NLE package."],
+  ["list_social_accounts", "List accounts connected to your Zernio key."],
+  ["post_to_social", "Post an output with a caption to connected accounts."],
 ];
 
 export default function McpPage() {

@@ -596,6 +596,12 @@
           "notes": "Banner ships with stand-in images until real model renders land in public/explore/partners."
         },
         {
+          "id": "m11-social",
+          "title": "Post outputs to social accounts with a bring-your-own Zernio key",
+          "status": "done",
+          "notes": "Social SDK (@opencoredev/social-sdk) Zernio backend. Key in Settings, Post button on results, MCP list_social_accounts and post_to_social. Supports X, Threads, Bluesky, YouTube, TikTok, Instagram, LinkedIn, Facebook."
+        },
+        {
           "id": "m11-catalog",
           "title": "Router catalog presets: all image/video gen, edit and upscale models",
           "status": "done",

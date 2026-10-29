@@ -65,7 +65,7 @@ export function ImageLibraryPicker({
           />
         }
       >
-        Use from Library
+        Character from Library
       </PopoverTrigger>
       <PopoverPopup
         side="bottom"

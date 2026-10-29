@@ -3,7 +3,7 @@
     "comfyuiVersion": "0.42.1",
     "frontendVersion": "1.55.18",
     "templatesRef": "46e060ea88eb07adecf07197ec384c54a70e030c",
-    "generatedAt": "2026-10-20T22:43:55.029Z"
+    "generatedAt": "2026-10-29T15:40:34.716Z"
   },
   "nodes": {
     "ARVideoI2V": {
@@ -2751,6 +2751,126 @@
       "api_node": false,
       "price_badge": null,
       "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "ColorTransfer": {
+      "input": {
+        "required": {
+          "image_target": [
+            "IMAGE",
+            {
+              "tooltip": "Image(s) to apply the color transform to."
+            }
+          ],
+          "image_ref": [
+            "IMAGE",
+            {
+              "tooltip": "Reference image(s) to match colors to."
+            }
+          ],
+          "method": [
+            "COMBO",
+            {
+              "multiselect": false,
+              "options": [
+                "reinhard_lab",
+                "mkl_lab",
+                "histogram"
+              ]
+            }
+          ],
+          "source_stats": [
+            "COMFY_DYNAMICCOMBO_V3",
+            {
+              "tooltip": "per_frame: each frame matched to image_ref individually. uniform: pool stats across all source frames as baseline, match to image_ref. target_frame: use one chosen frame as the baseline for the transform to image_ref, applied uniformly to all frames (preserves relative differences)",
+              "options": [
+                {
+                  "key": "per_frame",
+                  "inputs": {
+                    "required": {}
+                  }
+                },
+                {
+                  "key": "uniform",
+                  "inputs": {
+                    "required": {}
+                  }
+                },
+                {
+                  "key": "target_frame",
+                  "inputs": {
+                    "required": {
+                      "target_index": [
+                        "INT",
+                        {
+                          "tooltip": "Frame index used as the source baseline for computing the transform to image_ref",
+                          "default": 0,
+                          "min": 0,
+                          "max": 10000
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "strength": [
+            "FLOAT",
+            {
+              "default": 1,
+              "min": 0,
+              "max": 10,
+              "step": 0.01
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "image_target",
+          "image_ref",
+          "method",
+          "source_stats",
+          "strength"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "IMAGE"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "image"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "ColorTransfer",
+      "display_name": "Transfer Color",
+      "description": "Match the colors of one image to another using various algorithms.",
+      "python_module": "comfy_extras.nodes_post_processing",
+      "category": "image/filters",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "color match",
+        "color grading",
+        "color correction",
+        "match colors",
+        "color transform",
+        "mkl",
+        "reinhard",
+        "histogram"
+      ],
       "essentials_category": null,
       "has_intermediate_output": false
     },
@@ -12124,6 +12244,209 @@
       "essentials_category": null,
       "has_intermediate_output": false
     },
+    "SAM3_VideoTrack": {
+      "input": {
+        "required": {
+          "images": [
+            "IMAGE",
+            {
+              "display_name": "images",
+              "tooltip": "Video frames as batched images"
+            }
+          ],
+          "model": [
+            "MODEL",
+            {
+              "display_name": "model"
+            }
+          ],
+          "detection_threshold": [
+            "FLOAT",
+            {
+              "display_name": "detection_threshold",
+              "tooltip": "Score threshold for text-prompted detection.",
+              "default": 0.5,
+              "min": 0,
+              "max": 1,
+              "step": 0.01
+            }
+          ],
+          "max_objects": [
+            "INT",
+            {
+              "display_name": "max_objects",
+              "tooltip": "Max tracked objects. Initial masks count toward this limit. 0 uses the internal cap of 64.",
+              "default": 4,
+              "min": 0,
+              "max": 64
+            }
+          ],
+          "detect_interval": [
+            "INT",
+            {
+              "display_name": "detect_interval",
+              "tooltip": "Run detection every N frames (1=every frame). Higher values save compute.",
+              "default": 1,
+              "min": 1
+            }
+          ]
+        },
+        "optional": {
+          "initial_mask": [
+            "MASK",
+            {
+              "display_name": "initial_mask",
+              "tooltip": "Mask(s) for the first frame to track (one per object)"
+            }
+          ],
+          "conditioning": [
+            "CONDITIONING",
+            {
+              "display_name": "conditioning",
+              "tooltip": "Text conditioning for detecting new objects during tracking"
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "images",
+          "model",
+          "detection_threshold",
+          "max_objects",
+          "detect_interval"
+        ],
+        "optional": [
+          "initial_mask",
+          "conditioning"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "SAM3_TRACK_DATA"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "track_data"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "SAM3_VideoTrack",
+      "display_name": "Run SAM3 Video Track",
+      "description": "",
+      "python_module": "comfy_extras.nodes_sam3",
+      "category": "image/detection",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": [
+        "sam3",
+        "video",
+        "track",
+        "propagate"
+      ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "SCAIL2ColoredMask": {
+      "input": {
+        "required": {
+          "driving_track_data": [
+            "SAM3_TRACK_DATA",
+            {
+              "tooltip": "SAM3 track of the driving pose video. Will be rendered into the pose_video_mask output."
+            }
+          ],
+          "object_indices": [
+            "STRING",
+            {
+              "tooltip": "Comma-separated list of person indices to include (e.g. '0,2,3'). Applied to both reference and pose video masks. Empty = all.",
+              "default": "",
+              "multiline": false
+            }
+          ],
+          "sort_by": [
+            "COMBO",
+            {
+              "tooltip": "Order in which palette colors are assigned to the tracked objects (applied to both reference and pose video so each identity keeps the same color). Objects that appear in earlier frames always come first; within a frame, left_to_right = leftmost object (by centroid at first appearance) gets the first color, area = biggest object (by mask area at first appearance) gets the first color; none = keep SAM3's order.",
+              "default": "left_to_right",
+              "multiselect": false,
+              "options": [
+                "none",
+                "left_to_right",
+                "area"
+              ]
+            }
+          ],
+          "replacement_mode": [
+            "BOOLEAN",
+            {
+              "tooltip": "False = Animation Mode (pose_video_mask has black background, reference_image_mask has white background). True = Replacement Mode (pose_video_mask has white background, reference_image_mask has black background).",
+              "default": false
+            }
+          ]
+        },
+        "optional": {
+          "ref_track_data": [
+            "SAM3_TRACK_DATA,MASK",
+            {
+              "display_name": "reference_masks",
+              "tooltip": "SAM3 track of the reference image(s) (one identity per object, colored in batch order), or a plain MASK of the reference subject (rendered as a single identity)."
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "driving_track_data",
+          "object_indices",
+          "sort_by",
+          "replacement_mode"
+        ],
+        "optional": [
+          "ref_track_data"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "IMAGE",
+        "IMAGE"
+      ],
+      "output_is_list": [
+        false,
+        false
+      ],
+      "output_name": [
+        "pose_video_mask",
+        "reference_image_mask"
+      ],
+      "output_tooltips": [
+        null,
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "SCAIL2ColoredMask",
+      "display_name": "Create SCAIL-2 Colored Mask",
+      "description": "",
+      "python_module": "comfy_extras.nodes_scail",
+      "category": "model/conditioning/wan/scail",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": true,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
     "SamplerARVideo": {
       "input": {
         "required": {
@@ -16704,6 +17027,219 @@
       "essentials_category": null,
       "has_intermediate_output": false
     },
+    "WanSCAILToVideo": {
+      "input": {
+        "required": {
+          "positive": [
+            "CONDITIONING",
+            {}
+          ],
+          "negative": [
+            "CONDITIONING",
+            {}
+          ],
+          "vae": [
+            "VAE",
+            {}
+          ],
+          "width": [
+            "INT",
+            {
+              "default": 512,
+              "min": 32,
+              "max": 16384,
+              "step": 32
+            }
+          ],
+          "height": [
+            "INT",
+            {
+              "default": 896,
+              "min": 32,
+              "max": 16384,
+              "step": 32
+            }
+          ],
+          "length": [
+            "INT",
+            {
+              "default": 81,
+              "min": 1,
+              "max": 16384,
+              "step": 4
+            }
+          ],
+          "batch_size": [
+            "INT",
+            {
+              "default": 1,
+              "min": 1,
+              "max": 4096
+            }
+          ],
+          "pose_strength": [
+            "FLOAT",
+            {
+              "tooltip": "Strength of the pose latent.",
+              "default": 1,
+              "min": 0,
+              "max": 10,
+              "step": 0.01
+            }
+          ],
+          "pose_start": [
+            "FLOAT",
+            {
+              "tooltip": "Start step of the pose conditioning.",
+              "default": 0,
+              "min": 0,
+              "max": 1,
+              "step": 0.01
+            }
+          ],
+          "pose_end": [
+            "FLOAT",
+            {
+              "tooltip": "End step of the pose conditioning.",
+              "default": 1,
+              "min": 0,
+              "max": 1,
+              "step": 0.01
+            }
+          ],
+          "video_frame_offset": [
+            "INT",
+            {
+              "tooltip": "Cumulative output frame this chunk begins at. Wire from the previous chunk's video_frame_offset output.",
+              "default": 0,
+              "min": 0,
+              "max": 16384,
+              "step": 1
+            }
+          ],
+          "previous_frame_count": [
+            "INT",
+            {
+              "tooltip": "Tail frames of previous_frames to anchor. SCAIL-2 trained at 5 (81-frame chunks, 76-frame step).",
+              "default": 5,
+              "min": 1,
+              "max": 16384,
+              "step": 4
+            }
+          ]
+        },
+        "optional": {
+          "pose_video": [
+            "IMAGE",
+            {
+              "tooltip": "Video used for pose conditioning. Will be downscaled to half the resolution of the main video."
+            }
+          ],
+          "pose_video_mask": [
+            "IMAGE",
+            {
+              "tooltip": "SCAIL-2 only. Colored per-identity SAM3 mask video at the same resolution as pose_video."
+            }
+          ],
+          "replacement_mode": [
+            "BOOLEAN",
+            {
+              "tooltip": "SCAIL-2 only. False = Animation Mode (pose_video_mask should have black background). True = Replacement Mode (pose_video_mask should have white background).",
+              "default": false
+            }
+          ],
+          "reference_image": [
+            "IMAGE",
+            {
+              "tooltip": "Reference image. The first image is the primary reference (composite all identities onto it). SCAIL-2: extra batch images are used as additional views (back view, close-up, occluded background), each needing a matching reference_image_mask in that identity's color."
+            }
+          ],
+          "reference_image_mask": [
+            "IMAGE",
+            {
+              "tooltip": "SCAIL-2 only. Colored reference mask, batch matching reference_image (first = primary reference mask, rest = identity masks for the additional reference_image)."
+            }
+          ],
+          "clip_vision_output": [
+            "CLIP_VISION_OUTPUT",
+            {
+              "tooltip": "CLIP vision features for conditioning. Model is trained with stretch resize to aspect ratio."
+            }
+          ],
+          "previous_frames": [
+            "IMAGE",
+            {
+              "tooltip": "SCAIL-2 only. Full decoded output of the previous chunk. Only the last previous_frame_count are used as the extension anchor."
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "positive",
+          "negative",
+          "vae",
+          "width",
+          "height",
+          "length",
+          "batch_size",
+          "pose_strength",
+          "pose_start",
+          "pose_end",
+          "video_frame_offset",
+          "previous_frame_count"
+        ],
+        "optional": [
+          "pose_video",
+          "pose_video_mask",
+          "replacement_mode",
+          "reference_image",
+          "reference_image_mask",
+          "clip_vision_output",
+          "previous_frames"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "CONDITIONING",
+        "CONDITIONING",
+        "LATENT",
+        "INT"
+      ],
+      "output_is_list": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "output_name": [
+        "positive",
+        "negative",
+        "latent",
+        "video_frame_offset"
+      ],
+      "output_tooltips": [
+        null,
+        null,
+        "Empty latent of the generation size.",
+        "Adjusted offset + length. Wire into the next chunk."
+      ],
+      "output_matchtypes": null,
+      "name": "WanSCAILToVideo",
+      "display_name": null,
+      "description": "",
+      "python_module": "comfy_extras.nodes_scail",
+      "category": "model/conditioning/wan/scail",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": true,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
     "WanVaceToVideo": {
       "input": {
         "required": {
@@ -16837,6 +17373,1402 @@
         "video conditioning",
         "video control"
       ],
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "HappyHorseVideoEditApi": {
+      "input": {
+        "required": {
+          "model": [
+            "COMFY_DYNAMICCOMBO_V3",
+            {
+              "options": [
+                {
+                  "key": "happyhorse-1.0-video-edit",
+                  "inputs": {
+                    "required": {
+                      "prompt": [
+                        "STRING",
+                        {
+                          "tooltip": "Editing instructions or style transfer requirements.",
+                          "default": "",
+                          "multiline": true
+                        }
+                      ],
+                      "resolution": [
+                        "COMBO",
+                        {
+                          "multiselect": false,
+                          "options": [
+                            "720P",
+                            "1080P"
+                          ]
+                        }
+                      ],
+                      "ratio": [
+                        "COMBO",
+                        {
+                          "tooltip": "Aspect ratio. If not changed, approximates the input video ratio.",
+                          "multiselect": false,
+                          "options": [
+                            "16:9",
+                            "9:16",
+                            "1:1",
+                            "4:3",
+                            "3:4"
+                          ]
+                        }
+                      ],
+                      "reference_images": [
+                        "COMFY_AUTOGROW_V3",
+                        {
+                          "template": {
+                            "input": {
+                              "required": {
+                                "reference_image": [
+                                  "IMAGE",
+                                  {}
+                                ]
+                              }
+                            },
+                            "names": [
+                              "image1",
+                              "image2",
+                              "image3",
+                              "image4",
+                              "image5"
+                            ],
+                            "min": 0
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "video": [
+            "VIDEO",
+            {
+              "tooltip": "The video to edit."
+            }
+          ],
+          "seed": [
+            "INT",
+            {
+              "tooltip": "Seed to use for generation.",
+              "default": 0,
+              "min": 0,
+              "max": 2147483647,
+              "step": 1,
+              "control_after_generate": true,
+              "display": "number"
+            }
+          ],
+          "watermark": [
+            "BOOLEAN",
+            {
+              "tooltip": "Whether to add an AI-generated watermark to the result.",
+              "advanced": true,
+              "default": false
+            }
+          ]
+        },
+        "hidden": {
+          "auth_token_comfy_org": [
+            "AUTH_TOKEN_COMFY_ORG"
+          ],
+          "api_key_comfy_org": [
+            "API_KEY_COMFY_ORG"
+          ],
+          "unique_id": [
+            "UNIQUE_ID"
+          ],
+          "comfy_usage_source": [
+            "COMFY_USAGE_SOURCE"
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "model",
+          "video",
+          "seed",
+          "watermark"
+        ],
+        "hidden": [
+          "auth_token_comfy_org",
+          "api_key_comfy_org",
+          "unique_id",
+          "comfy_usage_source"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "VIDEO"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "VIDEO"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "HappyHorseVideoEditApi",
+      "display_name": "HappyHorse Video Edit",
+      "description": "Edit a video using text instructions or reference images with the HappyHorse model. Output duration is 3-15s and matches the input video; inputs longer than 15s are truncated.",
+      "python_module": "comfy_api_nodes.nodes_wan",
+      "category": "partner/video/Wan",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": true,
+      "price_badge": {
+        "engine": "jsonata",
+        "depends_on": {
+          "widgets": [
+            {
+              "name": "model",
+              "type": "COMFY_DYNAMICCOMBO_V3"
+            },
+            {
+              "name": "model.resolution",
+              "type": "COMBO"
+            }
+          ],
+          "inputs": [],
+          "input_groups": []
+        },
+        "expr": "\n                (\n                  $res := $lookup(widgets, \"model.resolution\");\n                  $ppsTable := { \"720p\": 0.14, \"1080p\": 0.24 };\n                  $pps := $lookup($ppsTable, $res);\n                  { \"type\": \"usd\", \"usd\": $pps, \"format\": { \"suffix\": \"/second\" } }\n                )\n                "
+      },
+      "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "HiggsfieldMotionTransferNode": {
+      "input": {
+        "required": {
+          "model": [
+            "COMFY_DYNAMICCOMBO_V3",
+            {
+              "tooltip": "Model to use.",
+              "options": [
+                {
+                  "key": "genjutsu-v1.0",
+                  "inputs": {
+                    "required": {
+                      "video": [
+                        "VIDEO",
+                        {
+                          "tooltip": "Source video whose motion, camera movement, timing and audio are kept. At least 4 seconds; only the first 30 seconds are used."
+                        }
+                      ],
+                      "reference_images": [
+                        "COMFY_AUTOGROW_V3",
+                        {
+                          "tooltip": "1 to 8 images of the characters, locations or styles to use.",
+                          "template": {
+                            "input": {
+                              "required": {
+                                "reference_image": [
+                                  "IMAGE",
+                                  {}
+                                ]
+                              }
+                            },
+                            "names": [
+                              "image_1",
+                              "image_2",
+                              "image_3",
+                              "image_4",
+                              "image_5",
+                              "image_6",
+                              "image_7",
+                              "image_8"
+                            ],
+                            "min": 1
+                          }
+                        }
+                      ],
+                      "prompt": [
+                        "STRING",
+                        {
+                          "tooltip": "Optional. Describe the result, for example which reference replaces which person, or a new setting.",
+                          "default": "",
+                          "multiline": true
+                        }
+                      ],
+                      "resolution": [
+                        "COMBO",
+                        {
+                          "default": "720p",
+                          "multiselect": false,
+                          "options": [
+                            "480p",
+                            "720p",
+                            "1080p"
+                          ]
+                        }
+                      ],
+                      "seed": [
+                        "INT",
+                        {
+                          "tooltip": "Seed controls whether the node should re-run; results are non-deterministic regardless of seed.",
+                          "default": 42,
+                          "min": 0,
+                          "max": 2147483647,
+                          "control_after_generate": true
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "hidden": {
+          "auth_token_comfy_org": [
+            "AUTH_TOKEN_COMFY_ORG"
+          ],
+          "api_key_comfy_org": [
+            "API_KEY_COMFY_ORG"
+          ],
+          "unique_id": [
+            "UNIQUE_ID"
+          ],
+          "comfy_usage_source": [
+            "COMFY_USAGE_SOURCE"
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "model"
+        ],
+        "hidden": [
+          "auth_token_comfy_org",
+          "api_key_comfy_org",
+          "unique_id",
+          "comfy_usage_source"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "VIDEO"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "VIDEO"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "HiggsfieldMotionTransferNode",
+      "display_name": "Higgsfield Genjutsu Motion Transfer",
+      "description": "Recast a video with new characters, locations or styles from reference images while keeping its motion, camera movement and timing.",
+      "python_module": "comfy_api_nodes.nodes_higgsfield",
+      "category": "partner/video/Higgsfield",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": true,
+      "price_badge": {
+        "engine": "jsonata",
+        "depends_on": {
+          "widgets": [
+            {
+              "name": "model.resolution",
+              "type": "COMBO"
+            }
+          ],
+          "inputs": [],
+          "input_groups": []
+        },
+        "expr": "\n                (\n                  $rates := {\"480p\": 0.45474, \"720p\": 0.97383, \"1080p\": 2.33376};\n                  {\"type\":\"usd\",\"usd\": $lookup($rates, $lookup(widgets, \"model.resolution\")),\n                   \"format\":{\"suffix\":\"/second\"}}\n                )\n                "
+      },
+      "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "KlingOmniProEditVideoNode": {
+      "input": {
+        "required": {
+          "model_name": [
+            "COMBO",
+            {
+              "multiselect": false,
+              "options": [
+                "kling-v3-omni",
+                "kling-video-o1"
+              ]
+            }
+          ],
+          "prompt": [
+            "STRING",
+            {
+              "tooltip": "A text prompt describing the video content. This can include both positive and negative descriptions.",
+              "multiline": true
+            }
+          ],
+          "video": [
+            "VIDEO",
+            {
+              "tooltip": "Video for editing. The output video length will be the same."
+            }
+          ],
+          "keep_original_sound": [
+            "BOOLEAN",
+            {
+              "default": true
+            }
+          ]
+        },
+        "optional": {
+          "reference_images": [
+            "IMAGE",
+            {
+              "tooltip": "Up to 4 additional reference images."
+            }
+          ],
+          "resolution": [
+            "COMBO",
+            {
+              "multiselect": false,
+              "options": [
+                "1080p",
+                "720p"
+              ]
+            }
+          ],
+          "seed": [
+            "INT",
+            {
+              "tooltip": "Seed controls whether the node should re-run; results are non-deterministic regardless of seed.",
+              "default": 0,
+              "min": 0,
+              "max": 2147483647,
+              "control_after_generate": true,
+              "display": "number"
+            }
+          ]
+        },
+        "hidden": {
+          "auth_token_comfy_org": [
+            "AUTH_TOKEN_COMFY_ORG"
+          ],
+          "api_key_comfy_org": [
+            "API_KEY_COMFY_ORG"
+          ],
+          "unique_id": [
+            "UNIQUE_ID"
+          ],
+          "comfy_usage_source": [
+            "COMFY_USAGE_SOURCE"
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "model_name",
+          "prompt",
+          "video",
+          "keep_original_sound"
+        ],
+        "optional": [
+          "reference_images",
+          "resolution",
+          "seed"
+        ],
+        "hidden": [
+          "auth_token_comfy_org",
+          "api_key_comfy_org",
+          "unique_id",
+          "comfy_usage_source"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "VIDEO"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "VIDEO"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "KlingOmniProEditVideoNode",
+      "display_name": "Kling 3.0 Omni Edit Video",
+      "description": "Edit an existing video with the latest model from Kling.",
+      "python_module": "comfy_api_nodes.nodes_kling",
+      "category": "partner/video/Kling",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": true,
+      "price_badge": {
+        "engine": "jsonata",
+        "depends_on": {
+          "widgets": [
+            {
+              "name": "resolution",
+              "type": "COMBO"
+            }
+          ],
+          "inputs": [],
+          "input_groups": []
+        },
+        "expr": "\n                (\n                  $mode := (widgets.resolution = \"720p\") ? \"std\" : \"pro\";\n                  $rates := {\"std\": 0.126, \"pro\": 0.168};\n                  {\"type\":\"usd\",\"usd\": $lookup($rates, $mode), \"format\":{\"suffix\":\"/second\"}}\n                )\n                "
+      },
+      "search_aliases": null,
+      "essentials_category": "Video Generation",
+      "has_intermediate_output": false
+    },
+    "MinimaxHailuo03ReferenceNode": {
+      "input": {
+        "required": {
+          "model": [
+            "COMFY_DYNAMICCOMBO_V3",
+            {
+              "tooltip": "Model to use for video generation.",
+              "options": [
+                {
+                  "key": "MiniMax H3",
+                  "inputs": {
+                    "required": {
+                      "prompt": [
+                        "STRING",
+                        {
+                          "tooltip": "Text prompt for video generation.",
+                          "default": "",
+                          "multiline": true
+                        }
+                      ],
+                      "resolution": [
+                        "COMBO",
+                        {
+                          "tooltip": "Resolution of the output video.",
+                          "multiselect": false,
+                          "options": [
+                            "768P",
+                            "2K"
+                          ]
+                        }
+                      ],
+                      "ratio": [
+                        "COMBO",
+                        {
+                          "tooltip": "Aspect ratio of the output video.",
+                          "default": "adaptive",
+                          "multiselect": false,
+                          "options": [
+                            "adaptive",
+                            "16:9",
+                            "4:3",
+                            "1:1",
+                            "3:4",
+                            "9:16",
+                            "21:9"
+                          ]
+                        }
+                      ],
+                      "duration": [
+                        "INT",
+                        {
+                          "tooltip": "Duration of the output video in seconds (4-15).",
+                          "default": 5,
+                          "min": 4,
+                          "max": 15,
+                          "step": 1,
+                          "display": "slider"
+                        }
+                      ],
+                      "reference_images": [
+                        "COMFY_AUTOGROW_V3",
+                        {
+                          "tooltip": "Subject or style reference images, referred to in the prompt as 'Image 1'..'Image 9' in connection order. Up to 9 images.",
+                          "template": {
+                            "input": {
+                              "required": {
+                                "reference_image": [
+                                  "IMAGE",
+                                  {}
+                                ]
+                              }
+                            },
+                            "names": [
+                              "image_1",
+                              "image_2",
+                              "image_3",
+                              "image_4",
+                              "image_5",
+                              "image_6",
+                              "image_7",
+                              "image_8",
+                              "image_9"
+                            ],
+                            "min": 0
+                          }
+                        }
+                      ],
+                      "reference_videos": [
+                        "COMFY_AUTOGROW_V3",
+                        {
+                          "tooltip": "Motion or scene reference videos, referred to in the prompt as 'Video 1'..'Video 3' in connection order. Up to 3 videos, 2-15 seconds each, 15 seconds in total.",
+                          "template": {
+                            "input": {
+                              "required": {
+                                "reference_video": [
+                                  "VIDEO",
+                                  {}
+                                ]
+                              }
+                            },
+                            "names": [
+                              "video_1",
+                              "video_2",
+                              "video_3"
+                            ],
+                            "min": 0
+                          }
+                        }
+                      ],
+                      "reference_audios": [
+                        "COMFY_AUTOGROW_V3",
+                        {
+                          "tooltip": "Audio references, referred to in the prompt as 'Audio 1'..'Audio 3' in connection order. Up to 3 clips, 2-15 seconds each, 15 seconds in total. Cannot be used without a reference image or video.",
+                          "template": {
+                            "input": {
+                              "required": {
+                                "reference_audio": [
+                                  "AUDIO",
+                                  {}
+                                ]
+                              }
+                            },
+                            "names": [
+                              "audio_1",
+                              "audio_2",
+                              "audio_3"
+                            ],
+                            "min": 0
+                          }
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "key": "MiniMax H3 Max",
+                  "inputs": {
+                    "required": {
+                      "prompt": [
+                        "STRING",
+                        {
+                          "tooltip": "Text prompt for video generation.",
+                          "default": "",
+                          "multiline": true
+                        }
+                      ],
+                      "resolution": [
+                        "COMBO",
+                        {
+                          "tooltip": "Resolution of the output video.",
+                          "default": "768P",
+                          "multiselect": false,
+                          "options": [
+                            "480P",
+                            "768P"
+                          ]
+                        }
+                      ],
+                      "ratio": [
+                        "COMBO",
+                        {
+                          "tooltip": "Aspect ratio of the output video.",
+                          "default": "adaptive",
+                          "multiselect": false,
+                          "options": [
+                            "adaptive",
+                            "16:9",
+                            "4:3",
+                            "1:1",
+                            "3:4",
+                            "9:16",
+                            "21:9"
+                          ]
+                        }
+                      ],
+                      "duration": [
+                        "INT",
+                        {
+                          "tooltip": "Duration of the output video in seconds (5-15).",
+                          "default": 5,
+                          "min": 5,
+                          "max": 15,
+                          "step": 1,
+                          "display": "slider"
+                        }
+                      ],
+                      "prompt_expansion_mode": [
+                        "COMBO",
+                        {
+                          "tooltip": "How much effort is spent rewriting the prompt before generation.",
+                          "default": "balanced",
+                          "multiselect": false,
+                          "options": [
+                            "balanced",
+                            "quality"
+                          ]
+                        }
+                      ],
+                      "reference_detail": [
+                        "COMBO",
+                        {
+                          "tooltip": "Detail level at which reference images are sent. 'high' sends them at the largest size the model uses (up to a 2048 pixel short side); 'standard' downsizes them to at most 2048x1024 to reduce the reference cost.",
+                          "default": "standard",
+                          "multiselect": false,
+                          "options": [
+                            "high",
+                            "standard"
+                          ]
+                        }
+                      ],
+                      "reference_images": [
+                        "COMFY_AUTOGROW_V3",
+                        {
+                          "tooltip": "Subject or style reference images, referred to in the prompt as 'Image 1'..'Image 9' in connection order. Up to 9 images.",
+                          "template": {
+                            "input": {
+                              "required": {
+                                "reference_image": [
+                                  "IMAGE",
+                                  {}
+                                ]
+                              }
+                            },
+                            "names": [
+                              "image_1",
+                              "image_2",
+                              "image_3",
+                              "image_4",
+                              "image_5",
+                              "image_6",
+                              "image_7",
+                              "image_8",
+                              "image_9"
+                            ],
+                            "min": 0
+                          }
+                        }
+                      ],
+                      "reference_videos": [
+                        "COMFY_AUTOGROW_V3",
+                        {
+                          "tooltip": "Motion or scene reference videos, referred to in the prompt as 'Video 1'..'Video 3' in connection order. Up to 3 videos, 2-15 seconds each, 15 seconds in total.",
+                          "template": {
+                            "input": {
+                              "required": {
+                                "reference_video": [
+                                  "VIDEO",
+                                  {}
+                                ]
+                              }
+                            },
+                            "names": [
+                              "video_1",
+                              "video_2",
+                              "video_3"
+                            ],
+                            "min": 0
+                          }
+                        }
+                      ],
+                      "reference_audios": [
+                        "COMFY_AUTOGROW_V3",
+                        {
+                          "tooltip": "Audio references, referred to in the prompt as 'Audio 1'..'Audio 3' in connection order. Up to 3 clips, 2-15 seconds each, 15 seconds in total. Cannot be used without a reference image or video.",
+                          "template": {
+                            "input": {
+                              "required": {
+                                "reference_audio": [
+                                  "AUDIO",
+                                  {}
+                                ]
+                              }
+                            },
+                            "names": [
+                              "audio_1",
+                              "audio_2",
+                              "audio_3"
+                            ],
+                            "min": 0
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "seed": [
+            "INT",
+            {
+              "tooltip": "Random seed. The same request with the same seed gives similar, but not guaranteed identical, results.",
+              "default": 42,
+              "min": 0,
+              "max": 4294967295,
+              "step": 1,
+              "control_after_generate": true,
+              "display": "number"
+            }
+          ],
+          "watermark": [
+            "BOOLEAN",
+            {
+              "tooltip": "Whether to add an AIGC watermark to the video.",
+              "advanced": true,
+              "default": false
+            }
+          ]
+        },
+        "hidden": {
+          "auth_token_comfy_org": [
+            "AUTH_TOKEN_COMFY_ORG"
+          ],
+          "api_key_comfy_org": [
+            "API_KEY_COMFY_ORG"
+          ],
+          "unique_id": [
+            "UNIQUE_ID"
+          ],
+          "comfy_usage_source": [
+            "COMFY_USAGE_SOURCE"
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "model",
+          "seed",
+          "watermark"
+        ],
+        "hidden": [
+          "auth_token_comfy_org",
+          "api_key_comfy_org",
+          "unique_id",
+          "comfy_usage_source"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "VIDEO"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "VIDEO"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "MinimaxHailuo03ReferenceNode",
+      "display_name": "MiniMax H3 Reference to Video",
+      "description": "Generate video conditioned on reference images, videos, and audio using the MiniMax H3 models. Refer to the references in the prompt by their order: 'Image 1', 'Image 2', 'Video 1', 'Audio 1', and so on.",
+      "python_module": "comfy_api_nodes.nodes_minimax",
+      "category": "partner/video/MiniMax",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": true,
+      "price_badge": {
+        "engine": "jsonata",
+        "depends_on": {
+          "widgets": [
+            {
+              "name": "model",
+              "type": "COMFY_DYNAMICCOMBO_V3"
+            },
+            {
+              "name": "model.resolution",
+              "type": "COMBO"
+            },
+            {
+              "name": "model.duration",
+              "type": "INT"
+            },
+            {
+              "name": "model.reference_detail",
+              "type": "COMBO"
+            }
+          ],
+          "inputs": [],
+          "input_groups": [
+            "model.reference_images",
+            "model.reference_videos",
+            "model.reference_audios"
+          ]
+        },
+        "expr": "\n                (\n                  $dur := $lookup(widgets, \"model.duration\");\n                  $res := $lookup(widgets, \"model.resolution\");\n                  $imgsRaw := $lookup(inputGroups, \"model.reference_images\");\n                  $imgs := $imgsRaw ? $imgsRaw : 0;\n                  $vidsRaw := $lookup(inputGroups, \"model.reference_videos\");\n                  $vids := $vidsRaw ? $vidsRaw : 0;\n                  $audsRaw := $lookup(inputGroups, \"model.reference_audios\");\n                  $auds := $audsRaw ? $audsRaw : 0;\n                  $lookup(widgets, \"model\") = \"minimax h3 max\"\n                    ? (\n                        $unitRate := $res = \"480p\" ? 1 : 1.6;\n                        $frameTokens := $res = \"480p\" ? 390 : 1008;\n                        $base := $dur * $unitRate;\n                        $minTokens := $imgs * 576 + $vids * 12 * $frameTokens + $auds * 160;\n                        $capFrames := $vids * (7 * $dur + 2);\n                        $maxFrames := $capFrames > 265 ? 265 : $capFrames;\n                        $imgMax := $lookup(widgets, \"model.reference_detail\") = \"standard\" ? 2560 : 10240;\n                        $maxTokens := $imgs * $imgMax + $maxFrames * $frameTokens + ($auds > 0 ? 1200 : 0);\n                        $minUnits := $base + ($minTokens > 4096 ? ($minTokens - 4096) * 0.0004 : 0);\n                        $maxUnits := $base + ($maxTokens > 4096 ? ($maxTokens - 4096) * 0.0004 : 0);\n                        $minUnits = $maxUnits\n                          ? {\"type\": \"usd\", \"usd\": $base * 0.0715}\n                          : {\"type\": \"range_usd\", \"min_usd\": $minUnits * 0.0715, \"max_usd\": $maxUnits * 0.0715,\n                             \"format\": {\"approximate\": true}}\n                      )\n                    : (\n                        $rate := $res = \"768p\" ? 0.1287 : 0.1859;\n                        $base := $dur * $rate + ($imgs > 5 ? ($imgs - 5) * 0.0572 : 0);\n                        $vids > 0\n                          ? {\"type\": \"range_usd\", \"min_usd\": $base + $vids * 2 * $rate,\n                             \"max_usd\": $base + 15 * $rate, \"format\": {\"approximate\": true}}\n                          : {\"type\": \"usd\", \"usd\": $base}\n                      )\n                )\n                "
+      },
+      "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "RunwayAleph2KeyframeNode": {
+      "input": {
+        "required": {
+          "image": [
+            "IMAGE",
+            {
+              "tooltip": "The guidance image to apply at the chosen moment of the input video."
+            }
+          ],
+          "timing": [
+            "COMFY_DYNAMICCOMBO_V3",
+            {
+              "tooltip": "How to place this image on the input video's timeline.",
+              "options": [
+                {
+                  "key": "Absolute time (seconds)",
+                  "inputs": {
+                    "required": {
+                      "seconds": [
+                        "FLOAT",
+                        {
+                          "tooltip": "Time in seconds from start of the input video where this image applies.",
+                          "default": 0,
+                          "min": 0,
+                          "max": 30,
+                          "step": 0.1,
+                          "display": "number"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "key": "Fraction of duration (0.0-1.0)",
+                  "inputs": {
+                    "required": {
+                      "fraction": [
+                        "FLOAT",
+                        {
+                          "tooltip": "Where in the input video this image applies, as a fraction of its duration (0.0 = start, 1.0 = end).",
+                          "default": 0,
+                          "min": 0,
+                          "max": 1,
+                          "step": 0.01,
+                          "display": "number"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "optional": {
+          "keyframes": [
+            "RUNWAY_ALEPH2_KEYFRAME",
+            {
+              "tooltip": "Optional earlier keyframes to chain with this one."
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "image",
+          "timing"
+        ],
+        "optional": [
+          "keyframes"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "RUNWAY_ALEPH2_KEYFRAME"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "keyframes"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "RunwayAleph2KeyframeNode",
+      "display_name": "Runway Aleph2 Keyframe",
+      "description": "Anchor a guidance image to a moment of the input (source) video, so Aleph2 steers the edit at that point of your footage. Connect this to the 'keyframes' input of the Runway Aleph2 Video to Video node; chain several together (up to 5) via the optional 'keyframes' input below.",
+      "python_module": "comfy_api_nodes.nodes_runway",
+      "category": "partner/video/Runway",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "RunwayAleph2PromptImageNode": {
+      "input": {
+        "required": {
+          "image": [
+            "IMAGE",
+            {
+              "tooltip": "The guidance image to place at the chosen moment of the output video."
+            }
+          ],
+          "position": [
+            "COMFY_DYNAMICCOMBO_V3",
+            {
+              "tooltip": "How to place this image on the output video's timeline.",
+              "options": [
+                {
+                  "key": "Absolute time (seconds)",
+                  "inputs": {
+                    "required": {
+                      "seconds": [
+                        "FLOAT",
+                        {
+                          "tooltip": "Time in seconds from start of the output video where this image applies.",
+                          "default": 0,
+                          "min": 0,
+                          "max": 30,
+                          "step": 0.1,
+                          "display": "number"
+                        }
+                      ]
+                    }
+                  }
+                },
+                {
+                  "key": "Fraction of duration (0.0-1.0)",
+                  "inputs": {
+                    "required": {
+                      "fraction": [
+                        "FLOAT",
+                        {
+                          "tooltip": "Where in the output video this image applies, as a fraction of its duration (0.0 = start, 1.0 = end).",
+                          "default": 0,
+                          "min": 0,
+                          "max": 1,
+                          "step": 0.01,
+                          "display": "number"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "optional": {
+          "prompt_images": [
+            "RUNWAY_ALEPH2_PROMPT_IMAGE",
+            {
+              "tooltip": "Optional earlier prompt images to chain with this one."
+            }
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "image",
+          "position"
+        ],
+        "optional": [
+          "prompt_images"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "RUNWAY_ALEPH2_PROMPT_IMAGE"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "prompt_images"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "RunwayAleph2PromptImageNode",
+      "display_name": "Runway Aleph2 Prompt Image",
+      "description": "Anchor a guidance image to a moment of the output (result) video, to guide what the edited video looks like at that point. Connect this to the 'prompt_images' input of the Runway Aleph2 Video to Video node; chain several together (up to 5) via the optional 'prompt_images' input below.",
+      "python_module": "comfy_api_nodes.nodes_runway",
+      "category": "partner/video/Runway",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": false,
+      "price_badge": null,
+      "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "RunwayAleph2VideoToVideoNode": {
+      "input": {
+        "required": {
+          "prompt": [
+            "STRING",
+            {
+              "tooltip": "Describes what should appear in the output (1-1000 characters).",
+              "default": "",
+              "multiline": true
+            }
+          ],
+          "video": [
+            "VIDEO",
+            {
+              "tooltip": "Input video to edit. Must be 2-30 seconds at 30 fps or lower."
+            }
+          ],
+          "seed": [
+            "INT",
+            {
+              "tooltip": "Random seed for generation",
+              "default": 0,
+              "min": 0,
+              "max": 4294967295,
+              "step": 1,
+              "control_after_generate": true,
+              "display": "number"
+            }
+          ],
+          "public_figure_threshold": [
+            "COMBO",
+            {
+              "tooltip": "Content moderation for recognizable public figures.",
+              "default": "low",
+              "multiselect": false,
+              "options": [
+                "auto",
+                "low"
+              ]
+            }
+          ]
+        },
+        "optional": {
+          "keyframes": [
+            "RUNWAY_ALEPH2_KEYFRAME",
+            {
+              "tooltip": "Guidance images anchored to the input video, from Aleph2 Keyframe nodes (up to 5). Use keyframes or prompt images, not both."
+            }
+          ],
+          "prompt_images": [
+            "RUNWAY_ALEPH2_PROMPT_IMAGE",
+            {
+              "tooltip": "Guidance images anchored to the output video, from Aleph2 Prompt Image nodes (up to 5). Use keyframes or prompt images, not both."
+            }
+          ]
+        },
+        "hidden": {
+          "auth_token_comfy_org": [
+            "AUTH_TOKEN_COMFY_ORG"
+          ],
+          "api_key_comfy_org": [
+            "API_KEY_COMFY_ORG"
+          ],
+          "unique_id": [
+            "UNIQUE_ID"
+          ],
+          "comfy_usage_source": [
+            "COMFY_USAGE_SOURCE"
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "prompt",
+          "video",
+          "seed",
+          "public_figure_threshold"
+        ],
+        "optional": [
+          "keyframes",
+          "prompt_images"
+        ],
+        "hidden": [
+          "auth_token_comfy_org",
+          "api_key_comfy_org",
+          "unique_id",
+          "comfy_usage_source"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "VIDEO"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "VIDEO"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "RunwayAleph2VideoToVideoNode",
+      "display_name": "Runway Aleph2 Video to Video",
+      "description": "Edit a video with a text prompt using Runway's Aleph2 model. Aleph2 transforms your footage (restyle, relight, add or remove elements, change the viewpoint) while keeping the original motion and timing; the output resolution matches the input video, which must be 2-30 seconds at 30 fps or lower. Optionally steer the edit with either keyframes (anchored to the input video) or prompt images (anchored to the output video) - use one or the other, not both.",
+      "python_module": "comfy_api_nodes.nodes_runway",
+      "category": "partner/video/Runway",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": true,
+      "price_badge": {
+        "engine": "jsonata",
+        "depends_on": {
+          "widgets": [],
+          "inputs": [],
+          "input_groups": []
+        },
+        "expr": "{\"type\":\"usd\",\"usd\": 0.4004, \"format\":{\"suffix\":\"/second\"}}"
+      },
+      "search_aliases": null,
+      "essentials_category": null,
+      "has_intermediate_output": false
+    },
+    "Wan2VideoEditApi": {
+      "input": {
+        "required": {
+          "model": [
+            "COMFY_DYNAMICCOMBO_V3",
+            {
+              "options": [
+                {
+                  "key": "wan2.7-videoedit",
+                  "inputs": {
+                    "required": {
+                      "prompt": [
+                        "STRING",
+                        {
+                          "tooltip": "Editing instructions or style transfer requirements.",
+                          "default": "",
+                          "multiline": true
+                        }
+                      ],
+                      "resolution": [
+                        "COMBO",
+                        {
+                          "multiselect": false,
+                          "options": [
+                            "720P",
+                            "1080P"
+                          ]
+                        }
+                      ],
+                      "ratio": [
+                        "COMBO",
+                        {
+                          "tooltip": "Aspect ratio. If not changed, approximates the input video ratio.",
+                          "multiselect": false,
+                          "options": [
+                            "16:9",
+                            "9:16",
+                            "1:1",
+                            "4:3",
+                            "3:4"
+                          ]
+                        }
+                      ],
+                      "duration": [
+                        "COMBO",
+                        {
+                          "tooltip": "Output duration in seconds. 'auto' matches the input video duration. A specific value truncates from the start of the video.",
+                          "default": "auto",
+                          "multiselect": false,
+                          "options": [
+                            "auto",
+                            "2",
+                            "3",
+                            "4",
+                            "5",
+                            "6",
+                            "7",
+                            "8",
+                            "9",
+                            "10"
+                          ]
+                        }
+                      ],
+                      "reference_images": [
+                        "COMFY_AUTOGROW_V3",
+                        {
+                          "template": {
+                            "input": {
+                              "required": {
+                                "reference_image": [
+                                  "IMAGE",
+                                  {}
+                                ]
+                              }
+                            },
+                            "names": [
+                              "image1",
+                              "image2",
+                              "image3",
+                              "image4"
+                            ],
+                            "min": 0
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "video": [
+            "VIDEO",
+            {
+              "tooltip": "The video to edit."
+            }
+          ],
+          "seed": [
+            "INT",
+            {
+              "tooltip": "Seed to use for generation.",
+              "default": 0,
+              "min": 0,
+              "max": 2147483647,
+              "step": 1,
+              "control_after_generate": true,
+              "display": "number"
+            }
+          ],
+          "audio_setting": [
+            "COMBO",
+            {
+              "tooltip": "'auto': model decides whether to regenerate audio based on the prompt. 'origin': preserve the original audio from the input video.",
+              "advanced": true,
+              "default": "auto",
+              "multiselect": false,
+              "options": [
+                "auto",
+                "origin"
+              ]
+            }
+          ],
+          "watermark": [
+            "BOOLEAN",
+            {
+              "tooltip": "Whether to add an AI-generated watermark to the result.",
+              "advanced": true,
+              "default": false
+            }
+          ]
+        },
+        "hidden": {
+          "auth_token_comfy_org": [
+            "AUTH_TOKEN_COMFY_ORG"
+          ],
+          "api_key_comfy_org": [
+            "API_KEY_COMFY_ORG"
+          ],
+          "unique_id": [
+            "UNIQUE_ID"
+          ],
+          "comfy_usage_source": [
+            "COMFY_USAGE_SOURCE"
+          ]
+        }
+      },
+      "input_order": {
+        "required": [
+          "model",
+          "video",
+          "seed",
+          "audio_setting",
+          "watermark"
+        ],
+        "hidden": [
+          "auth_token_comfy_org",
+          "api_key_comfy_org",
+          "unique_id",
+          "comfy_usage_source"
+        ]
+      },
+      "is_input_list": false,
+      "output": [
+        "VIDEO"
+      ],
+      "output_is_list": [
+        false
+      ],
+      "output_name": [
+        "VIDEO"
+      ],
+      "output_tooltips": [
+        null
+      ],
+      "output_matchtypes": null,
+      "name": "Wan2VideoEditApi",
+      "display_name": "Wan 2.7 Video Edit",
+      "description": "Edit a video using text instructions, reference images, or style transfer.",
+      "python_module": "comfy_api_nodes.nodes_wan",
+      "category": "partner/video/Wan",
+      "output_node": false,
+      "deprecated": false,
+      "experimental": false,
+      "dev_only": false,
+      "api_node": true,
+      "price_badge": {
+        "engine": "jsonata",
+        "depends_on": {
+          "widgets": [
+            {
+              "name": "model",
+              "type": "COMFY_DYNAMICCOMBO_V3"
+            },
+            {
+              "name": "model.resolution",
+              "type": "COMBO"
+            },
+            {
+              "name": "model.duration",
+              "type": "COMBO"
+            }
+          ],
+          "inputs": [],
+          "input_groups": []
+        },
+        "expr": "\n                (\n                  $res := $lookup(widgets, \"model.resolution\");\n                  $dur := $lookup(widgets, \"model.duration\");\n                  $ppsTable := { \"720p\": 0.1, \"1080p\": 0.15 };\n                  $pps := $lookup($ppsTable, $res);\n                  { \"type\": \"usd\", \"usd\": $pps, \"format\": { \"suffix\": \"/second\", \"note\": \"(input + output)\" } }\n                )\n                "
+      },
+      "search_aliases": null,
       "essentials_category": null,
       "has_intermediate_output": false
     }

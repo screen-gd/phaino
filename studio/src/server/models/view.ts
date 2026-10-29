@@ -2,12 +2,12 @@ import "server-only";
 
 import { getEnv, type StudioEnv } from "@/server/env";
 import { listModels } from "./resolve";
-import { MODE_LABELS, type ModelMode } from "./registry";
+import { MODE_LABELS } from "./registry";
 import { getPreset } from "../presets/load";
 import type { ModeKey } from "@/lib/modes";
 import type { StudioModel } from "@/components/toolStudioData";
 
-const MODE_ORDER: ModelMode[] = ["t2i", "edit", "t2v", "i2v", "flf2v"];
+const MODE_ORDER: ModeKey[] = ["t2i", "edit", "t2v", "i2v", "flf2v"];
 
 /**
  * Client-facing model list for the studio pickers. `modes` maps each passing
@@ -23,7 +23,10 @@ export function toStudioModels(
     .filter((m) => m.kind === kind)
     .map((m) => {
       const modes: Partial<Record<ModeKey, string>> = {};
-      for (const { mode, presetId } of m.modes) modes[mode] = presetId;
+      for (const { mode, presetId } of m.modes) {
+        if (mode === "swap") continue;
+        modes[mode] = presetId;
+      }
       const preferred: ModeKey[] =
         kind === "video" ? ["t2v", "i2v", "flf2v"] : ["t2i", "edit"];
       const defaultPresetId = preferred.map((k) => modes[k]).find(Boolean)!;

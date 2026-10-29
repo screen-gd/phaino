@@ -729,6 +729,36 @@
           "status": "done"
         }
       ]
+    },
+    {
+      "id": "kawarimi",
+      "title": "Kawarimi character swap",
+      "tasks": [
+        {
+          "id": "kawarimi-phase-a",
+          "title": "Phase A: open-weight engine plumbing, sync and one Cloud run",
+          "status": "blocked",
+          "notes": "Swap mode added to the model registry (scail2 -> kawarimi, wan22-animate -> kawarimi-animate) with detectSwapPreset, prepare/runner wiring, picker filtering and tests. models:sync: kawarimi PASS, kawarimi-animate FAIL as intended (SAM2 custom nodes). Cloud run submitted but Comfy Cloud rejected the stored key: API key authentication is not available for free tier accounts. Needs an API-capable key. Later phases: UI page, partner engines, samples."
+        },
+        {
+          "id": "kawarimi-phase-b",
+          "title": "Phase B: partner engines, media URLs, source audio, real runs",
+          "status": "done",
+          "notes": "KAWARIMI_ENGINES single list (open entries derived from registry swap modes) + 7 partner preset folders + bespoke Router adapters with mediaAsUrl Comfy storage upload + source-audio remux into every result. Real runs on generated media (Veo 3.1 Fast sources, Nano Banana 2.1 characters): genjutsu, seedance (488.37cr), wan27 (254.04cr), happyhorse (355.66cr), aleph all succeeded with remuxed AAC; seedance/wan/happyhorse report credits, genjutsu/aleph do not (Router contract declares no X-Comfy-Credits-Used on the queued result route). Kling O1 refused our own footage with content_policy_violation; adapter unregistered, folder stays hidden. MiniMax H3 failed once as base_video, then succeeded twice as reference_video (325.87cr on run a)."
+        },
+        {
+          "id": "kawarimi-library-fix",
+          "title": "Library video preview and play",
+          "status": "done",
+          "notes": "Tiles were non-interactive muted videos. New LibraryGrid client component: real buttons, hover plays muted (respects prefers-reduced-motion), click opens a preview dialog with controls, sound, Download, Open in Editor, Post to Social."
+        },
+        {
+          "id": "kawarimi-phase-c",
+          "title": "Phase C: /kawarimi page, nav, samples, docs",
+          "status": "done",
+          "notes": "New /kawarimi route + KawarimiStudio (VideoPicker + character UploadCard + image Library picker, per-engine prompt defaults, engine chips with Open/Partner/H3 badges, EstimateCaption, HistoryRail filtered to kawarimi runs). Result stage: synced side by side plus wipe compare (clip-path slider, keyboard arrows). Toolbar: Download, Open in Editor, Post to Social, View workflow, Fork, Open in Library. /characters redirects. Nav: features.ts kawarimi entry (status new), sections.ts after Edit, one TOOLS entry on home. MCP instructions + list_presets assertions, developers reference section, README row + section. Both H3 samples generated (325.87cr each) and staged in examples/ + public/explore/examples; kawarimi_3 (Seedance) staged as candidate pending pick."
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,60 @@
+{
+  "id": "kawarimi-genjutsu",
+  "name": "Genjutsu Motion Transfer",
+  "description": "Character swap on Higgsfield Genjutsu Motion Transfer.",
+  "category": "video",
+  "order": 30,
+  "engine": "workflow",
+  "model": {
+    "id": "genjutsu",
+    "label": "Genjutsu Motion Transfer",
+    "license": "partner"
+  },
+  "source": {
+    "template": "api_higgsfield_genjutsu_motion_transfer"
+  },
+  "inputs": [
+    {
+      "key": "video",
+      "type": "video",
+      "label": "Source video",
+      "required": true,
+      "bind": { "node": "13", "field": "file" }
+    },
+    {
+      "key": "character",
+      "type": "image",
+      "label": "Character",
+      "required": true,
+      "bind": { "node": "14", "field": "image" }
+    }
+  ],
+  "params": [
+    {
+      "type": "text",
+      "key": "prompt",
+      "label": "Prompt",
+      "default": "Recast the person as the character from the reference image. Keep the source motion, camera movement, timing and audio.",
+      "bind": { "node": "9", "field": "model.prompt" }
+    },
+    {
+      "type": "choice",
+      "key": "resolution",
+      "label": "Resolution",
+      "default": "720p",
+      "options": [
+        { "value": "480p", "label": "480p" },
+        { "value": "720p", "label": "720p" },
+        { "value": "1080p", "label": "1080p" }
+      ],
+      "bind": { "node": "9", "field": "model.resolution" }
+    },
+    {
+      "type": "seed",
+      "key": "seed",
+      "label": "Seed",
+      "bind": { "node": "9", "field": "model.seed" }
+    }
+  ],
+  "outputs": [{ "node": "10", "kind": "video" }]
+}

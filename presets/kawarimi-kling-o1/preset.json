@@ -1,0 +1,59 @@
+{
+  "id": "kawarimi-kling-o1",
+  "name": "Kling O1 Video Edit",
+  "description": "Character swap on Kling O1 Video Edit.",
+  "category": "video",
+  "order": 50,
+  "engine": "workflow",
+  "model": {
+    "id": "kling-o1",
+    "label": "Kling O1 Video Edit",
+    "license": "partner"
+  },
+  "source": {
+    "template": "api_kling_omni_edit_video"
+  },
+  "inputs": [
+    {
+      "key": "video",
+      "type": "video",
+      "label": "Source video",
+      "required": true,
+      "bind": { "node": "23", "field": "file" }
+    },
+    {
+      "key": "character",
+      "type": "image",
+      "label": "Character",
+      "required": true,
+      "bind": { "node": "24", "field": "image" }
+    }
+  ],
+  "params": [
+    {
+      "type": "text",
+      "key": "prompt",
+      "label": "Prompt",
+      "default": "Change the person in [@Video] to the character from [@Image], keeping the original motion, camera and background.",
+      "bind": { "node": "8", "field": "prompt" }
+    },
+    {
+      "type": "choice",
+      "key": "resolution",
+      "label": "Resolution",
+      "default": "1080p",
+      "options": [
+        { "value": "720p", "label": "720p" },
+        { "value": "1080p", "label": "1080p" }
+      ],
+      "bind": { "node": "8", "field": "resolution" }
+    },
+    {
+      "type": "seed",
+      "key": "seed",
+      "label": "Seed",
+      "bind": { "node": "8", "field": "seed" }
+    }
+  ],
+  "outputs": [{ "node": "3", "kind": "video" }]
+}

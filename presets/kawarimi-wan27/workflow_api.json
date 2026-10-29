@@ -1,0 +1,73 @@
+{
+  "1": {
+    "inputs": {
+      "file": "play_chess.mp4"
+    },
+    "class_type": "LoadVideo",
+    "_meta": {
+      "title": "Load Video"
+    }
+  },
+  "2": {
+    "inputs": {
+      "image": "old_bear.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "3": {
+    "inputs": {
+      "image": "funny_dog.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "4": {
+    "inputs": {
+      "model": "wan2.7-videoedit",
+      "model.prompt": "Replace the two elderly men with the bear from image1 and the dog from image2. The bear sits on the left side of the chess table, the dog sits on the right. Both retain the original chess-playing posture and movements. Keep the wooden table, chess pieces, warm lamp lighting, and cozy room atmosphere unchanged. Add ambient sounds of a crackling fireplace and the soft click of chess pieces being placed.\n",
+      "model.resolution": "720P",
+      "model.ratio": "16:9",
+      "model.duration": "auto",
+      "seed": 391482874,
+      "audio_setting": "auto",
+      "watermark": false,
+      "video": [
+        "1",
+        0
+      ],
+      "model.reference_images.image1": [
+        "3",
+        0
+      ],
+      "model.reference_images.image2": [
+        "2",
+        0
+      ]
+    },
+    "class_type": "Wan2VideoEditApi",
+    "_meta": {
+      "title": "Wan 2.7 Video Edit"
+    }
+  },
+  "5": {
+    "inputs": {
+      "filename_prefix": "video/wan2.7_video_edit",
+      "format": "auto",
+      "format.codec": "auto",
+      "codec": "auto",
+      "video": [
+        "4",
+        0
+      ]
+    },
+    "class_type": "SaveVideo",
+    "_meta": {
+      "title": "Save Video"
+    }
+  }
+}

@@ -6,7 +6,13 @@ import type { StudioEnv } from "@/server/env";
 import type { ResolvedTool } from "@/server/models/resolve";
 import { EDIT_TOOLS, type EditTool } from "@/server/models/tools";
 import type { Preset } from "@/server/presets/schema";
-import { conformUpload, deriveWrites, prepareToolJob, type EditDeps } from "./prepare";
+import {
+  conformUpload,
+  deriveWrites,
+  prepareEditJob,
+  prepareToolJob,
+  type EditDeps,
+} from "./prepare";
 
 function env(): StudioEnv {
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "phaino-edit-"));
@@ -215,6 +221,55 @@ describe("prepareToolJob", () => {
     expect(out.inputs.video).toBe(uploadId);
     // 4s * 16 = 64 -> 61 (4n+1 under 81)
     expect(out.derived[0].value).toBe(61);
+  });
+});
+
+describe("prepareEditJob partner engines", () => {
+  it("keeps a clip at or under the engine maxSeconds untouched", async () => {
+    const e = env();
+    const uploadId = putUpload(e.dataDir);
+    const deps = fakeDeps({
+      width: 1280, height: 720, fps: 24, durationSec: 8, hasAudio: true,
+    });
+    const out = await prepareEditJob(
+      "kawarimi-h3",
+      { video: uploadId, character: "c.png" },
+      {},
+      e,
+      deps,
+    );
+    expect(out?.trimmed).toBe(false);
+    expect(out?.derived).toEqual([]);
+    expect(out?.inputs.video).toBe(uploadId);
+    expect(out?.source).toEqual({
+      uploadId,
+      seconds: 8,
+      hasAudio: true,
+    });
+    expect(deps.calls).toHaveLength(0);
+  });
+
+  it("trims past the engine maxSeconds with no fps conform or derived writes", async () => {
+    const e = env();
+    const uploadId = putUpload(e.dataDir);
+    const deps = fakeDeps({
+      width: 1280, height: 720, fps: 30, durationSec: 20, hasAudio: true,
+    });
+    const out = await prepareEditJob(
+      "kawarimi-h3",
+      { video: uploadId, character: "c.png" },
+      {},
+      e,
+      deps,
+    );
+    expect(out?.trimmed).toBe(true);
+    expect(out?.derived).toEqual([]);
+    expect(out?.inputs.video).not.toBe(uploadId);
+    expect(out?.source?.seconds).toBe(15);
+    expect(deps.calls).toHaveLength(1);
+    const args = deps.calls[0];
+    expect(args[args.indexOf("-t") + 1]).toBe("15");
+    expect(args).not.toContain("-r");
   });
 });
 

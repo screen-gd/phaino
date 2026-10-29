@@ -1,10 +1,5 @@
-import { EmptyPage } from "@/components/EmptyPage";
+import { redirect } from "next/navigation";
 
 export default function CharactersPage() {
-  return (
-    <EmptyPage
-      title="Characters"
-      body="Keep one character consistent across shots. Coming soon."
-    />
-  );
+  redirect("/kawarimi");
 }

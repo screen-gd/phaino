@@ -1,5 +1,6 @@
 import { ROUTER_CATALOG } from "./catalog";
 import { genericAdapter } from "./generic";
+import { KAWARIMI_ADAPTERS } from "./kawarimi";
 import { klingAdapter } from "./kling";
 import { nanoBananaAdapter } from "./nanoBanana";
 import { seedanceAdapter } from "./seedance";
@@ -18,6 +19,7 @@ export const ROUTER_ADAPTERS: readonly RouterAdapter[] = [
   nanoBananaAdapter,
   seedanceAdapter,
   klingAdapter,
+  ...KAWARIMI_ADAPTERS,
   ...ROUTER_CATALOG.map(genericAdapter),
 ];
 

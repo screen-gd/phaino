@@ -22,6 +22,7 @@ const TOOLS = [
   { id: "video", href: "/video", name: "Video", kind: "Video", desc: "LTX 2.5, Wan 2.2, HunyuanVideo, MiniMax H3", icon: "video" },
   { id: "effects", href: "/effects", name: "Effects", kind: "Video", desc: "One-click reframe, upscale and smooth motion", icon: "effects" },
   { id: "edit", href: "/edit", name: "Edit", kind: "Image", desc: "Upscale and inpaint", icon: "edit" },
+  { id: "kawarimi", href: "/kawarimi", name: "Kawarimi", kind: "Video", desc: "Character swap", icon: "characters" },
   { id: "editor", href: "/editor", name: "Editor", kind: null, desc: "Cut, titles and music", icon: "export" },
 ] as const satisfies readonly {
   id: string;

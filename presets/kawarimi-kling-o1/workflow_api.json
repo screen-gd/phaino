@@ -1,0 +1,85 @@
+{
+  "3": {
+    "inputs": {
+      "filename_prefix": "video/Kling",
+      "format": "auto",
+      "format.codec": "h264",
+      "format.codec.encoding": "auto",
+      "codec": "auto",
+      "video": [
+        "8",
+        0
+      ]
+    },
+    "class_type": "SaveVideo",
+    "_meta": {
+      "title": "Save Video"
+    }
+  },
+  "8": {
+    "inputs": {
+      "model_name": "kling-video-o1",
+      "prompt": "Change the human skateboarder in [@Video] to the anthropomorphic dog (wearing a brown jacket and straw hat) from [@Image], and keep the dog’s movements consistent with the original skateboarder’s actions (pushing off, balancing on the skateboard) in the skatepark scene. Preserve the original video’s lighting and background details.",
+      "keep_original_sound": true,
+      "resolution": "1080p",
+      "seed": 612342493,
+      "video": [
+        "25",
+        0
+      ],
+      "reference_images": [
+        "26",
+        0
+      ]
+    },
+    "class_type": "KlingOmniProEditVideoNode",
+    "_meta": {
+      "title": "Kling 3.0 Omni Edit Video"
+    }
+  },
+  "23": {
+    "inputs": {
+      "file": "api_kling_omni_edit_video_input_video.mp4"
+    },
+    "class_type": "LoadVideo",
+    "_meta": {
+      "title": "Load Video"
+    }
+  },
+  "24": {
+    "inputs": {
+      "image": "api_kling_omni_edit_video_input_image.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "25": {
+    "inputs": {
+      "start_time": 0,
+      "duration": 0,
+      "strict_duration": false,
+      "video": [
+        "23",
+        0
+      ]
+    },
+    "class_type": "Video Slice",
+    "_meta": {
+      "title": "Trim Video"
+    }
+  },
+  "26": {
+    "inputs": {
+      "images.image0": [
+        "24",
+        0
+      ]
+    },
+    "class_type": "BatchImagesNode",
+    "_meta": {
+      "title": "Batch Images"
+    }
+  }
+}

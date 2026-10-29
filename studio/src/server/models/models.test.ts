@@ -5,7 +5,7 @@ import { getEnv } from "@/server/env";
 import { applyPreset } from "../presets/bind";
 import { bindsOf, presetSchema } from "../presets/schema";
 import { loadObjectInfo, validateWorkflowApi } from "../presets/validate";
-import { detectPreset } from "./bindings";
+import { detectPreset, detectSwapPreset } from "./bindings";
 import {
   MODEL_REGISTRY,
   modelById,
@@ -104,7 +104,10 @@ describe.skipIf(!manifest)("models manifest", () => {
 
         it.skipIf(!isPass)("detects a valid preset", () => {
           const { api, ui } = loadGraphs(entry!.template);
-          const detection = detectPreset(model, mode, api, ui, loadObjectInfo());
+          const detection =
+            mode === "swap"
+              ? detectSwapPreset(model, api, ui, loadObjectInfo())
+              : detectPreset(model, mode, api, ui, loadObjectInfo());
           expect(detection.problems).toEqual([]);
           expect(detection.preset).not.toBeNull();
           expect(() => presetSchema.parse(detection.preset)).not.toThrow();
@@ -131,10 +134,19 @@ describe.skipIf(!manifest)("models manifest", () => {
               const v = api[inp.bind.node]?.inputs?.[inp.bind.field];
               if (v !== undefined) inputs[inp.key] = String(v);
             }
+            // Keep text params at their traced template values: modes with a
+            // prompt override (swap) default to something else.
+            const params: Record<string, string> = {};
+            for (const p of preset.params) {
+              if (p.type !== "text") continue;
+              const b = bindsOf(p.bind)[0];
+              const v = api[b.node]?.inputs?.[b.field];
+              if (typeof v === "string") params[p.key] = v;
+            }
             const applied = applyPreset(
               api,
               preset,
-              { inputs },
+              { inputs, params },
               { seed: Number(originalSeed) },
             );
             // Every seed bind may differ; restore the template's values.

@@ -30,6 +30,47 @@ export async function uploadDataUrl(
   return `data:${upload.mimeType};base64,${bytes.toString("base64")}`;
 }
 
+const storageSchema = z.object({
+  upload_url: z.string(),
+  download_url: z.string(),
+});
+
+/**
+ * Upload a resolved upload to Comfy storage and return its public https URL,
+ * for Router models that refuse base64 video.
+ */
+export async function uploadComfyMedia(
+  upload: { absPath: string; mimeType: string },
+  apiKey: string,
+  fetchImpl: typeof fetch = fetch,
+): Promise<string> {
+  const bytes = await readFile(upload.absPath);
+  const res = await fetchImpl("https://api.comfy.org/customers/storage", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      file_name: path.basename(upload.absPath),
+      content_type: upload.mimeType,
+    }),
+  });
+  if (!res.ok) {
+    throw new RouterOutputError(`Storage request failed (${res.status})`);
+  }
+  const { upload_url, download_url } = storageSchema.parse(await res.json());
+  const put = await fetchImpl(upload_url, {
+    method: "PUT",
+    headers: { "Content-Type": upload.mimeType },
+    body: new Uint8Array(bytes),
+  });
+  if (!put.ok) {
+    throw new RouterOutputError(`Storage upload failed (${put.status})`);
+  }
+  return download_url;
+}
+
 /** Save Router media with its resolved extension and return the written path. */
 export async function saveRouterOutput(
   output: RouterOutput,

@@ -1,0 +1,79 @@
+{
+  "16": {
+    "inputs": {
+      "filename_prefix": "video/Seedance2.5_video_edit",
+      "format": "auto",
+      "format.codec": "auto",
+      "codec": "auto",
+      "video": [
+        "39",
+        0
+      ]
+    },
+    "class_type": "SaveVideo",
+    "_meta": {
+      "title": "Save Video"
+    }
+  },
+  "35": {
+    "inputs": {
+      "file": "kitten_cop.mp4"
+    },
+    "class_type": "LoadVideo",
+    "_meta": {
+      "title": "Load Video"
+    }
+  },
+  "36": {
+    "inputs": {
+      "start_time": 0,
+      "duration": 5,
+      "strict_duration": false,
+      "video": [
+        "35",
+        0
+      ]
+    },
+    "class_type": "Video Slice",
+    "_meta": {
+      "title": "Trim Video"
+    }
+  },
+  "39": {
+    "inputs": {
+      "model": "Seedance 2.5",
+      "model.prompt": "Transform the input video to clay style. Keep the motion, characters, composition, and timing exactly the same, only change the visual rendering. No additional content.",
+      "model.resolution": "720p",
+      "model.ratio": "16:9",
+      "model.duration": 5,
+      "model.generate_audio": true,
+      "model.task_type": "edit",
+      "model.output_format": "mp4",
+      "model.auto_downscale": true,
+      "model.auto_upscale": false,
+      "seed": 0,
+      "watermark": false,
+      "model.reference_images.image_1": [
+        "40",
+        0
+      ],
+      "model.reference_videos.video_1": [
+        "36",
+        0
+      ]
+    },
+    "class_type": "ByteDance2ReferenceNodeV2",
+    "_meta": {
+      "title": "ByteDance Seedance 2.5 Reference to Video"
+    }
+  },
+  "40": {
+    "inputs": {
+      "image": "character.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "6": {
+    "inputs": {
+      "filename_prefix": "video/HappyHorse_video_edit",
+      "format": "auto",
+      "format.codec": "auto",
+      "codec": "auto",
+      "video": [
+        "15",
+        0
+      ]
+    },
+    "class_type": "SaveVideo",
+    "_meta": {
+      "title": "Save Video"
+    }
+  },
+  "14": {
+    "inputs": {
+      "image": "urban_man.png"
+    },
+    "class_type": "LoadImage",
+    "_meta": {
+      "title": "Load Image"
+    }
+  },
+  "15": {
+    "inputs": {
+      "model": "happyhorse-1.0-video-edit",
+      "model.prompt": "replace the woman in the video with the character in the image",
+      "model.resolution": "720P",
+      "model.ratio": "16:9",
+      "seed": 1403894496,
+      "watermark": false,
+      "video": [
+        "16",
+        0
+      ],
+      "model.reference_images.image1": [
+        "14",
+        0
+      ]
+    },
+    "class_type": "HappyHorseVideoEditApi",
+    "_meta": {
+      "title": "HappyHorse Video Edit"
+    }
+  },
+  "16": {
+    "inputs": {
+      "file": "woman_by_tram.mp4"
+    },
+    "class_type": "LoadVideo",
+    "_meta": {
+      "title": "Load Video"
+    }
+  }
+}

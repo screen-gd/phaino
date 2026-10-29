@@ -13,7 +13,11 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { detectPreset, detectToolPreset } from "../src/server/models/bindings.ts";
+import {
+  detectPreset,
+  detectSwapPreset,
+  detectToolPreset,
+} from "../src/server/models/bindings.ts";
 import {
   MODEL_REGISTRY,
   TEMPLATES_REF,
@@ -145,9 +149,13 @@ async function main() {
           template: src.template,
           bucket: "modes",
           detect: (api, ui) =>
-            detectPreset(model, mode as ModelMode, api, ui, {
-              nodes: objectInfoRef.current as never,
-            }),
+            mode === "swap"
+              ? detectSwapPreset(model, api, ui, {
+                  nodes: objectInfoRef.current as never,
+                })
+              : detectPreset(model, mode as ModelMode, api, ui, {
+                  nodes: objectInfoRef.current as never,
+                }),
         });
       }
     }

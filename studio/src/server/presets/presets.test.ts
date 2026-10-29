@@ -97,7 +97,8 @@ describe("presets on disk", () => {
 
   it("loads all folder presets, folder name equals id", () => {
     const folder = presets.filter((p) => p.origin !== "model");
-    expect(folder).toHaveLength(15);
+    // 22 folders, minus kawarimi-kling-o1: hidden while it has no adapter.
+    expect(folder).toHaveLength(21);
     const dir = getEnv().presetsDir;
     for (const p of folder) {
       expect(fs.existsSync(path.join(dir, p.id, "preset.json"))).toBe(true);

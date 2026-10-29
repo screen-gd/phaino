@@ -81,9 +81,18 @@ async function fetchSchema(model: string): Promise<ModelSchema | undefined> {
 }
 
 const out: Record<string, ModelSchema> = {};
-// Read ids from the catalog source: catalog.ts imports this snapshot itself.
-const catalogSource = fs.readFileSync(path.join(root, "src/server/router/catalog.ts"), "utf8");
-const models = [...new Set([...catalogSource.matchAll(/model: "([^"]+)"/g)].map((m) => m[1]))];
+// Read ids from the adapter sources; catalog.ts imports this snapshot itself.
+const models = [
+  ...new Set(
+    ["catalog.ts", "kawarimi.ts"].flatMap((file) =>
+      [
+        ...fs
+          .readFileSync(path.join(root, "src/server/router", file), "utf8")
+          .matchAll(/model: "([^"]+)"/g),
+      ].map((m) => m[1]),
+    ),
+  ),
+];
 for (let i = 0; i < models.length; i += 12) {
   await Promise.all(
     models.slice(i, i + 12).map(async (m) => {

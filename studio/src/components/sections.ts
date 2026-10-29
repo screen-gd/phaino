@@ -22,6 +22,7 @@ const NAV: readonly SectionSeed[] = [
   { href: "/camera", label: "Camera moves", group: "studio", id: "camera" },
   { href: "/effects", label: "Effects", group: "studio", id: "effects" },
   { href: "/edit", label: "Edit", group: "studio", id: "edit" },
+  { href: "/kawarimi", label: "Kawarimi", group: "studio", id: "kawarimi" },
   { href: "/workflows", label: "Workflows", group: "more", id: "workflows" },
   { href: "/showcase", label: "Showcase", group: "more", id: "showcase" },
   { href: "/editor", label: "Editor", group: "studio", id: "editor" },

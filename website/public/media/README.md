@@ -12,8 +12,10 @@ public/media/capabilities/image.mp4
 public/media/capabilities/video.mp4
 public/media/capabilities/moves.mp4
 public/media/capabilities/effects.mp4
-public/media/capabilities/avatar.mp4
+public/media/capabilities/kawarimi.mp4
 public/media/capabilities/edit.mp4
+public/media/partners/kling-3.mp4
+public/media/partners/veo-3-1.mp4
 public/media/moves/orbit.mp4
 public/media/moves/dolly-in.mp4
 public/media/moves/crash-zoom.mp4
@@ -37,7 +39,7 @@ Photos served by Unsplash, under the [Unsplash License](https://unsplash.com/lic
 | Effects, whip-pan, into the blue | https://images.unsplash.com/photo-1518837695005-2083093ee35b |
 | Edit, bullet time, a little closer, before/after, quiet orbit | https://images.unsplash.com/photo-1470770841072-f978cf4d019e |
 
-`capabilities/avatar.webp` is a frame from the LTX 2.3 image-plus-audio workflow output (`video_ltx2_3_ia2v.mp4`) in [Comfy-Org/workflow_templates](https://github.com/Comfy-Org/workflow_templates), MIT License, Copyright (c) 2023-present Comfy Org. Credit: Comfy.
+`capabilities/kawarimi.webp`, `capabilities/kawarimi.mp4` and the `partners/` stills and clips are Phaino-generated outputs copied from the studio's sample set (`studio/public/explore/examples/kawarimi_2.*` and `studio/public/explore/partners/`). The studio's `public/explore/README.md` does not record their upstream provenance; treat them as Phaino sample renders pending documentation there.
 
 All served locally as compressed WebP. No third-party image requests occur at runtime.
 

@@ -622,7 +622,7 @@
           "id": "dithercn-footer-media",
           "title": "Animated dithercn footer, embedded wordmark, WebM/WebP demo media",
           "status": "done",
-          "notes": "Replaced the static Bayer canvas with dithercn DitherGradient (animated, #FF5B22) in the studio footer, 404 backdrop and website footer. Wordmark uses DitherText, dissolving from near-white into orange dots. Website gained @astrojs/react for the two islands. Converted 18 studio demo MP4s to WebM and 3 PNGs to WebP (20.3 MB to 9.1 MB) and updated references. Studio lint, typecheck, 1519 tests and build pass; website build passes. No browser testing."
+          "notes": "Replaced the static Bayer canvas with dithercn DitherGradient (animated, #FF5B22) in the studio footer, 404 backdrop and website footer. Follow-up: the dithered wordmark read as a checkerboard, so the footer is now FooterGlow, a gradients.sh RadialGlow under a custom dithercn band (dark orange base, wavy bright band, sparse fade to black), with a solid near-white wordmark. Website gained @astrojs/react for the island. Converted 18 studio demo MP4s to WebM and 3 PNGs to WebP (20.3 MB to 9.1 MB) and updated references. Studio lint, typecheck, 1519 tests and build pass; website build passes. No browser testing."
         },
         {
           "id": "challenge-submission-details",

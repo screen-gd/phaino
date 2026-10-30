@@ -16,6 +16,7 @@ Eight shots form a 36-second launch hero. Four separate teasers deliver vertical
 | [social-02-wan-light.md](social-02-wan-light.md) | Material and motion teaser | `wan22-i2v` / Wan 2.2 | 8s | 9:16 delivery, 480x832 source | Yes |
 | [social-03-seedance-fabric.md](social-03-seedance-fabric.md) | Fabric motion teaser | `seedance25-i2v` / Seedance 2.5 | 8s | 9:16 | Yes |
 | [social-04-kling-two-shots.md](social-04-kling-two-shots.md) | Two-shot teaser | `kling3-video` / Kling 3.0 | 8s, 3s + 5s | 9:16 crop from fixed 16:9 | Yes |
+| [demo-trials.md](demo-trials.md) | Image, video, then character swap | `nano-banana-2`, MiniMax H3 i2v, `kawarimi-h3` | 1K stills, 6s video | 16:9 | Two Nano Banana images |
 | [challenge-test.md](challenge-test.md) | Pick preset, generate, result | `orbit` / LTX 2.5 + real capture | 24s edit, 5s generation | 16:9 | Yes |
 
 ## Use

@@ -59,7 +59,7 @@ export const MODEL_REGISTRY = [
   },
   {
     id: "minimax-h3",
-    label: "MiniMax H3",
+    label: "MiniMax H3 Open",
     kind: "video",
     modes: {
       t2v: { template: "video_minimax_h3_t2v" },

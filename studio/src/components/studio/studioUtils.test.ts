@@ -201,7 +201,7 @@ describe("failureLabel", () => {
   it("maps raw backend errors to short labels", () => {
     expect(
       failureLabel("API key authentication is not available for free tier accounts"),
-    ).toBe("Account or API key issue");
+    ).toBe("Needs a paid Comfy Cloud plan");
     expect(failureLabel("quota exceeded, check billing")).toBe(
       "Account or API key issue",
     );

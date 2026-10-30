@@ -120,6 +120,7 @@ export function paramKind(param: StudioParam): ParamKind {
 /** Short user-facing label for a failed run's raw backend error. */
 export function failureLabel(error?: string | null): string {
   const e = error ?? "";
+  if (/free tier/i.test(e)) return "Needs a paid Comfy Cloud plan";
   if (/api key|auth|free tier|quota|credit|billing/i.test(e))
     return "Account or API key issue";
   if (/not supported|unsupported/i.test(e))

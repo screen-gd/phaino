@@ -48,7 +48,7 @@ export function useStudio(
   const [error, setError] = useState<string | null>(null);
   const [job, setJob] = useState<StudioJob | null>(null);
   const [recent, setRecent] = useState<StudioJob[]>([]);
-  // The stage only shows finished runs; queued and running ones live in the rail.
+  // The stage follows the active or selected job in every state.
   const [stageJob, setStageJob] = useState<StudioJob | null>(null);
   const [recentFailed, setRecentFailed] = useState(false);
   const esRef = useRef<EventSource | null>(null);
@@ -80,11 +80,11 @@ export function useStudio(
     return () => esRef.current?.close();
   }, [category, demo.enabled]);
 
-  // Follow the active job onto the stage once it finishes.
+  // Follow the active job on the stage while it queues, runs and finishes.
   const [seenJob, setSeenJob] = useState<StudioJob | null>(null);
   if (job !== seenJob) {
     setSeenJob(job);
-    if (job && !isActive(job.status)) setStageJob(job);
+    if (job) setStageJob(job);
   }
 
   // Keep rail tiles current while any run is queued or running.

@@ -145,7 +145,12 @@ export function StageResult({
                   )}
                 </div>
               ) : (
-                <p className="text-body text-t2">{job.message ?? "Waiting"}</p>
+                <p className="text-body text-t2">
+                  {job.message ??
+                    (job.status === "queued" ? "Queued" : "Generating")}
+                  {progressPct(job.progress) > 0 &&
+                    ` · ${progressPct(job.progress)}%`}
+                </p>
               )}
             </div>
             {running && (

@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { RadialGlow } from "@/components/radial-glow";
+import { LinearFlow } from "@/components/linear-flow";
 import { DitherShader } from "@/lib/dither";
 import { cn } from "@/lib/utils";
 
@@ -39,17 +39,22 @@ export function FooterGlow({
         "pointer-events-none relative overflow-hidden",
         className,
       )}
-      style={style}
+      style={{
+        maskImage: "linear-gradient(to bottom, transparent 0%, #000 38%)",
+        WebkitMaskImage:
+          "linear-gradient(to bottom, transparent 0%, #000 38%)",
+        ...style,
+      }}
     >
-      <RadialGlow
+      <LinearFlow
         className="absolute inset-0"
-        colors={["#ff5b22", "#b8380f", "#5c1906", "#1a0702"]}
+        colors={["#5c1906", "#2a0b03", "#7a2408", "#1a0702"]}
         background="#000"
-        speed={0.5}
-        grain={0.08}
-        blur={0.6}
+        speed={0.4}
+        blur={0.8}
+        grain={0.06}
+        warp={0.3}
         interaction={{ pointer: 0, scroll: 0 }}
-        dither={{ enabled: false }}
       />
       <DitherShader
         className="absolute inset-0"

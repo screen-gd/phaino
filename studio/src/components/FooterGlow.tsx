@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 /*
  * Dark-red base at the bottom, a bright wavy band of dither crossing behind
  * the wordmark, sparse dots dissolving upward. uv.y is 0 at the bottom:
- * tone 0.5 paints the dark mid palette colour, the band pushes to full ink,
+ * tone 0.52 paints the dark mid palette colour, the band pushes to full ink,
  * and above footerTop the field is 0 so the glow shows through.
  */
 const FIELD = `
@@ -18,9 +18,9 @@ float field(vec2 uv, vec2 res, float t) {
   float n = fbm(p * vec2(1.6, 2.4) + vec2(t * 0.05, -t * 0.03));
   float crest = footerCrest + (n - 0.5) * 0.3;
   float band = exp(-pow((uv.y - crest) / footerWidth, 2.0));
-  float rise = smoothstep(footerTop, 0.2, uv.y);
-  float grain = (fbm(p * 8.0 + vec2(-t * 0.08, t * 0.12)) - 0.5) * 0.3;
-  return clamp(rise * (0.5 + 0.5 * band + grain), 0.0, 1.0);
+  float rise = smoothstep(footerTop, 0.25, uv.y);
+  float grain = (fbm(p * 8.0 + vec2(-t * 0.08, t * 0.12)) - 0.5) * 0.35;
+  return clamp(rise * (0.52 + 0.48 * band + grain * band), 0.0, 1.0);
 }
 `;
 
@@ -40,19 +40,19 @@ export function FooterGlow({
         className,
       )}
       style={{
-        maskImage: "linear-gradient(to bottom, transparent 0%, #000 38%)",
+        maskImage: "linear-gradient(to bottom, transparent 0%, #000 55%)",
         WebkitMaskImage:
-          "linear-gradient(to bottom, transparent 0%, #000 38%)",
+          "linear-gradient(to bottom, transparent 0%, #000 55%)",
         ...style,
       }}
     >
       <LinearFlow
         className="absolute inset-0"
-        colors={["#5c1906", "#2a0b03", "#7a2408", "#1a0702"]}
+        colors={["#3d1004", "#1a0702", "#4a1405", "#000000"]}
         background="#000"
         speed={0.4}
         blur={0.8}
-        grain={0.06}
+        grain={0}
         warp={0.3}
         interaction={{ pointer: 0, scroll: 0 }}
       />
@@ -65,8 +65,8 @@ export function FooterGlow({
         stillTime={6}
         uniforms={{
           footerCrest: 0.42,
-          footerWidth: 0.13,
-          footerTop: 0.82,
+          footerWidth: 0.14,
+          footerTop: 0.78,
         }}
       />
     </div>

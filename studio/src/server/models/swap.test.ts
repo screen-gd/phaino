@@ -73,11 +73,7 @@ const objectInfo = { nodes: {} };
 describe("swap preset ids", () => {
   it("mode `id` overrides the synthetic preset id and round-trips", () => {
     expect(modePresetId(scail2, "swap")).toBe("kawarimi");
-    expect(modePresetId(modelById("wan22-animate")!, "swap")).toBe(
-      "kawarimi-animate",
-    );
     expect(modeForPresetId("kawarimi")).toEqual({ model: scail2, mode: "swap" });
-    expect(modeForPresetId("kawarimi-animate")?.model.id).toBe("wan22-animate");
     expect(modeForPresetId("scail2-swap")).toBeNull();
   });
 });

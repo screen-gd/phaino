@@ -208,12 +208,6 @@ export const MODEL_REGISTRY = [
     modes: { t2i: { template: "flux_dev_full_text_to_image" } },
   },
   {
-    id: "flux1-schnell",
-    label: "FLUX.1 Schnell",
-    kind: "image",
-    modes: { t2i: { template: "flux_schnell_full_text_to_image" } },
-  },
-  {
     id: "flux1-krea-dev",
     label: "FLUX.1 Krea Dev",
     kind: "image",
@@ -373,10 +367,7 @@ export const MODEL_REGISTRY = [
     id: "omnigen2",
     label: "OmniGen2",
     kind: "image",
-    modes: {
-      t2i: { template: "image_omnigen2_t2i" },
-      edit: { template: "image_omnigen2_image_edit" },
-    },
+    modes: { edit: { template: "image_omnigen2_image_edit" } },
   },
   {
     id: "capybara-image",
@@ -415,10 +406,7 @@ export const MODEL_REGISTRY = [
     id: "ming-image",
     label: "Ming Image",
     kind: "image",
-    modes: {
-      t2i: { template: "image_ming_image_01_design_t2i" },
-      edit: { template: "image_ming_image_01_design_image_edit" },
-    },
+    modes: { t2i: { template: "image_ming_image_01_design_t2i" } },
   },
   {
     id: "joyai-edit",
@@ -502,19 +490,6 @@ export const MODEL_REGISTRY = [
       swap: {
         template: "video_wan21_scail2_character_replacement",
         id: "kawarimi",
-        prompt: "Replace the person with the character from the reference image",
-        maxSeconds: 5,
-      },
-    },
-  },
-  {
-    id: "wan22-animate",
-    label: "Wan 2.2 Animate",
-    kind: "video",
-    modes: {
-      swap: {
-        template: "video_wan2_2_14B_animate",
-        id: "kawarimi-animate",
         prompt: "Replace the person with the character from the reference image",
         maxSeconds: 5,
       },

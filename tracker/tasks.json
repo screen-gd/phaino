@@ -769,6 +769,12 @@
           "title": "Pre-flight drift check, health version warning, pinned model files",
           "status": "done",
           "notes": "comfy/preflight.ts probes the live target's object_info and system_stats (10min cache, key hashed) and checks the bound graph before submit: missing node classes, and combo values that name model files (safetensors/gguf/etc.) the target lacks; failures read \"Not available on <host>: ...\" and append an older-version note (isOlder strips a leading v). Health reports a muted warning when the target's ComfyUI predates the snapshot's 0.42.1, rendered in Settings. models:pin writes revision + sha256 onto manifest license entries (128 pinned; 8 gated flux-3-image-klein-comfy files 401 and stay unpinned). 1533 tests pass; lint, typecheck and build clean."
+        },
+        {
+          "id": "remove-failed-gate-modes",
+          "title": "Remove registry modes that fail the sync gate",
+          "status": "done",
+          "notes": "Dropped the four hidden modes whose tests were permanently skipped: flux1-schnell (entry), wan22-animate (entry, removed the kawarimi-animate swap engine), omnigen2 t2i and ming-image edit (other modes kept). Removed their manifest mode entries, template hash keys and 8 cache api/ui files; cleaned swap.test.ts assertions and README engine/FLUX lists. Suite now runs 1529 tests with 0 skipped; lint, typecheck and build clean."
         }
       ]
     },

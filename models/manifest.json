@@ -506,43 +506,6 @@
       "reasons": [],
       "licenses": []
     },
-    "flux1-schnell-t2i": {
-      "template": "flux_schnell_full_text_to_image",
-      "gate": "fail",
-      "reasons": [
-        "prompt: could not trace `positive` to a text input"
-      ],
-      "licenses": [
-        {
-          "model": "ae.safetensors",
-          "url": "https://huggingface.co/Comfy-Org/Lumina_Image_2.0_Repackaged/resolve/main/split_files/vae/ae.safetensors",
-          "license": "apache-2.0",
-          "revision": "5b072540ef86570fecb8249c505f23d5bdeb88cd",
-          "sha256": "afc8e28272cd15db3919bacdb6918ce9c1ed22e96cb12c4d5ed0fba823529e38"
-        },
-        {
-          "model": "clip_l.safetensors",
-          "url": "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/clip_l.safetensors",
-          "license": "apache-2.0",
-          "revision": "6af2a98e3f615bdfa612fbd85da93d1ed5f69ef5",
-          "sha256": "660c6f5b1abae9dc498ac2d21e1347d2abdb0cf6c0c0c8576cd796491d9a6cdd"
-        },
-        {
-          "model": "t5xxl_fp16.safetensors",
-          "url": "https://huggingface.co/comfyanonymous/flux_text_encoders/resolve/main/t5xxl_fp16.safetensors",
-          "license": "apache-2.0",
-          "revision": "6af2a98e3f615bdfa612fbd85da93d1ed5f69ef5",
-          "sha256": "6e480b09fae049a72d2a8c5fbccb8d3e92febeb233bbe9dfe7256958a9167635"
-        },
-        {
-          "model": "flux1-schnell.safetensors",
-          "url": "https://huggingface.co/Comfy-Org/flux1-schnell/resolve/main/flux1-schnell.safetensors",
-          "license": "apache-2.0",
-          "revision": "d31e04067066d92c55ece2b01748dcc337725d7a",
-          "sha256": "9403429e0052277ac2a87ad800adece5481eecefd9ed334e1f348723621d2a0a"
-        }
-      ]
-    },
     "flux1-krea-dev-t2i": {
       "template": "flux1_krea_dev",
       "gate": "pass",
@@ -886,14 +849,6 @@
       "reasons": [],
       "licenses": []
     },
-    "omnigen2-t2i": {
-      "template": "image_omnigen2_t2i",
-      "gate": "fail",
-      "reasons": [
-        "prompt: no node with a linked `positive` input"
-      ],
-      "licenses": []
-    },
     "omnigen2-edit": {
       "template": "image_omnigen2_image_edit",
       "gate": "pass",
@@ -962,14 +917,6 @@
       "template": "image_ming_image_01_design_t2i",
       "gate": "pass",
       "reasons": [],
-      "licenses": []
-    },
-    "ming-image-edit": {
-      "template": "image_ming_image_01_design_image_edit",
-      "gate": "fail",
-      "reasons": [
-        "prompt: could not trace `positive` to a text input"
-      ],
       "licenses": []
     },
     "joyai-edit-edit": {
@@ -1305,66 +1252,6 @@
       "reasons": [],
       "licenses": []
     },
-    "kawarimi-animate": {
-      "template": "video_wan2_2_14B_animate",
-      "gate": "fail",
-      "reasons": [
-        "node 100 (?) not in object_info",
-        "node 101 (?) not in object_info",
-        "node 107 (?) not in object_info",
-        "node 108 (?) not in object_info",
-        "node 158 (?) not in object_info",
-        "node 229 (?) not in object_info",
-        "node 275 (?) not in object_info",
-        "node 276 (?) not in object_info",
-        "output: ambiguous, 2 Save video nodes",
-        "schema: outputs: Too small: expected array to have >=1 items"
-      ],
-      "licenses": [
-        {
-          "model": "WanAnimate_relight_lora_fp16.safetensors",
-          "url": "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/LoRAs/Wan22_relight/WanAnimate_relight_lora_fp16.safetensors",
-          "license": null,
-          "revision": "8260d429d19fd7a72304cad059160b95d843913f",
-          "sha256": "fc646c74c73f4b251f5fd9bc440ef21b03b27305f499966c68b2b3aa31498561"
-        },
-        {
-          "model": "umt5_xxl_fp8_e4m3fn_scaled.safetensors",
-          "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/text_encoders/umt5_xxl_fp8_e4m3fn_scaled.safetensors",
-          "license": "apache-2.0",
-          "revision": "123acf1cc74bccbb9bfff8ac1ee72edc08c2341d",
-          "sha256": "c3355d30191f1f066b26d93fba017ae9809dce6c627dda5f6a66eaa651204f68"
-        },
-        {
-          "model": "wan_2.1_vae.safetensors",
-          "url": "https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged/resolve/main/split_files/vae/wan_2.1_vae.safetensors",
-          "license": "apache-2.0",
-          "revision": "ee6f4a40737a995bf5818954cfce6d59443b0f04",
-          "sha256": "2fc39d31359a4b0a64f55876d8ff7fa8d780956ae2cb13463b0223e15148976b"
-        },
-        {
-          "model": "clip_vision_h.safetensors",
-          "url": "https://huggingface.co/Comfy-Org/Wan_2.1_ComfyUI_repackaged/resolve/main/split_files/clip_vision/clip_vision_h.safetensors",
-          "license": "apache-2.0",
-          "revision": "123acf1cc74bccbb9bfff8ac1ee72edc08c2341d",
-          "sha256": "64a7ef761bfccbadbaa3da77366aac4185a6c58fa5de5f589b42a65bcc21f161"
-        },
-        {
-          "model": "lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors",
-          "url": "https://huggingface.co/Kijai/WanVideo_comfy/resolve/main/Lightx2v/lightx2v_I2V_14B_480p_cfg_step_distill_rank64_bf16.safetensors",
-          "license": null,
-          "revision": "8260d429d19fd7a72304cad059160b95d843913f",
-          "sha256": "85c4a61c30e0497aa44b91d93a893b624708461a56fe5485183b28fa07e2dfb3"
-        },
-        {
-          "model": "Wan2_2-Animate-14B_fp8_e4m3fn_scaled_KJ.safetensors",
-          "url": "https://huggingface.co/Kijai/WanVideo_comfy_fp8_scaled/resolve/main/Wan22Animate/Wan2_2-Animate-14B_fp8_e4m3fn_scaled_KJ.safetensors",
-          "license": "apache-2.0",
-          "revision": "033a4e487f60220b3d6e469599a6aebc46e13cee",
-          "sha256": "2936b31473a967e7a429a6646bba60e7862d0938e178b58b2a140f391dd5b8e6"
-        }
-      ]
-    },
     "fasth3-t2v": {
       "template": "video_fastvideo_fasth3_t2v",
       "gate": "pass",
@@ -1659,7 +1546,6 @@
     "image_flux2_text_to_image_9b": "902690f9aab783c2",
     "image_flux2_klein_image_edit_9b_base": "1c2a0c7cd699f75e",
     "flux_dev_full_text_to_image": "4295201debe85fd4",
-    "flux_schnell_full_text_to_image": "c98bc1296a26c422",
     "flux1_krea_dev": "9d1d7dbb9f2017f7",
     "flux_kontext_dev_basic": "38f8620c45a1648d",
     "image_chroma_text_to_image": "71332eda0b214726",
@@ -1688,7 +1574,6 @@
     "image_longcat_text_to_image": "db84d6c44584bd79",
     "image_longcat_image_edit": "09b48611e136b09a",
     "image_kandinsky5_t2i": "6eb17f56fe73cc36",
-    "image_omnigen2_t2i": "4d4199cedfa9d06a",
     "image_omnigen2_image_edit": "053160ddb64035cf",
     "Image_capybara_v0_1_text_to_image": "109321e80cc4003e",
     "Image_capybara_v0_1_image_edit": "901c1cd0ab86cb2d",
@@ -1697,7 +1582,6 @@
     "image_pixeldit_t2i": "96e6f2774ea9f8e7",
     "image_ovis_text_to_image": "6a4f2eff7b87d499",
     "image_ming_image_01_design_t2i": "9bc03483de169dc6",
-    "image_ming_image_01_design_image_edit": "82ffdf96cea1cd79",
     "image_joyai_image_edit": "aa411efef3da5b5f",
     "video_ltx2_3_t2v": "d2528b8aca92c30c",
     "video_ltx2_3_i2v": "dac62e273a55aa5f",
@@ -1716,7 +1600,6 @@
     "video_wan_vace_flf2v": "5189164c1106ed30",
     "video_wan2.1_alpha_t2v_14B": "6f24b7bd184d0b01",
     "video_wan21_scail2_character_replacement": "29d1972b49302fca",
-    "video_wan2_2_14B_animate": "68a1012f4060667f",
     "video_fastvideo_fasth3_t2v": "6025a4ba369df0b0",
     "video_fastvideo_fasth3_i2v": "dd6f02f357a3c9cc",
     "hunyuan_video_text_to_video": "1fcb82bd990ca497",

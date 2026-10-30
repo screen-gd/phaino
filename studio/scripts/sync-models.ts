@@ -26,6 +26,7 @@ import {
 } from "../src/server/models/registry.ts";
 import { EDIT_TOOLS, toolPresetId } from "../src/server/models/tools.ts";
 import { validateWorkflowApi } from "../src/server/presets/validate.ts";
+import { pinModels } from "./pin-models.ts";
 import {
   buildSnapshot,
   comfyuiVersion,
@@ -52,7 +53,14 @@ type ModeManifest = {
   template: string;
   gate: "pass" | "fail";
   reasons: string[];
-  licenses: { model: string; url: string; license: string | null; gated?: boolean }[];
+  licenses: {
+    model: string;
+    url: string;
+    license: string | null;
+    gated?: boolean;
+    revision?: string;
+    sha256?: string;
+  }[];
 };
 
 async function resolveMainRef(): Promise<string> {
@@ -355,6 +363,9 @@ async function main() {
   console.log(
     `manifest: ${passing}/${Object.keys(manifest).length} modes, ${toolsPassing}/${Object.keys(toolManifest).length} tools pass`,
   );
+  const { pinned, failed } = await pinModels();
+  console.log(`pinned ${pinned} license entries`);
+  for (const f of failed) console.log(`FAILED ${f}`);
 }
 
 await main();

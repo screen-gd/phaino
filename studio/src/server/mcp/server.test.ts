@@ -70,6 +70,7 @@ describe("MCP tool handlers", () => {
         adapterFor: () => null,
         getClient: () => { throw new Error("Unexpected Comfy call"); },
         getRouter: () => { throw new Error("Unexpected Router call"); },
+        targetInfo: async () => null,
       });
       vi.spyOn(runner, "getRunner").mockReturnValue(sharedRunner);
       expect(toolHandlers.run_preset({ presetId: "orbit" })).toEqual({ id: "queued-job", status: "queued" });

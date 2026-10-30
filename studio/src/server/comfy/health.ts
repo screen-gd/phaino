@@ -2,6 +2,11 @@ import "server-only";
 import { ComfyLow } from "@comfyorg/sdk/low";
 import type { ComfyHealth, HealthStatus } from "@/lib/health";
 import { comfyTarget } from "./client";
+import {
+  fetchTargetInfo,
+  isOlder,
+  snapshotComfyVersion,
+} from "./preflight";
 import { getEnv, type StudioEnv } from "@/server/env";
 import pkg from "../../../package.json";
 
@@ -103,12 +108,20 @@ export async function probeEndpoint(
     const response = await low.request("HEAD", PROBE_PATH, { timeoutMs: PROBE_TIMEOUT_MS });
     const latencyMs = Math.round(performance.now() - started);
     // A HEAD reply carries no body, so no error envelope to read a code from.
-    return {
+    const health: ComfyHealth = {
       target: kind,
       host,
       latencyMs,
       ...classifyProbe({ kind: "response", status: response.status }),
     };
+    if (health.status === "ok") {
+      const info = await fetchTargetInfo({ baseUrl, apiKey });
+      const tested = snapshotComfyVersion();
+      if (info && isOlder(info.comfyuiVersion, tested)) {
+        health.warning = `ComfyUI ${info.comfyuiVersion} is older than the tested ${tested}`;
+      }
+    }
+    return health;
   } catch (error) {
     const latencyMs = Math.round(performance.now() - started);
     return {

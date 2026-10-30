@@ -114,6 +114,7 @@ describe("jobs store", () => {
         throw new Error("no Router client in test");
       },
       adapterFor: () => null,
+      targetInfo: async () => null,
       store,
       dataDir: dir,
       now: () => NOW,

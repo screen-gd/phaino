@@ -78,7 +78,12 @@ type SubmitOpts = { idempotencyKey: string; apiKey?: string };
 function makeDeps(
   job: JobHandleLike,
   key = "test-key",
-  over: Partial<Pick<RunnerDeps, "env" | "getClient" | "getRouter" | "adapterFor">> = {},
+  over: Partial<
+    Pick<
+      RunnerDeps,
+      "env" | "getClient" | "getRouter" | "adapterFor" | "targetInfo"
+    >
+  > = {},
 ) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "phaino-run-"));
   const store = openStore(path.join(dir, "phaino.db"));
@@ -106,6 +111,7 @@ function makeDeps(
       throw new Error("no Router client in workflow test");
     },
     adapterFor: () => null,
+    targetInfo: async () => null,
     store,
     dataDir: dir,
     now: () => NOW,
@@ -191,6 +197,27 @@ describe("job runner", () => {
     expect(done.outputs[0]).toMatch(/^dolly-in\/.+\.mp4$/);
   });
 
+  it("fails a job whose graph drifts from the target", async () => {
+    const { dir, store, runner, submitCalls } = makeDeps(fakeJob(), "test-key", {
+      targetInfo: async () => ({
+        nodes: {
+          LoadImage: {},
+        },
+        comfyuiVersion: "0.42.1",
+      }),
+    });
+    const row = runner.startJob({
+      presetId: "dolly-in",
+      params: {},
+      inputs: { image: makeUpload(dir) },
+    });
+    await vi.waitFor(() =>
+      expect(store.get(row.id)?.status).toBe("failed"),
+    );
+    expect(store.get(row.id)?.error).toContain("Not available on");
+    expect(submitCalls).toHaveLength(0);
+  });
+
   it("passes apiKey for partner presets, not for open", async () => {
     const { dir, store, runner, submitCalls } = makeDeps(fakeJob(), "test-key");
     const open = runner.startJob({
@@ -271,6 +298,7 @@ describe("job runner", () => {
         throw new Error("no Router client in workflow test");
       },
       adapterFor: () => null,
+      targetInfo: async () => null,
       store,
       dataDir: dir,
       now: () => NOW,

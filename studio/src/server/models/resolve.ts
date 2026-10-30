@@ -23,6 +23,9 @@ export type ModeManifestEntry = {
     url: string;
     license: string | null;
     gated?: boolean;
+    /** Pinned commit sha and content hash, written by models:pin. */
+    revision?: string;
+    sha256?: string;
   }[];
 };
 

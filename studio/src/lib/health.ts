@@ -12,6 +12,8 @@ export type ComfyHealth = {
   host: string;
   latencyMs: number | null;
   message?: string;
+  /** Non-blocking advisory, shown next to message (e.g. older ComfyUI). */
+  warning?: string;
 };
 
 const ERROR_FALLBACKS = {

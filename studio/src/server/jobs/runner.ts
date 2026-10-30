@@ -5,7 +5,14 @@ import { existsSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import type { RunResult } from "@comfyorg/sdk";
-import { comfyTarget, getComfy } from "@/server/comfy/client";
+import { comfyTarget, getComfy, type ComfyTarget } from "@/server/comfy/client";
+import {
+  fetchTargetInfo,
+  isOlder,
+  snapshotComfyVersion,
+  targetProblems,
+  type TargetInfo,
+} from "@/server/comfy/preflight";
 import { getRouter } from "@/server/comfy/router";
 import type { StudioEnv } from "@/server/env";
 import { getEnv } from "@/server/env";
@@ -109,6 +116,8 @@ export type RunnerDeps = {
   getClient: () => ComfyLike;
   getRouter: () => RouterLike;
   adapterFor: (presetId: string) => RouterAdapter | null;
+  /** Live object_info + version probe; null means skip the pre-flight. */
+  targetInfo: (target: ComfyTarget) => Promise<TargetInfo | null>;
   store: JobStore;
   dataDir: string;
   now: () => string;
@@ -381,11 +390,28 @@ export class JobRunner {
         wf.setInput(spec.bind.node, spec.bind.field, client.assets.fromFile(up.absPath));
       }
 
+      // The same graph must exist on this target: missing classes and combo
+      // values that drifted (renamed or absent model files) fail up front.
+      const target = comfyTarget(this.deps.env);
+      const targetInfo = await this.deps.targetInfo(target);
+      if (targetInfo) {
+        const problems = targetProblems(bound, preset, targetInfo);
+        if (problems.length > 0) {
+          const tested = snapshotComfyVersion();
+          const drift = isOlder(targetInfo.comfyuiVersion, tested)
+            ? ` (ComfyUI ${targetInfo.comfyuiVersion} is older than tested ${tested})`
+            : "";
+          throw new Error(
+            `Not available on ${target.host}: ${problems.slice(0, 3).join("; ")}${drift}`,
+          );
+        }
+      }
+
       this.update(jobId, { status: "running", message: "Submitting" });
       const remote = await client.submit(wf, {
         idempotencyKey: row.id,
-        ...(preset.model.license === "partner" && comfyTarget(this.deps.env).apiKey
-          ? { apiKey: comfyTarget(this.deps.env).apiKey }
+        ...(preset.model.license === "partner" && target.apiKey
+          ? { apiKey: target.apiKey }
           : {}),
       });
       this.update(jobId, { comfyJobId: remote.id });
@@ -583,6 +609,7 @@ export function getRunner(): JobRunner {
       getClient: () => getComfy() as unknown as ComfyLike,
       getRouter: () => getRouter(),
       adapterFor: routerAdapterFor,
+      targetInfo: fetchTargetInfo,
       store: getStore(),
       dataDir: env.dataDir,
       now: () => new Date().toISOString(),

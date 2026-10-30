@@ -158,6 +158,9 @@ export function SettingsView({ version }: { version: string }) {
         {!demo.enabled && health?.message && (
           <p className="font-mono text-caption text-ac">{health.message}</p>
         )}
+        {!demo.enabled && health?.warning && (
+          <p className="font-mono text-caption text-t3">{health.warning}</p>
+        )}
 
         {!demo.enabled && <div className="grid gap-2">
           <Input

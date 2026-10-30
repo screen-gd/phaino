@@ -15,12 +15,12 @@ export type ToolArt =
 
 // Art lives apart from TOOLS so a future entry can stay text-only.
 const TOOL_ART: Partial<Record<string, ToolArt>> = {
-  camera: { still: "ltx25-i2v.webp", video: "ltx25-i2v.mp4" },
+  camera: { still: "ltx25-i2v.webp", video: "ltx25-i2v.webm" },
   image: { still: "flux2-klein.webp" },
-  video: { still: "wan22.webp", video: "wan22-i2v.mp4" },
-  effects: { still: "fasth3-t2v.webp", video: "fasth3-t2v.mp4" },
-  edit: { still: "hunyuan15-t2v.webp", video: "hunyuan15-t2v.mp4", split: true },
-  kawarimi: { still: "kawarimi_2.webp", video: "kawarimi_2.mp4" },
+  video: { still: "wan22.webp", video: "wan22-i2v.webm" },
+  effects: { still: "fasth3-t2v.webp", video: "fasth3-t2v.webm" },
+  edit: { still: "hunyuan15-t2v.webp", video: "hunyuan15-t2v.webm", split: true },
+  kawarimi: { still: "kawarimi_2.webp", video: "kawarimi_2.webm" },
   editor: { kind: "timeline" },
 };
 

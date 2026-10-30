@@ -1,28 +1,19 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { initDitherGradient } from "@/lib/dither";
+import { DitherGradient } from "@/components/dithercn/dither-gradient";
 
 /** Full-bleed orange halftone wash rising from the bottom of its container. */
 export function DitherBackdrop() {
-  const ref = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    return initDitherGradient(canvas, {
-      color: [255, 91, 34],
-      cell: 4,
-      opacity: 0.42,
-    });
-  }, []);
-
   return (
-    <canvas
-      ref={ref}
+    <DitherGradient
+      angle={0}
+      from={0.6}
+      to={0}
+      noise={0.18}
+      cell={4}
+      palette={["transparent", "#FF5B22"]}
       aria-hidden="true"
-      className="pointer-events-none absolute inset-0 z-0 h-full w-full"
-      style={{ imageRendering: "pixelated" }}
+      className="pointer-events-none absolute inset-0 z-0 h-full w-full opacity-75"
     />
   );
 }

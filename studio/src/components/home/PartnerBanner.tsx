@@ -12,8 +12,8 @@ const LEFT_WALL = [
 
 const RIGHT_WALL = [
   { name: "FLUX.3", href: "/image?preset=flux-3-image", src: "flux-3.webp", pos: "right-0", h: "h-[60%]" },
-  { name: "Kling 3.0", href: "/video?preset=kling-v3", src: "kling-3.webp", video: "kling-3.mp4", pos: "right-[24%]", h: "h-[74%]" },
-  { name: "Veo 3.1", href: "/video?preset=veo-3-1", src: "veo-3-1.webp", video: "veo-3-1.mp4", pos: "right-[46%]", h: "h-[88%]" },
+  { name: "Kling 3.0", href: "/video?preset=kling-v3", src: "kling-3.webp", video: "kling-3.webm", pos: "right-[24%]", h: "h-[74%]" },
+  { name: "Veo 3.1", href: "/video?preset=veo-3-1", src: "veo-3-1.webp", video: "veo-3-1.webm", pos: "right-[46%]", h: "h-[88%]" },
 ] as const;
 
 function Panel({

@@ -12,6 +12,8 @@ import Logo from '../components/Logo.astro';
 import Media from '../components/Media.astro';
 import Workflow from '../components/Workflow.astro';
 import BringToLight from '../components/BringToLight.astro';
+import FooterDither from '../components/FooterDither';
+import FooterWord from '../components/FooterWord';
 import { catalogue, tools } from '../data/presets';
 import '../styles/global.css';
 
@@ -196,9 +198,9 @@ const setupCommands = [
 
       <div class="challenge-credit section-shell"><a class="challenge-pill" href="https://comfy.org/open-source-higgsfield" target="_blank" rel="noreferrer"><Logo markOnly /><p>Built for Comfy’s <span>Open Source Higgsfield</span> challenge.</p></a></div>
 
-      <section class="footer-cta section-shell" aria-label="Get Phaino"><div class="footer-actions"><a class="button button-accent" href={github} target="_blank" rel="noreferrer"><Icon name="github" size={18}/>Get Phaino on GitHub</a><a class="button button-glass" href="https://x.com/Screeendev" target="_blank" rel="noreferrer">Follow @Screeendev</a></div><div class="footer-wordmark" aria-hidden="true"><span class="footer-word">phaino</span></div></section>
+      <section class="footer-cta section-shell" aria-label="Get Phaino"><div class="footer-actions"><a class="button button-accent" href={github} target="_blank" rel="noreferrer"><Icon name="github" size={18}/>Get Phaino on GitHub</a><a class="button button-glass" href="https://x.com/Screeendev" target="_blank" rel="noreferrer">Follow @Screeendev</a></div><div class="footer-wordmark" aria-hidden="true"><FooterWord client:visible /></div></section>
     </main>
-    <canvas class="footer-dither" aria-hidden="true" data-footer-dither></canvas>
+    <FooterDither client:visible />
     <footer class="site-footer section-shell"><span>© {new Date().getFullYear()} Phaino</span><span class="footer-license">Built on ComfyUI.</span><div><a href={`${github}/blob/main/LICENSE`} target="_blank" rel="noreferrer">MIT</a></div></footer>
 
     <div class="cursor-chip" aria-hidden="true"><Icon name="play" size={14}/><span data-cursor-label>Play</span></div>
@@ -220,9 +222,6 @@ const setupCommands = [
     <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
     <script>
       import '../scripts/studio';
-      import { initDitherGradient } from '../scripts/dither';
-      const footerDither = document.querySelector<HTMLCanvasElement>('[data-footer-dither]');
-      if (footerDither) initDitherGradient(footerDither, { color: [255, 91, 34], cell: 4, opacity: 0.42 });
     </script>
   </body>
 </html>

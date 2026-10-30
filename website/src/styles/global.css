@@ -12,7 +12,19 @@
 /* Tally orange: the light on a camera that says it is rolling. It marks actions,
    live signal on node wires and the record dot, and nothing else. Neutrals carry no
    tint so the accent and the footage do all the colour work. */
-:root { color-scheme: dark; --bg: #000; --surface: #0b0b0b; --surface-raised: #131313; --surface-high: #1b1b1b; --ink: #fff; --lede: #d4d4d4; --muted: #9b9b9b; --accent: #ff5b22; --accent-ink: #160700; --accent-soft: #ff5b221f; --line: #262626; --wire: #4a4a4a; --radius: 28px; --radius-panel: 18px; --radius-ui: 999px; --header-height: 52px; --hero-gutter: clamp(16px, 2.2vmin, 28px); --ease: cubic-bezier(.22,1,.36,1); --gutter: clamp(22px, 5.2vw, 88px); --screen: calc(100svh - var(--header-height)); --screen-pad: clamp(40px, 6svh, 72px); --head-gap: clamp(24px, 4svh, 44px); }
+:root { color-scheme: dark; --bg: #000; --surface: #0b0b0b; --surface-raised: #131313; --surface-high: #1b1b1b; --ink: #fff; --lede: #d4d4d4; --muted: #9b9b9b; --accent: #ff5b22; --accent-ink: #160700; --accent-soft: #ff5b221f; --line: #262626; --wire: #4a4a4a; --radius: 28px; --radius-panel: 18px; --radius-ui: 999px; --header-height: 52px; --hero-gutter: clamp(16px, 2.2vmin, 28px); --ease: cubic-bezier(.22,1,.36,1); --gutter: clamp(22px, 5.2vw, 88px); --screen: calc(100svh - var(--header-height)); --screen-pad: clamp(40px, 6svh, 72px); --head-gap: clamp(24px, 4svh, 44px);
+  --dither-ink: var(--accent);
+  --dither-paper: var(--bg);
+  --dither-cell: 3px;
+  --dither-color-blue: oklch(0.72 0.14 240);
+  --dither-color-purple: oklch(0.7 0.18 304);
+  --dither-color-green: oklch(0.78 0.17 152);
+  --dither-color-pink: oklch(0.74 0.17 354);
+  --dither-color-orange: oklch(0.79 0.15 62);
+  --dither-color-red: oklch(0.68 0.2 25);
+  --dither-color-grey: oklch(0.66 0 0);
+  --dither-bloom: 1;
+}
 * { box-sizing: border-box; }
 html { scroll-padding-top: calc(var(--header-height) + 24px); }
 body { position: relative; margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
@@ -311,7 +323,7 @@ p { line-height: 1.55; font-size: 17px; }
 .challenge-credit p > span { color: var(--ink); }
 
 .footer-cta { padding-top: 40px; overflow: hidden; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 30px; }
-.footer-dither { position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; width: 100%; height: calc(clamp(100px,28vw,460px) * 1.2 + 140px); image-rendering: pixelated; background: linear-gradient(0deg, #ff5b2214, transparent 70%); pointer-events: none; }
+.footer-dither { position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; width: 100%; height: calc(clamp(100px,28vw,460px) * 1.2 + 140px); pointer-events: none; }
 .footer-actions { display: flex; width: 100%; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .footer-wordmark { display: flex; align-items: baseline; justify-content: center; width: 100%; padding-top: 72px; padding-bottom: 6px; font-size: clamp(100px,28vw,460px); font-weight: 650; line-height: .9; letter-spacing: -.087em; color: #f2f2f2; overflow: hidden; }
 

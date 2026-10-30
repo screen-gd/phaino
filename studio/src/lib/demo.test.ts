@@ -18,7 +18,7 @@ it("previews bundled samples for all three studios without submitting a job", ()
 });
 
 it("maps video outputs to a poster image url", () => {
-  expect(outputPosterUrl("/explore/examples/ltx25-i2v.mp4")).toBe(
+  expect(outputPosterUrl("/explore/examples/ltx25-i2v.webm")).toBe(
     "/explore/examples/ltx25-i2v.webp",
   );
   expect(outputPosterUrl("seedance25-i2v/abc-0.mp4")).toBe(
@@ -30,9 +30,9 @@ it("serves bundled Kawarimi swaps and their source clips", () => {
   const job = createDemoJob({ category: "video", presetId: "kawarimi-h3", params: {}, inputs: {} });
   expect(job.outputs).toHaveLength(1);
   const output = job.outputs[0];
-  expect(output).toMatch(/^\/explore\/examples\/kawarimi_[12]\.mp4$/);
+  expect(output).toMatch(/^\/explore\/examples\/kawarimi_[12]\.webm$/);
   const source = demoSource(output);
-  expect(source).toMatch(/^\/explore\/examples\/kawarimi_[12]_source\.mp4$/);
+  expect(source).toMatch(/^\/explore\/examples\/kawarimi_[12]_source\.webm$/);
   for (const file of [output, source]) {
     expect(fs.existsSync(path.join(process.cwd(), "public", file!))).toBe(true);
   }

@@ -619,6 +619,12 @@
       "title": "Housekeeping",
       "tasks": [
         {
+          "id": "agent-quick-setup",
+          "title": "Document quick agent setup with private API key input",
+          "status": "done",
+          "notes": "Moved quick start to the top of README and added ordered agent setup steps: prerequisites, preserved config, private Comfy key input with T3 file delivery, startup, health status checks and handoff. Documented optional Zernio secret setup separately. Verified commands, credential precedence, API routes, ignored secret storage, tracker JSON and git diff --check. Documentation only; no credentials requested or generation run."
+        },
+        {
           "id": "dithercn-footer-media",
           "title": "Animated dithercn footer, embedded wordmark, WebM/WebP demo media",
           "status": "done",

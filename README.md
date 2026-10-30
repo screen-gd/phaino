@@ -2,6 +2,41 @@
 
 Phaino is an open-source AI video and image studio that runs locally on your machine, with generations through Comfy Cloud (or your own Comfy API v2 endpoint). Pick a preset, add a prompt and a first frame, and every shot runs through a real ComfyUI workflow you can open, edit and fork locally. The studio listens on `127.0.0.1` only. Social publishing uses your own Zernio key. There is no hosted generation service or community publishing platform.
 
+## Quick start
+
+Run these commands from the repository root. Requirements: Node.js `>=24.22.1 <25`, pnpm `12.11.2` (pinned in `package.json`), and `ffmpeg` plus `ffprobe` on PATH for media processing and exports.
+
+```powershell
+pnpm install
+if (!(Test-Path -LiteralPath studio/.env.local)) {
+    Copy-Item -LiteralPath studio/.env.example -Destination studio/.env.local
+}
+pnpm dev:studio
+```
+
+On macOS/Linux, replace the PowerShell copy step with `test -f studio/.env.local || cp studio/.env.example studio/.env.local`.
+
+Open http://localhost:3000/settings and add your [Comfy API key](https://platform.comfy.org/profile/api-keys). One key serves Comfy Cloud and Comfy Router. You can also set `COMFY_API_KEY` in `studio/.env.local` and restart the server. Settings credentials take precedence over environment variables.
+
+### Setup with an AI agent
+
+Give your agent this instruction:
+
+> Set up and start Phaino locally using the README. Request missing API keys through your private secret-input tool. Preserve existing configuration, check connectivity, and return the local app URL and any remaining setup issue.
+
+Agents: follow these steps when asked to set up the app.
+
+1. **Check prerequisites.** Run `node --version`, `pnpm --version`, `ffmpeg -version` and `ffprobe -version`. Match the Node and pnpm versions above. Report missing tools; media uploads, video preparation and exports need ffmpeg/ffprobe. Run `pnpm install` from the repository root. Bundled presets and model caches are already checked in; workflow export and `models:sync` are development steps.
+2. **Preserve configuration.** Copy `studio/.env.example` only if `studio/.env.local` is absent. Keep existing values and local data. Check whether `COMFY_API_KEY` is nonempty without printing its value. Real generation needs demo mode off; set `PHAINO_DEMO=off` in the local env file if necessary. Leave `COMFY_BASE_URL` blank for Comfy Cloud. Use the [custom backend instructions](#advanced-your-own-comfyui) only when the user wants their own ComfyUI endpoint.
+3. **Start the studio.** Run `pnpm dev:studio` in a managed background terminal and wait for it to be ready. If it is already running from this checkout, reuse it. If port 3000 belongs to another app, run `pnpm exec next dev -H 127.0.0.1 -p 3100` from `studio/` and use that port for all URLs below.
+4. **Request missing keys privately.** Check `GET /api/comfy/credentials` on the local app; it returns `configured`, `source`, `maskedKey` and `baseUrl`. Reuse existing credentials when configured. Otherwise request the user's Comfy key through the agent host's secret-input tool, with a link to the key page above. In T3 Code, use `request_secret` with `delivery: "file"` for shell access. Read the delivered private file inside the shell process and write the key to `COMFY_API_KEY` in `studio/.env.local`, preserving other entries, then restart the studio. Keep key values out of chat, tool arguments, command-line arguments and logs. Never print credential files or commit them. If private input is unavailable, direct the user to enter the key in the app's Settings and continue after it is saved.
+5. **Check the connection.** Request `GET /api/health` and inspect the JSON `status`; HTTP 200 alone does not prove the backend works. `ok` means the Comfy endpoint is reachable. For `not_configured`, check credential presence and precedence. For `unauthorized`, check the key and account's Cloud API access. For `unreachable` or `upstream_down`, check the endpoint and report the service issue. Health probes Comfy Cloud or the custom endpoint, not Router or every model. Report any remaining limitation without claiming a successful generation. Generation spends credits; run a paid sample only when requested.
+6. **Finish with a useful handoff.** Return the local app URL, connection status and any missing prerequisite or account access. If the user also wants an MCP client connected, use the [MCP instructions](#mcp) below.
+
+For Cloud workflow jobs, the account needs Cloud API access; a Router-only key can still be useful for partner models. Keys for individual model providers are not needed when using Comfy Router.
+
+**Optional social publishing:** request a Zernio key as a separate secret only when the user asks to connect social accounts. Read it inside the shell process, build a JSON body with `apiKey`, and send it to `PUT /api/social/credentials` on the local app with `Content-Type: application/json`. This validates the key and saves it in `<PHAINO_DATA_DIR>/social.json` (default `studio/.data/social.json`). There is no `ZERNIO_API_KEY` env setting. Users can also enter it in Settings. Connecting an account does not authorize publishing a post.
+
 ## What's in it
 
 - **Explore**: the home grid of all presets and categories.
@@ -41,23 +76,7 @@ phaino/
     examples/   Real sample outputs, named <preset-id>_<n>.<ext>
 ```
 
-## Requirements
-
-- Node.js 24.22.1 or later in the 24.x release line
-- pnpm (repo pins 12.x via `packageManager`)
-- ffmpeg on your PATH (used by the Editor, Edit Video prep and media uploads)
-
-## Quick start
-
-```bash
-pnpm install
-cp studio/.env.example studio/.env.local   # fill in a backend (below)
-pnpm dev:studio
-```
-
-Open http://localhost:3000. Check backend connectivity at http://localhost:3000/api/health (it reports `not_configured` until a Comfy key is set).
-
-### Hosted demo
+## Hosted demo
 
 Vercel deployments run as a mockup by default. Image, Video, Camera and Workflows use the bundled catalog. You can change models, adjust controls, upload reference images in your browser and preview existing sample media. Samples do not use your prompt or reference images. Library shows sample media and this tab's preview history until reload. Generation, credential entry and server writes are disabled; this is not a hosted generation backend.
 

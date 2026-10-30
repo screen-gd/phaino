@@ -1,6 +1,6 @@
 # Phaino media slots
 
-The hero is original AI-generated coastal artwork, created for this landing page. Its source is preserved in assets/hero-coast-original.png, with compressed 640 / 1280 / 1920px WebP variants. It is art direction, not a claim about FLUX or LTX output. The other WebP images are illustrative photography, not Phaino-generated output or product screenshots. Replace them with original FLUX / LTX results when available. Community handles and fork counts are sample data. The before/after uses the same photo with an intentionally flat CSS grade, not a claim about an upscaling model.
+The hero is original AI-generated coastal artwork, created for this landing page. Its source is preserved in assets/hero-coast-original.png, with compressed 640 / 1280 / 1920px WebP variants. It is art direction, not a claim about FLUX or LTX output. The other WebP images are illustrative photography, not Phaino-generated output or product screenshots. Replace them with original FLUX / LTX results when available. The former sample community gallery is no longer displayed. The before/after uses the same photo with an intentionally flat CSS grade, not a claim about an upscaling model.
 
 ## Video paths
 

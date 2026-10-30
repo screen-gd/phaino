@@ -1,4 +1,5 @@
 ---
+import { catalogue } from '../data/presets';
 interface Props { github: string; }
 const { github } = Astro.props;
 const nodes = [
@@ -62,15 +63,15 @@ const nodes = [
     </div>
     <div class="light-actions-space">
       <nav class="light-actions" aria-label="Use the open workflow" data-light-actions hidden>
-        <a href="#presets">Open in ComfyUI</a>
-        <a href={`${github}/fork`} target="_blank" rel="noreferrer">Fork it</a>
-        <a href={`${github}/tree/main/presets`} target="_blank" rel="noreferrer">Download workflow.json</a>
+        <a href="/workflows/orbit.json" download>Download workflow</a>
+        <a href={`${github}/blob/main/presets/orbit/workflow.json`} target="_blank" rel="noreferrer">View source</a>
+        <a href={`${github}/blob/main/presets/README.md`} target="_blank" rel="noreferrer">Model setup</a>
       </nav>
     </div>
     <p class="sr-only" role="status" aria-live="polite" data-light-status></p>
 
     <dl class="light-facts">
-      <div><dt>22</dt><dd>presets, each one a real ComfyUI workflow</dd></div>
+      <div><dt>{catalogue.length}</dt><dd>presets, each one a real ComfyUI workflow</dd></div>
       <div><dt>0</dt><dd>hidden steps. Every node is visible and editable.</dd></div>
       <div><dt>MIT</dt><dd>license. Fork the studio, not just the preset.</dd></div>
     </dl>

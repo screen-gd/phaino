@@ -1,3 +1,5 @@
+import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
 import { buildEdl } from "./edl";
 import { buildFcpxml, type FcpxmlItem } from "./fcpxml";
@@ -37,7 +39,9 @@ describe("buildFcpxml", () => {
       resolution: "1080p",
       items,
     });
-    expect(xml).toMatchSnapshot();
+    // Keep the fixture URI stable across Windows drives and POSIX hosts.
+    const fixtureRoot = pathToFileURL(path.resolve("/data/exports/x/media")).href;
+    expect(xml.replaceAll(fixtureRoot, "file:///data/exports/x/media")).toMatchSnapshot();
     expect(xml).toContain('<fcpxml version="1.10">');
     expect(xml).toContain('name="FFVideoFormat1920x1080p24"');
     expect(xml).toContain('frameDuration="1/24s"');

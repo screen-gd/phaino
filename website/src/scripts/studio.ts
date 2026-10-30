@@ -13,7 +13,6 @@ let userPaused = false;
 let motionContext: gsap.Context | undefined;
 let lenis: Lenis | undefined;
 let ticker: ((time: number) => void) | undefined;
-let marquee: gsap.core.Tween | undefined;
 let typeTimers: ReturnType<typeof setInterval>[] = [];
 const animatedVideos = new Set<HTMLVideoElement>();
 const motionAllowed = () => !reducedMotion.matches && !userPaused;
@@ -32,8 +31,6 @@ function initMotion() {
   typeTimers.forEach(clearInterval);
   typeTimers = [];
   document.querySelectorAll<HTMLElement>('[data-typed]').forEach((el) => { el.textContent = el.dataset.typed ?? ''; });
-  document.querySelectorAll('[data-marquee-clone]').forEach((el) => el.remove());
-  marquee = undefined;
   document.documentElement.toggleAttribute('data-motion-paused', !motionAllowed());
   if (motionButton) {
     motionButton.setAttribute('aria-pressed', String(!motionAllowed()));
@@ -90,8 +87,6 @@ function initMotion() {
       if (!corners.length) return;
       gsap.from(corners, { scale: 1.7, duration: .8, ease: 'power3.out', scrollTrigger: { trigger: media, start: 'top 90%', once: true } });
     });
-    // The fork branch draws itself as the steps scroll through the viewport.
-    gsap.fromTo('.fork-branch', { strokeDashoffset: 1 }, { strokeDashoffset: 0, ease: 'none', scrollTrigger: { trigger: '.fork-steps', start: 'top 85%', end: 'top 40%', scrub: true } });
     gsap.to('.timeline-playhead', { x: () => (document.querySelector('.timeline-ruler')?.clientWidth ?? 800) * .62, ease: 'none', scrollTrigger: { trigger: '.timeline', start: 'top 85%', end: 'bottom 30%', scrub: true } });
     // The generated clip is dragged in from above and lands on V2 as the playhead reaches it.
     gsap.fromTo('.generated-clip', { y: -70, x: 48, opacity: .35 }, { y: 0, x: 0, opacity: 1, ease: 'power3.out', scrollTrigger: { trigger: '.timeline', start: 'top 85%', end: 'top 40%', scrub: true } });
@@ -108,7 +103,6 @@ function initMotion() {
         typeTimers.push(timer);
       } });
     });
-    setupMarquee();
   });
   ScrollTrigger.refresh();
 }
@@ -122,23 +116,6 @@ function setupHorizontalGallery() {
   gsap.to(track, { x: () => -distance(), ease: 'none', scrollTrigger: { id: 'moves-horizontal', trigger: '.moves-pin', pin: '.moves-pin', start: () => `top top+=${headerHeight()}`, end: () => `+=${distance()}`, scrub: .8, invalidateOnRefresh: true, onUpdate: (self) => {
     gsap.set('.gallery-progress span', { scaleX: .05 + self.progress * .95 });
   } } });
-}
-
-function setupMarquee() {
-  const track = document.querySelector<HTMLElement>('.community-track');
-  if (!track) return;
-  const originals = Array.from(track.children);
-  originals.forEach((original) => {
-    const clone = original.cloneNode(true);
-    if (!(clone instanceof HTMLElement)) return;
-    clone.dataset.marqueeClone = '';
-    clone.setAttribute('aria-hidden', 'true');
-    clone.querySelectorAll<HTMLElement>('button, a').forEach((control) => { control.tabIndex = -1; });
-    track.append(clone);
-  });
-  const distance = (track.scrollWidth - parseFloat(getComputedStyle(track).paddingLeft)) / 2;
-  marquee = gsap.to(track, { x: -distance, duration: distance / 22, ease: 'none', repeat: -1, paused: true });
-  ScrollTrigger.create({ trigger: '.community-gallery', start: 'top bottom', end: 'bottom top', onToggle: (self) => { if (self.isActive) marquee?.play(); else marquee?.pause(); } });
 }
 
 motionButton?.addEventListener('click', () => {
@@ -176,7 +153,7 @@ document.querySelectorAll<HTMLElement>('.magnetic').forEach((button) => {
   button.addEventListener('pointerleave', () => { gsap.to(button, { x: 0, y: 0, duration: motionAllowed() ? .4 : 0, ease: 'power3.out', overwrite: true }); });
 });
 /** One follower for every [data-cursor] target. Hit-testing on pointer move and on scroll
-    means cards that slide under a still pointer (pinned gallery, marquee) update it too,
+    means cards that slide under a still pointer in the pinned gallery update it too,
     so a label can never be left behind on a card the pointer has already left. */
 const cursorChip = document.querySelector<HTMLElement>('.cursor-chip');
 const cursorLabel = cursorChip?.querySelector('[data-cursor-label]');
@@ -244,145 +221,62 @@ document.querySelectorAll<HTMLButtonElement>('[data-filter]').forEach((button) =
   });
 });
 
-const gallery = document.querySelector<HTMLElement>('.community-gallery');
-gallery?.addEventListener('pointerenter', () => marquee?.pause());
-gallery?.addEventListener('pointerleave', () => { if (motionAllowed() && !document.hidden) marquee?.play(); });
-gallery?.addEventListener('focusin', () => marquee?.pause());
-gallery?.addEventListener('focusout', () => { if (motionAllowed()) marquee?.play(); });
-let fewestFirst = false;
-document.querySelector<HTMLButtonElement>('[data-community-sort]')?.addEventListener('click', (event) => {
-  const track = document.querySelector('.community-track');
-  if (!track || !(event.currentTarget instanceof HTMLButtonElement)) return;
-  fewestFirst = !fewestFirst;
-  const columns = Array.from(track.querySelectorAll<HTMLElement>('.community-column:not([data-marquee-clone])'));
-  const cards = columns.flatMap((column) => Array.from(column.querySelectorAll<HTMLElement>('.community-card')));
-  cards.sort((a, b) => fewestFirst ? Number(a.dataset.forks) - Number(b.dataset.forks) : Number(b.dataset.forks) - Number(a.dataset.forks));
-  cards.forEach((card, index) => columns[Math.floor(index / 2)]?.append(card));
-  event.currentTarget.firstChild?.replaceWith(document.createTextNode(fewestFirst ? 'Most forks first ' : 'Fewest forks first '));
-  initMotion();
-});
-
 document.querySelectorAll<HTMLAnchorElement>('.mobile-menu a').forEach((link) => link.addEventListener('click', () => { document.querySelector('.mobile-menu')?.removeAttribute('open'); }));
 initSetup();
 
-// Load the graph renderer only after a visitor opens the workflow tab.
+// Media previews stay separate from the real workflow JSON downloads.
 const dialog = document.querySelector<HTMLDialogElement>('#studio-dialog');
-const promptInput = document.querySelector<HTMLInputElement>('#workflow-prompt');
-const durationInput = document.querySelector<HTMLInputElement>('#workflow-duration');
-let currentPreset = 'Orbit';
-let graphEditor: ReturnType<typeof import('./graph').createWorkflowEditor> | undefined;
-let graphPromise: Promise<void> | undefined;
 let focusOrigin: HTMLElement | null = null;
 
-function exampleData() {
-  return { format: 'phaino-workflow-anatomy', executable: false, preset: currentPreset, direction: promptInput?.value ?? '', duration: Number(durationInput?.value ?? 5), graph: graphEditor?.serialize() ?? null };
-}
-function updateGraph() {
-  graphEditor?.update({ name: currentPreset, direction: promptInput?.value ?? '', duration: Number(durationInput?.value ?? 5) });
-  const output = document.querySelector('#duration-output');
-  if (output) output.textContent = `${durationInput?.value ?? 5} seconds`;
-  const json = document.querySelector('#workflow-json');
-  if (json) json.textContent = JSON.stringify(exampleData(), null, 2);
-}
-async function loadGraph() {
-  const loading = document.querySelector<HTMLElement>('.graph-loading');
-  if (!graphPromise) graphPromise = import('./graph').then(({ createWorkflowEditor }) => {
-    const canvas = document.querySelector<HTMLCanvasElement>('#workflow-canvas');
-    if (canvas) graphEditor = createWorkflowEditor(canvas);
-    if (loading) loading.hidden = true;
-  }).catch(() => {
-    graphPromise = undefined;
-    if (loading) { loading.hidden = false; loading.textContent = 'The graph could not load. Your remix controls and JSON still work.'; }
-  });
-  await graphPromise;
-  if (dialog?.open && !document.querySelector('#workflow-panel')?.hasAttribute('hidden')) graphEditor?.show();
-  updateGraph();
-}
-function setTab(view: string) {
-  dialog?.classList.toggle('is-showcase', view === 'preview');
-  document.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((tab) => {
-    const active = tab.dataset.tab === view;
-    tab.setAttribute('aria-selected', String(active));
-    tab.tabIndex = active ? 0 : -1;
-  });
-  const preview = document.querySelector<HTMLElement>('#preview-panel');
-  const workflow = document.querySelector<HTMLElement>('#workflow-panel');
-  const video = document.querySelector<HTMLVideoElement>('#dialog-video');
-  if (preview) preview.hidden = view !== 'preview';
-  if (workflow) workflow.hidden = view !== 'workflow';
-  if (view === 'workflow') { video?.pause(); void loadGraph(); }
-  else { graphEditor?.hide(); if (video && !video.hidden && motionAllowed()) void video.play().catch(() => {}); }
-}
-function openPreset({ name, poster, description, view, origin }: { name: string; poster: string; description: string; view: 'preview' | 'workflow'; origin: HTMLElement }) {
+/** Open the selected media without presenting an illustrative graph as a workflow. */
+function openPreview(origin: HTMLButtonElement) {
   if (!dialog) return;
   focusOrigin = origin;
-  currentPreset = name;
+  const name = origin.dataset.showcase ?? 'Preview';
   const heading = document.querySelector('#dialog-title');
   const image = document.querySelector<HTMLImageElement>('#dialog-poster');
   const copy = document.querySelector('#dialog-description');
   if (heading) heading.textContent = name;
-  if (image) { image.src = `/media/${poster}.webp`; image.alt = `${name} illustrative poster`; }
-  if (copy) copy.textContent = description;
-  if (promptInput) promptInput.value = `${name}. Hold the subject. Keep the light.`;
-  if (durationInput) durationInput.value = '5';
+  if (image) {
+    image.src = `/media/${origin.dataset.poster ?? 'hero'}.webp`;
+    image.alt = `${name} preview poster`;
+  }
+  if (copy) copy.textContent = origin.dataset.description ?? '';
   const video = document.querySelector<HTMLVideoElement>('#dialog-video');
-  const sourceVideo = origin.closest('article')?.querySelector<HTMLVideoElement>('video[data-src]');
+  const sourceVideo = origin.querySelector<HTMLVideoElement>('video[data-src]');
   const notice = document.querySelector<HTMLElement>('.poster-notice');
   if (video) {
-    video.pause(); video.removeAttribute('src'); video.load(); video.hidden = true;
-    if (sourceVideo?.dataset.src) { video.src = sourceVideo.dataset.src; video.hidden = false; }
+    video.pause();
+    video.removeAttribute('src');
+    video.load();
+    video.hidden = !sourceVideo?.dataset.src;
+    if (sourceVideo?.dataset.src) video.src = sourceVideo.dataset.src;
     if (notice) notice.hidden = !video.hidden;
   }
   lenis?.stop();
-  marquee?.pause();
   dialog.showModal();
-  if (motionAllowed()) gsap.fromTo(dialog, { y: 18, scale: .985, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: .4, ease: 'power3.out' });
-  setTab(view);
-  updateGraph();
+  if (motionAllowed()) {
+    gsap.fromTo(dialog, { y: 18, scale: .985, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: .4, ease: 'power3.out' });
+    if (video && !video.hidden) void video.play().catch(() => {});
+  }
 }
+
 document.addEventListener('click', (event) => {
   if (!(event.target instanceof Element)) return;
-  const workflow = event.target.closest<HTMLButtonElement>('[data-open-workflow]');
   const preview = event.target.closest<HTMLButtonElement>('[data-showcase]');
-  if (workflow) openPreset({ name: workflow.dataset.openWorkflow ?? 'Orbit', poster: 'hero', description: 'An open workflow is just the beginning.', view: 'workflow', origin: workflow });
-  if (preview) openPreset({ name: preview.dataset.showcase ?? 'Orbit', poster: preview.dataset.poster ?? 'hero', description: preview.dataset.description ?? '', view: 'preview', origin: preview });
+  if (preview) openPreview(preview);
 });
-function resumeStudio() {
-  graphEditor?.hide();
-  document.querySelector<HTMLVideoElement>('#dialog-video')?.pause();
-  if (motionAllowed()) { lenis?.start(); marquee?.play(); }
-  focusOrigin?.focus({ preventScroll: true });
-}
+
 function closeDialog() {
   dialog?.close();
-  resumeStudio();
 }
+
 document.querySelector('.dialog-close')?.addEventListener('click', closeDialog);
 dialog?.addEventListener('click', (event) => { if (event.target === dialog) closeDialog(); });
-dialog?.addEventListener('cancel', (event) => { event.preventDefault(); closeDialog(); });
 dialog?.addEventListener('close', () => {
-  if (!dialog.open) resumeStudio();
-});
-document.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((tab) => {
-  tab.addEventListener('click', () => setTab(tab.dataset.tab ?? 'preview'));
-  tab.addEventListener('keydown', (event) => {
-    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-    event.preventDefault();
-    const next = event.key === 'Home' ? 'preview' : event.key === 'End' ? 'workflow' : tab.dataset.tab === 'preview' ? 'workflow' : 'preview';
-    setTab(next);
-    document.querySelector<HTMLButtonElement>(`[data-tab="${next}"]`)?.focus();
-  });
-});
-promptInput?.addEventListener('input', updateGraph);
-durationInput?.addEventListener('input', updateGraph);
-document.querySelector('[data-download-workflow]')?.addEventListener('click', () => {
-  const url = URL.createObjectURL(new Blob([JSON.stringify(exampleData(), null, 2)], { type: 'application/json' }));
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `${currentPreset.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-anatomy.json`;
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  announce('Your example workflow remix has been downloaded.');
+  document.querySelector<HTMLVideoElement>('#dialog-video')?.pause();
+  if (motionAllowed()) lenis?.start();
+  focusOrigin?.focus({ preventScroll: true });
 });
 
 // Preset catalogue filter.
@@ -423,8 +317,12 @@ setInterval(() => {
   timecode.textContent = `00:${String(Math.floor(seconds / 60) % 60).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}:${String(timeFrames % 24).padStart(2, '0')}`;
 }, 125);
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) { marquee?.pause(); animatedVideos.forEach((video) => video.pause()); graphEditor?.hide(); }
-  else if (motionAllowed()) { if (!dialog?.open) marquee?.play(); animatedVideos.forEach((video) => { void video.play().catch(() => {}); }); if (dialog?.open && !document.querySelector('#workflow-panel')?.hasAttribute('hidden')) graphEditor?.show(); }
+  const previewVideo = document.querySelector<HTMLVideoElement>('#dialog-video');
+  if (document.hidden) { animatedVideos.forEach((video) => video.pause()); previewVideo?.pause(); }
+  else if (motionAllowed()) {
+    animatedVideos.forEach((video) => { void video.play().catch(() => {}); });
+    if (dialog?.open && previewVideo && !previewVideo.hidden) void previewVideo.play().catch(() => {});
+  }
 });
 initMotion();
 window.addEventListener('load', () => ScrollTrigger.refresh(), { once: true });

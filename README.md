@@ -1,6 +1,6 @@
 # Phaino
 
-Phaino is an open-source AI video and image studio that runs locally on your machine, with generations through Comfy Cloud (or your own Comfy API v2 endpoint). Pick a preset, add a prompt and a first frame, and every shot runs through a real ComfyUI workflow you can open, edit and fork. The studio listens on `127.0.0.1` only. Social publishing and a hosted version are future work: [issue #4](https://github.com/screen-gd/phaino/issues/4) and [issue #5](https://github.com/screen-gd/phaino/issues/5).
+Phaino is an open-source AI video and image studio that runs locally on your machine, with generations through Comfy Cloud (or your own Comfy API v2 endpoint). Pick a preset, add a prompt and a first frame, and every shot runs through a real ComfyUI workflow you can open, edit and fork locally. The studio listens on `127.0.0.1` only. Social publishing uses your own Zernio key. There is no hosted generation service or community publishing platform.
 
 ## What's in it
 
@@ -43,7 +43,7 @@ phaino/
 
 ## Requirements
 
-- Node.js 22.13+
+- Node.js 24.22.1 or later in the 24.x release line
 - pnpm (repo pins 12.x via `packageManager`)
 - ffmpeg on your PATH (used by the Editor, Edit Video prep and media uploads)
 
@@ -181,7 +181,7 @@ Brand assets and the guidelines board live in [brand/phaino](brand/phaino/board/
 
 ## Roadmap
 
-The camera moves, image and video tools, job runner, library and editor are built. Social publishing moved to [issue #4](https://github.com/screen-gd/phaino/issues/4); a hosted version is tracked in [issue #5](https://github.com/screen-gd/phaino/issues/5). The live list is at `/tracker`; the data is in [tracker/tasks.json](tracker/tasks.json).
+The camera moves, image and video tools, job runner, library, editor and Zernio social publishing are built. A hosted generation service is tracked in [issue #5](https://github.com/screen-gd/phaino/issues/5). The live list is at `/tracker`; the data is in [tracker/tasks.json](tracker/tasks.json).
 
 ## License
 

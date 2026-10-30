@@ -619,6 +619,24 @@
       "title": "Housekeeping",
       "tasks": [
         {
+          "id": "submission-readiness-fixes",
+          "title": "Real workflow downloads, remove fictional community, align setup and portable tests",
+          "status": "done",
+          "notes": "Removed the marketing community gallery, invented handles, fork counts, publishing copy and related navigation/scripts/styles. Generated 12 real workflow JSON downloads from bundled presets, replaced example graph exports, and corrected setup requirements to Node 24.22.1 in the 24.x line. Normalized the FCPXML fixture URI across drives and operating systems. Both builds, typecheck and lint pass (32 existing warnings); all 1519 tests pass, 16 skipped. Verified all 12 downloads exactly match their source JSON, all 45 referenced local assets exist and all eight fragment targets resolve. No browser testing."
+        },
+        {
+          "id": "submission-audit-2026-10-30",
+          "title": "Final submission readiness check",
+          "status": "done",
+          "notes": "Reviewed GitHub main 05b6473. Both builds and typecheck pass; lint has 32 warnings and no errors. Tests: 1518 passed, 16 skipped, one drive-dependent FCPXML snapshot failure. Cloudflare, Vercel and gitleaks checks pass; key public routes return 200. Workflow links, setup documentation and the snapshot were subsequently corrected in submission-readiness-fixes. Public demo post and form entry remain unverified."
+        },
+        {
+          "id": "challenge-rules-check",
+          "title": "Check official challenge rules and submission form",
+          "status": "done",
+          "notes": "Verified https://comfy.org/open-source-higgsfield and its linked submission form on 2026-10-30. Required: public repo with workflows, license and local setup; demo video up to two minutes; social demo post with #OpenSourceHiggsfield; completed entry form. Hosted runtime is optional. Current partner-model demo is for general categories, not Open Weights Only. Deadline: October 30, 9am Pacific, 8pm Dubai. Public demo/post URLs and completed entry remain unverified."
+        },
+        {
           "id": "pr-10-coderabbit",
           "title": "Fix CodeRabbit findings from PR #10",
           "status": "done",

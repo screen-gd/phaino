@@ -112,7 +112,7 @@ p { line-height: 1.55; font-size: 17px; }
 /* Inside a .screen flex column, auto side margins would shrink-wrap the shell. */
 .screen > .section-shell { width: 100%; }
 /* Scrolling rows start on the same left edge as the capped section shell. */
-.moves-viewport, .community-track { --row-start: max(var(--gutter), calc((100vw - 1800px) / 2 + var(--gutter))); }
+.moves-viewport { --row-start: max(var(--gutter), calc((100vw - 1800px) / 2 + var(--gutter))); }
 .section-head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 420px); align-items: end; gap: 24px 64px; margin-bottom: var(--head-gap); }
 .section-head h2 { max-width: 15em; }
 .section-head p { color: var(--lede); }
@@ -210,37 +210,6 @@ p { line-height: 1.55; font-size: 17px; }
 .comparison input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: ew-resize; margin: 0; }
 .comparison:focus-within { outline: 2px solid var(--accent); outline-offset: 5px; }
 .comparison-caption { margin-top: 14px; font-size: 13px; color: var(--muted); }
-
-/* Community: a fork branch drawn with scroll, then the marquee, sized to share one screen. */
-.community-section { overflow: hidden; --gallery-h: clamp(320px, calc(100svh - var(--header-height) - 560px), 560px); }
-.fork-steps { position: relative; padding-top: 64px; margin-bottom: 28px; }
-.fork-steps ol { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; }
-.fork-line { position: absolute; top: 0; left: var(--gutter); width: calc(100% - var(--gutter) * 2); height: 52px; overflow: visible; }
-.fork-line path { fill: none; }
-.fork-base { stroke: var(--wire); stroke-width: 1.5; }
-.fork-branch { stroke: var(--accent); stroke-width: 2.5; stroke-dasharray: 1 1; stroke-dashoffset: 1; }
-.fork-steps li { position: relative; }
-.fork-point { position: absolute; left: -1px; top: -33px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg); border: 2px solid var(--wire); }
-.fork-steps li:nth-child(n+2) .fork-point { top: -61px; border-color: var(--accent); background: var(--accent); }
-.fork-steps h3 { font-size: clamp(20px,1.7vw,26px); }
-.fork-steps p { color: var(--lede); margin-top: 6px; font-size: 16px; }
-.community-gallery { padding: 0; }
-[data-motion-paused] .community-gallery, [data-motion-paused] .moves-viewport { overflow-x: auto; scrollbar-width: thin; scrollbar-color: #555 transparent; }
-.community-track { display: flex; align-items: flex-start; gap: 16px; width: max-content; padding-left: var(--row-start); }
-.community-column { width: clamp(240px,20vw,340px); display: flex; flex-direction: column; gap: 16px; flex-shrink: 0; }
-.community-column:nth-child(2n) { flex-direction: column-reverse; padding-top: 40px; }
-.community-card { width: 100%; }
-.community-card button { width: 100%; height: calc((var(--gallery-h) - 56px) * .42); border-radius: var(--radius); overflow: hidden; position: relative; padding: 0; text-align: left; display: block; }
-.community-card.tall button { height: calc((var(--gallery-h) - 56px) * .58); }
-.community-card img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.5) brightness(.85); transition: transform 700ms var(--ease); }
-.community-card button:hover img { transform: scale(1.05); }
-.community-card-overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 48px 18px 16px; background: linear-gradient(0deg,#000000eb,transparent); }
-.community-card-overlay strong { font-size: 20px; font-weight: 500; letter-spacing: -.04em; }
-.community-card-overlay > span { display: flex; justify-content: space-between; gap: 15px; font-family: var(--font-mono); color: #d6d6d6; margin-top: 6px; font-size: 11px; }
-.community-card-overlay > span > span { display: flex; align-items: center; gap: 5px; color: var(--ink); }
-.community-card-overlay svg { color: var(--accent); }
-.community-note { margin-top: 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-.community-note .muted { font-size: 13px; }
 
 /* Run it yourself */
 .run-facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-bottom: clamp(28px, 5svh, 56px); }
@@ -503,19 +472,6 @@ dialog.is-showcase { width: calc(100vw - 24px); height: calc(100svh - 24px); max
   .edit-tools { margin-top: 14px; }
   .preset-list { grid-template-columns: 1fr 1fr; }
   .comparison { height: auto; aspect-ratio: 1.2; }
-  .community-section { --gallery-h: 480px; }
-  .fork-steps { padding-top: 0; padding-left: calc(var(--gutter) + 36px); margin-bottom: 36px; }
-  .fork-steps ol { grid-template-columns: 1fr; gap: 24px; }
-  .fork-line { display: none; }
-  .fork-steps li .fork-point, .fork-steps li:nth-child(n+2) .fork-point { top: 6px; left: -34px; }
-  .fork-steps li:not(:last-child):after { content: ''; position: absolute; left: -28px; top: 24px; bottom: -28px; width: 2px; background: var(--wire); }
-  .fork-steps li:nth-child(2):after { background: var(--accent); }
-  .fork-steps p { font-size: 15px; }
-  .community-column { width: 44vw; }
-  .community-column:nth-child(2n) { padding-top: 32px; }
-  .community-card-overlay { padding: 44px 14px 14px; }
-  .community-card-overlay strong { font-size: 18px; }
-  .community-note { align-items: flex-start; flex-wrap: wrap; gap: 8px 20px; }
   .run-facts { grid-template-columns: 1fr; gap: 22px; }
   .run-facts strong { font-size: 56px; }
   .run-body { grid-template-columns: 1fr; gap: 28px; }
@@ -575,7 +531,6 @@ dialog.is-showcase { width: calc(100vw - 24px); height: calc(100svh - 24px); max
   .filter { padding: 8px 13px; }
   .comparison { aspect-ratio: 1; }
   .preset-list { grid-template-columns: 1fr; }
-  .community-column { width: 64vw; }
   .run-facts strong { font-size: 52px; }
   .run-switch { display: flex; }
   .run-switch button { flex: 1; padding: 10px 12px; font-size: 13px; }
@@ -599,5 +554,6 @@ dialog.is-showcase { width: calc(100vw - 24px); height: calc(100svh - 24px); max
 @media (prefers-reduced-motion: reduce) {
   *, *:before, *:after { scroll-behavior: auto !important; animation: none !important; transition-duration: .01ms !important; }
   .cursor-chip { display: none; }
-  .fork-branch { stroke-dashoffset: 0; }
 }
+
+[data-motion-paused] .moves-viewport { overflow-x: auto; scrollbar-width: thin; scrollbar-color: #555 transparent; }

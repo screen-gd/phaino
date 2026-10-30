@@ -15,7 +15,7 @@ Mona Sans is paired with Geist Mono for technical metadata. The Phaino wordmark 
 3. From first idea to final frame. / Image: FLUX.2, style presets, consistent characters. Video: LTX 2.5, text or image to video. Moves: cinematic camera paths. Effects: extension, match cut, morph, explode, melt. Avatars: photo + voice, talking shot. Edit: inpaint, outpaint, relight, upscale.
 4. Direct the camera. / Seven named camera presets with workflow access, preview slots, and adjustable motion in the example graph.
 5. Keep the shot. Change the rest. / Keyboard-operable before / after scrubber demonstrating a placeholder grade.
-6. Make a move. Pass it on. / Open, make it yours, publish. Placeholder community entries have attributed example handles and fork counts.
+6. Download a bundled workflow and edit it locally. There is no community gallery, user attribution, fork count or hosted publishing flow.
 7. Free, open source. Runs on Comfy Cloud today. / Bring your Comfy API key. Local GPU support is next. MIT code, no watermarks, and portable workflows. Cloud compute is billed by Comfy; model licenses apply.
 8. It belongs on your timeline. / FPS, resolution, handles, FCPXML / EDL, shown with a scrub-linked NLE strip.
 9. Built for Comfy's Open Source Higgsfield challenge. / Small credit only.
@@ -30,11 +30,11 @@ Connected to https://usecol.com/api/mcp using Streamable HTTP. Executor is not e
 - get_library: lenis, gsap; get_component: magic-ui/Marquee.
 - Selected Lenis for smooth scroll, and GSAP / ScrollTrigger for pinning, transforms, text/media reveals, magnetic feedback and the infinite marquee. These work directly with Astro without a React runtime.
 - Col's magnetic, noise, text and marquee components are React-based. GSAP implements their underlying patterns within the selected stack; static grain avoids a continuous canvas noise renderer.
-- Col returned no recorded node-graph library. Use Comfy's own @comfyorg/litegraph for the on-demand editable graph. The inline graph remains semantic HTML with SVG connections for a small, accessible initial payload. The graph is workflow anatomy, not a claim that a production Comfy pipeline exists in this repository.
+- The inline graph remains semantic HTML with SVG connections. It illustrates the process; workflow actions open real ComfyUI JSON generated from the studio's bundled presets. The media preview dialog does not edit or export example graphs.
 
 ## Media handoff
 
-Photography is illustrative poster material, not generated output. See public/media/README.md for sources, replacement paths and encoding guidance. Video slots activate at build time only when the matching file exists. Missing footage uses its poster without broken requests. Community handles and counts are sample data.
+Photography is illustrative poster material, not generated output. See public/media/README.md for sources, replacement paths and encoding guidance. Video slots activate at build time only when the matching file exists. Missing footage uses its poster without broken requests. Do not add invented users, attributions or community activity.
 
 ## Review and verification
 
@@ -46,7 +46,7 @@ Build and Astro/TypeScript check pass with zero diagnostics. Production npm audi
 
 Verified the five-node editor loads on demand, prompt and duration changes appear in serialized JSON, Escape returns focus, preset filters work, the scrubber updates, the paused page remains horizontally scrollable, and a 390px viewport has no horizontal overflow or broken images. The hero pin, gallery traversal, mobile layout and console were checked in a real browser. Preview tooling sometimes timed out on offscreen click targets; the documented skill browser supplied the remaining visual evidence.
 
-Next: replace photographic posters with original FLUX/LTX loops, replace anatomy examples with runnable and versioned ComfyUI graphs, and connect publishing/fork counts to real community data. These are product/media integrations beyond the landing page.
+Next: replace remaining photographic posters with original results. Workflow downloads already use the repository's real graphs. Community publishing is not an available product feature.
 
 ## Hero revision: centered expansion and scroll performance
 
@@ -66,8 +66,8 @@ Kept the hero geometry and choreography; only its colour tokens changed. Everyth
 - Studio bento swaps its one-liner for the full detail on hover or focus.
 - Camera moves pin vertically centred. One shared cursor follower replaces the per-card chips. It hit-tests on pointer move and on scroll, so cards sliding under a still pointer update it and no label is left on a card the pointer has left.
 - Edit tools switch the comparison between relight, upscale, outpaint and inpaint treatments of the same photograph (CSS, labelled illustrative).
-- Community: a fork branch draws off the main line with scroll, above the masonry marquee.
-- Run it yourself opens on 0 credits, 0 watermarks, MIT at display size. Comfy Cloud is the only enabled setup tab. Local GPU support is marked as coming soon. The terminal uses Node 22+, pnpm, and studio/.env.local; Copy reads the displayed command lines without prompts.
+- The former sample community gallery and its fork animation are removed.
+- Run it yourself opens on 0 credits, 0 watermarks, MIT at display size. Comfy Cloud is the only enabled setup tab. Local GPU support is marked as coming soon. The terminal requires Node 24.22.1 in the 24.x line, pnpm, ffmpeg and studio/.env.local; Copy reads the displayed command lines without prompts.
 - Pro export: the generated clip, now with a thumbnail, is dragged onto V2 as the playhead scrubs.
 - Footer: a second CTA for X, and the wordmark rises with scroll.
 
@@ -78,12 +78,12 @@ Feedback: the page was hard to understand and sections were cut off. The copy wa
 - Every section after the hero is a `.screen`: one viewport tall, with media heights derived from `svh` so the heading and its content are always visible together. Verified at 1920×1010 and 1440×900 with `.review/sections.mjs`, which checks that each section's heading and last element sit inside the viewport.
 - Headlines now say what the feature does: "Every preset is a workflow you can open.", "One studio for images and video.", "Cinematic camera moves.", "Fix a shot without starting over.", "Remix presets. Share your own.", "Free, open source, and runs on your machine.", "Drops straight into your edit."
 - The workflow board shows "The preset you click" beside "The workflow behind it" instead of repeating the hero's graph.
-- Navigation reads How it works, Features, Camera moves, Community, Run it free.
+- Navigation reads How it works, Features, Models, MCP, Presets, Run it free.
 - Phones keep natural section heights.
 
 ## Completion pass, October 2026
 
-- **Preset catalogue** (`#presets`): all 22 presets from the brief, filterable by tool. Availability is read from disk at build time (`src/data/presets.ts`): a preset shows a Workflow download only when `public/workflows/<slug>.json` exists, otherwise "In progress". Nothing ships yet, so every preset honestly reads "In progress".
+- **Preset catalogue** (`#presets`): 12 bundled camera, video and image workflows, filterable by tool. Static `/workflows/<slug>.json` routes read the real `presets/<slug>/workflow.json` at build time. A missing file fails the build rather than silently hiding a download. Model setup links to `presets/README.md`.
 - **Cloud pricing** (`#cost`): Phaino is free. Generation runs on a Comfy Cloud plan, from $20/month, with a link to comfy.org/pricing. Partner models consume Comfy credits and are labelled in the studio. The former electricity calculator and its script are removed.
 - **GitHub stars** in the header button, fetched live and shown only from 25 stars.
 - **Share image**: `public/og.jpg` (1200×630) with Open Graph and Twitter card tags. Set an absolute site URL for `og:image` once the domain is known.

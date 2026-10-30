@@ -23,10 +23,10 @@ exports[`buildFcpxml > emits FCPXML 1.10 with assets and an asset-clip spine 1`]
   <resources>
     <format id="r1" name="FFVideoFormat1920x1080p24" frameDuration="1/24s" width="1920" height="1080" colorSpace="1-1-1 (Rec. 709)"/>
     <asset id="r2" name="Orbit.mp4" start="0s" duration="60/24s" hasVideo="1" format="r1" videoSources="1">
-      <media-rep kind="original-media" src="file:///C:/data/exports/x/media/01_orbit.mp4"/>
+      <media-rep kind="original-media" src="file:///data/exports/x/media/01_orbit.mp4"/>
     </asset>
     <asset id="r3" name="Dive &amp; Drop.mp4" start="0s" duration="40/24s" hasVideo="1" format="r1" videoSources="1">
-      <media-rep kind="original-media" src="file:///C:/data/exports/x/media/02_dive_drop.mp4"/>
+      <media-rep kind="original-media" src="file:///data/exports/x/media/02_dive_drop.mp4"/>
     </asset>
   </resources>
   <library>

@@ -28,7 +28,7 @@ A full-body, front-facing character on a plain background gives the swap models 
 
 ## 2. Video: MiniMax H3
 
-Video, model MiniMax H3, image to video. First frame: image 1a. Aspect `16:9`, duration `6`s. Stay at 10s or less so every swap engine accepts the clip (MiniMax H3 swap takes up to 15s, Seedance and Kling O1 up to 10s).
+Video, model MiniMax H3 API (not MiniMax H3 Open, which needs a paid Comfy Cloud plan), image to video. First frame: image 1a. Aspect `16:9`, duration `6`s. Stay at 10s or less so every swap engine accepts the clip (MiniMax H3 swap takes up to 15s, Seedance and Kling O1 up to 10s).
 
 ```text
 The woman walks slowly toward the camera down the dark corridor, steady natural steps, arms swinging gently. After four seconds she stops, turns her head to look over her right shoulder, then looks back at the camera. The camera tracks backward at the same pace, keeping her full body centered and in frame the whole time. The orange strip light glides along her shoulders as she moves. One continuous shot, no cuts, quiet footsteps echoing.

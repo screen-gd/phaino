@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { DitherText } from "@/components/dithercn/dither-text";
 
 /** The marketing footer's scrubbed rise, driven by the studio's scroll container. */
 export function FooterWordmark({
-  wordClassName = "",
+  wordClassName = "text-[#f2f2f2]",
 }: {
   wordClassName?: string;
 }) {
@@ -53,17 +52,11 @@ export function FooterWordmark({
       aria-hidden="true"
       className="flex w-full items-baseline justify-center gap-4 overflow-hidden pt-[72px] pb-[6px] font-wordmark font-[650] text-[clamp(100px,28vw,460px)] leading-[0.9] tracking-[-0.087em] max-[800px]:pt-14 max-[480px]:pt-9"
     >
-      <span ref={word} className="inline-block">
-        <DitherText
-          fill="gradient"
-          direction="down"
-          from={1}
-          to={0.35}
-          palette={["transparent", "#FF5B22", "#f2f2f2"]}
-          className={`font-extrabold tracking-[-0.024em] ${wordClassName}`}
-        >
-          phaino
-        </DitherText>
+      <span
+        ref={word}
+        className={`inline-block font-extrabold tracking-[-0.024em] ${wordClassName}`}
+      >
+        phaino
       </span>
     </div>
   );

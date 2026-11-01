@@ -787,6 +787,12 @@
           "title": "Remove registry modes that fail the sync gate",
           "status": "done",
           "notes": "Dropped the four hidden modes whose tests were permanently skipped: flux1-schnell (entry), wan22-animate (entry, removed the kawarimi-animate swap engine), omnigen2 t2i and ming-image edit (other modes kept). Removed their manifest mode entries, template hash keys and 8 cache api/ui files; cleaned swap.test.ts assertions and README engine/FLUX lists. Suite now runs 1529 tests with 0 skipped; lint, typecheck and build clean."
+        },
+        {
+          "id": "e2e-review-fixes",
+          "title": "Apply e2e review findings: checkout credentials, loopback origin",
+          "status": "done",
+          "notes": "Added persist-credentials: false to actions/checkout in e2e.yml (fetch-depth: 0 kept). E2E target URL now http://127.0.0.1:3100 to match the dev server bind; next.config.ts allows 127.0.0.1 via allowedDevOrigins. Typecheck, lint and 1529 tests pass."
         }
       ]
     },

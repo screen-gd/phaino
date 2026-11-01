@@ -4,6 +4,7 @@ import path from "node:path";
 const webpTraces = ["../presets/**/*.webp", "../models/cache/**/*.webp"];
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["127.0.0.1"],
   outputFileTracingRoot: path.resolve(import.meta.dirname, ".."),
   outputFileTracingIncludes: {
     "/**": [

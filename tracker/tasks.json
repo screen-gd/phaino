@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-30",
+  "updated": "2026-11-01",
   "milestones": [
     {
       "id": "m1",
@@ -618,6 +618,12 @@
       "id": "ops",
       "title": "Housekeeping",
       "tasks": [
+        {
+          "id": "ci-e2e-diff-selection",
+          "title": "Run affected e2e tests on pull requests",
+          "status": "done",
+          "notes": "Initialized e2e with three demo checks and the Jev decision filter. GitHub Actions selects tests on PRs and runs the full suite on main/manual runs. AI_GATEWAY_API_KEY must be added to repository secrets; missing credentials fall back to all tests. Frozen install, discovery, typecheck, lint and build pass; all 1529 Vitest tests pass on rerun after a runner timing failure during concurrent checks. Browser execution is left to CI."
+        },
         {
           "id": "agent-quick-setup",
           "title": "Document quick agent setup with private API key input",

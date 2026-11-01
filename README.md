@@ -64,6 +64,14 @@ For Cloud workflow jobs, the account needs Cloud API access; a Router-only key c
 - **Header**: GitHub stars and your Comfy credit balance, when connected.
 - **Tracker**: `/tracker` shows what's done and what's next (data in `tracker/tasks.json`).
 
+## Tests
+
+From the repository root, run `pnpm --filter phaino-studio test` for the existing Vitest suite, or `pnpm --filter phaino-studio test:e2e` for browser tests. e2e starts a separate Studio dev server on port 3100 in demo mode. The tests use bundled samples and need no Comfy credentials. The framework currently supports Windows through WSL.
+
+The `e2e` GitHub Actions workflow runs affected tests on pull requests using the [Filters API](https://e2e.tester.army/docs/filters). Add the repository secret `AI_GATEWAY_API_KEY` to enable selection through `typesafe-ai/jev`. If the key is unavailable, including on fork pull requests, the filter warns and runs the full suite. Pushes to `main` and manual workflow runs always run the full suite.
+
+To preview selection without starting a browser, commit the changes, then run `pnpm --filter phaino-studio exec e2e list --changed-since origin/main` with `AI_GATEWAY_API_KEY` set. The ref must exist locally with enough history to find its merge base.
+
 ## Repository layout
 
 ```

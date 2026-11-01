@@ -16,7 +16,8 @@
     "export:workflows": "node scripts/export-workflows.ts",
     "models:pin": "node scripts/pin-models.ts",
     "models:sync": "node --conditions=react-server scripts/sync-models.ts",
-    "router:schemas": "node scripts/sync-router-schemas.ts"
+    "router:schemas": "node scripts/sync-router-schemas.ts",
+    "test:e2e": "e2e run"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -42,11 +43,15 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@e2e-dev/decision": "^0.3.1",
+    "@e2e-dev/web": "^0.15.4",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@types/yazl": "3.3.1",
+    "ai": "^7.0.159",
+    "e2e": "^0.22.0",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.4.2",
     "playwright": "^1.64.1",
